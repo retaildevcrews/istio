@@ -21,6 +21,7 @@
 		"ms-azuretools.vscode-docker",
 		"mutantdino.resourcemonitor",
 		"rust-lang.rust",
+		"vadimcn.vscode-lldb",
 		"humao.rest-client"
 	],
 	// Run Bash script in .devcontainer directory

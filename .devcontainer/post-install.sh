@@ -6,6 +6,7 @@ curl https://sh.rustup.rs > rust.sh
 chmod +x rust.sh
 ./rust.sh -y
 rm rust.sh
+cargo install cargo-debug
 
 # copy grafana.db to /grafana
 sudo mkdir -p /grafana
