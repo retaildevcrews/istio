@@ -1,7 +1,7 @@
 FROM ghcr.io/retaildevcrews/kind:latest
 
 # install rust
-RUN sudo apt-get install -y build-essential
+RUN apt-get install -y build-essential
 
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
