@@ -6,4 +6,4 @@ curl https://sh.rustup.rs > rust.sh && \
 chmod +x rust.sh && \
 ./rust.sh -y && \
 rm rust.sh && \
-cargo install cargo-debug
+$HOME/.cargo/bin/cargo install cargo-debug
