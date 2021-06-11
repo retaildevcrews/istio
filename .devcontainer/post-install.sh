@@ -1,11 +1,12 @@
 #!/bin/sh
 
 # install rust
-curl https://sh.rustup.rs > rust.sh
-chmod +x rust.sh
-./rust.sh -y
-rm rust.sh
+#curl https://sh.rustup.rs > rust.sh
+#chmod +x rust.sh
+#./rust.sh -y
+#rm rust.sh
 $HOME/.cargo/bin/cargo install cargo-debug
+echo 'export PATH="/usr/local/cargo/bin:$PATH"' >> $HOME/.bashrc
 
 # copy grafana.db to /grafana
 sudo mkdir -p /grafana
