@@ -1,10 +1,11 @@
 #!/bin/sh
 
 # install rust
-sudo apt-get instally -y build-essential
+sudo apt-get install -y build-essential
 curl https://sh.rustup.rs > rust.sh
 chmod +x rust.sh
 ./rust.sh -y
+rm rust.sh
 
 # copy grafana.db to /grafana
 sudo mkdir -p /grafana
