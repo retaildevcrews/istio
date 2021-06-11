@@ -20,6 +20,7 @@
 		"gruntfuggly.todo-tree",
 		"ms-azuretools.vscode-docker",
 		"mutantdino.resourcemonitor",
+		"rust-lang.rust",
 		"humao.rest-client"
 	],
 	// Run Bash script in .devcontainer directory
