@@ -1,7 +1,8 @@
 {
-	"name": "akdc-kind",
+	"name": "akdc-rust",
 	"remoteUser": "akdc",
-	"image": "ghcr.io/retaildevcrews/kind:latest",
+	"build": {"dockerfile": "Dockerfile"},
+	//"image": "ghcr.io/retaildevcrews/kind:latest",
 	"runArgs": [
 		"--init",
 		"--privileged"
