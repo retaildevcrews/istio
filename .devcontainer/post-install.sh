@@ -1,8 +1,7 @@
 #!/bin/sh
 
 # install cargo debug
-$HOME/.cargo/bin/cargo install cargo-debug
-echo 'export PATH="/usr/local/cargo/bin:$PATH"' >> $HOME/.bashrc
+cargo install cargo-debug
 
 # copy grafana.db to /grafana
 sudo mkdir -p /grafana
