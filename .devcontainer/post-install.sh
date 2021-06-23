@@ -8,7 +8,7 @@ cargo install cargo-debug
 rustup update
 rustup target add wasm32-unknown-unknown
 
-curl -sL https://run.solo.io/wasme/install | sudo sh
+curl -sL https://run.solo.io/wasme/install | sh
 echo 'export PATH=$HOME/.wasme/bin:$PATH' >> $HOME/.bashrc
 
 # copy grafana.db to /grafana
