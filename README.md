@@ -1,41 +1,34 @@
-# Kind Dev Cluster Template
+# Envoy filter with Rust and WebAssembly
 
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+This is a demo accompanying a blogpost about building Envoy filters with Rust and WebAssembly.
 
-> Setup a Kind Dev Cluster on Codespaces Template
+## Getting started
 
-## Overview
+1. Install WebAssembly target for rust
 
-This is a template that will setup a Kubernetes developer cluster using `Kind` and `GitHub Codespaces`
+   ```sh
+   $ rustup update
+   $ rustup target add wasm32-unknown-unknown
+   ```
 
-Create your repo from this template and add your application code
+2. Install [wasme](https://docs.solo.io/web-assembly-hub/latest/reference/cli/)
 
-### Engineering Docs
+   ```sh
+   $ curl -sL https://run.solo.io/wasme/install | sh
+   $ export PATH=$HOME/.wasme/bin:$PATH
+   ```
 
-- Team Working [Agreement](.github/WorkingAgreement.md)
-- Team [Engineering Practices](.github/EngineeringPractices.md)
-- CSE Engineering Fundamentals [Playbook](https://github.com/Microsoft/code-with-engineering-playbook)
+3. Clone the repo and use the makefile to build and run the demo:
 
-## How to file issues and get help  
+   ```sh
+   $ make build-image
+   $ make deploy-envoy
+   ```
 
-This project uses GitHub Issues to track bugs and feature requests. Please search the existing issues before filing new issues to avoid duplicates. For new issues, file your bug or feature request as a new issue.
+Now you can open <http://localhost:8080/headers>. This is proxying to <http://httpbin.org/headers>, reflecting request headers back at you. You should see
 
-For help and questions about using this project, please open a GitHub issue.
+```
+"X-Hello": "Hello world from localhost:8080"
+```
 
-## Contributing
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services.
-
-Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+which was injected by the filter.
