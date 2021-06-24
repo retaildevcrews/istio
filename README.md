@@ -2,33 +2,45 @@
 
 This is a demo accompanying a blogpost about building Envoy filters with Rust and WebAssembly.
 
+<https://github.com/proxy-wasm/proxy-wasm-rust-sdk>
+
 ## Getting started
 
-1. Install WebAssembly target for rust
+### Install WebAssembly target for rust
 
-   ```sh
+   ```bash
+
+   # not necessary with Codespaces
+
    rustup update
    rustup target add wasm32-unknown-unknown
+
    ```
 
-2. Install [wasme](https://docs.solo.io/web-assembly-hub/latest/reference/cli/)
+### Install [wasme](https://docs.solo.io/web-assembly-hub/latest/reference/cli/)
 
-   ```sh
+   ```bash
+
+   # not necessary with Codespaces
+
    curl -sL https://run.solo.io/wasme/install | sh
    export PATH=$HOME/.wasme/bin:$PATH
+
    ```
 
-3. Clone the repo and use the makefile to build and run the demo:
+### Clone the repo and use the makefile to build and run the demo:
 
-   ```sh
-   make build-image
-   make deploy-envoy
+   ```bash
+
+   make build
+   make run
+
    ```
 
-Now you can open <http://localhost:8080/headers>. This is proxying to <http://httpbin.org/headers>, reflecting request headers back at you. You should see
+### Start a new terminal
 
-```text
-"X-Hello": "Hello world from localhost:8080"
+```bash
+
+curl -i localhost:8080/healthz
+
 ```
-
-which was injected by the filter.
