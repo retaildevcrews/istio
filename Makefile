@@ -36,6 +36,18 @@ create:
 	# wait for cluster to be ready
 	@kubectl wait node --for condition=ready --all --timeout=60s
 
+	# Install istio
+	@istioctl install -y
+	@kubectl label namespace default istio-injection=enabled
+
+	# Install prometheus
+	@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
+
+	# Install kiali
+	@kubectl apply -f deploy/kiali
+	sleep 5
+	@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
+
 deploy:
 	# deploy the app
 	@# continue on most errors
