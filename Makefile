@@ -69,8 +69,8 @@ clean :
 
 test:
 	# run a single test
-	webv -s http://localhost:30080 -f ../loderunner/baseline.json
+	cd deploy/loderunner && webv -s http://localhost:30080 -f baseline.json
 
 load-test:
-	# run a 60 second load test
-	webv -s http://localhost:30080 -f ../loderunner/baseline.json benchmark.json -r -l 1 --duration 60
+	# run a 10 second load test
+	cd deploy/loderunner && webv -s http://localhost:30080 -f benchmark.json -r -l 1 --duration 10
