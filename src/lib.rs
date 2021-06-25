@@ -49,7 +49,7 @@ impl HttpContext for HttpHeaders {
         }
 
         match self.get_http_request_header(":path") {
-            Some(path) if path == "/healthz" => {
+            Some(path) if path == "/burst-check" => {
                 self.send_http_response(
                     200,
                     vec![("X-Load-Feedback", "service: ngsa-memory, current-load: 27, target-load: 60, max-load: 85")],
