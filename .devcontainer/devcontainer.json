@@ -23,7 +23,8 @@
 		"mutantdino.resourcemonitor",
 		"rust-lang.rust",
 		"vadimcn.vscode-lldb",
-		"humao.rest-client"
+		"humao.rest-client",
+		"serayuzgur.crates"
 	],
 	// Run Bash script in .devcontainer directory
 	"postCreateCommand": "/bin/bash ./.devcontainer/post-install.sh"
