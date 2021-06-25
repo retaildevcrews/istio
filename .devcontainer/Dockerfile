@@ -31,3 +31,7 @@ RUN dotnet tool install -g webvalidate
 #install istioctl
 RUN curl -L https://istio.io/downloadIstio | sh -  && \
     sudo mv istio-$ISTIO_VERSION $ISTIO_HOME
+
+RUN rustup component add rust-analysis && \
+    rustup component add rust-src && \
+    rustup component add rls
