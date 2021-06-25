@@ -2,7 +2,7 @@
 	"name": "akdc-rust",
 	"remoteUser": "akdc",
 	//"build": {"dockerfile": "Dockerfile"},
-	"image": "ghcr.io/retaildevcrews/kind:latest",
+	"image": "ghcr.io/retaildevcrews/kind-rust:latest",
 	"runArgs": [
 		"--init",
 		"--privileged"
@@ -23,7 +23,8 @@
 		"mutantdino.resourcemonitor",
 		"rust-lang.rust",
 		"vadimcn.vscode-lldb",
-		"humao.rest-client"
+		"humao.rest-client",
+		"serayuzgur.crates"
 	],
 	// Run Bash script in .devcontainer directory
 	"postCreateCommand": "/bin/bash ./.devcontainer/post-install.sh"
