@@ -13,5 +13,3 @@ crate-type = ["cdylib"]
 [dependencies]
 log = "0.4.8"
 proxy-wasm = "0.1.0"
-openssl-sys = "0.9.65"
-openssl = "0.10.35"
