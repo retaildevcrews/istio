@@ -15,6 +15,10 @@
 use log::trace;
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
+use std::net::{TcpStream};
+use std::io::{self, Read, Write};
+use std::str;
+use std::{thread, time};
 
 #[no_mangle]
 pub fn _start() {
@@ -50,10 +54,22 @@ impl HttpContext for HttpHeaders {
 
         match self.get_http_request_header(":path") {
             Some(path) if path == "/burst-check" => {
+                
                 self.send_http_response(
                     200,
                     vec![("X-Load-Feedback", "service: ngsa-memory, current-load: 27, target-load: 60, max-load: 85")],
-                    Some(b"Pass\n\n"),
+                    Some(b"Pass\n"),
+                );
+                Action::Pause
+            },
+            Some(path) if path == "/this-will-fail" => {
+                
+                let s = get_header("x-load-feedback");
+
+                self.send_http_response(
+                    200,
+                    vec![("X-Load-Feedback", &s)],
+                    Some(b"Fail\n"),
                 );
                 Action::Pause
             }
@@ -71,4 +87,53 @@ impl HttpContext for HttpHeaders {
     fn on_log(&mut self) {
         trace!("#{} completed.", self.context_id);
     }
+}
+
+fn get_header(key: &str) -> String {
+    let mut headers = Vec::new();
+    let mut buf = vec![];
+    let msg = b"GET / HTTP/1.0\n\n\n";
+
+    // this will fail with operation not supported on this platform
+    match TcpStream::connect("127.0.0.1:8080"){
+        Ok(mut stream) => {
+            stream.set_nonblocking(true).expect("set_nonblocking call failed");
+
+            stream.write(msg).unwrap();
+    
+            loop {
+                match stream.read_to_end(&mut buf) {
+                    Ok(_) => break,
+                    Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                        // wait until network socket is ready, typically implemented
+                        // via platform-specific APIs such as epoll or IOCP
+                        //wait_for_fd();
+                        thread::sleep(time::Duration::from_millis(100));
+                    }
+                    Err(e) => panic!("encountered IO error: {}", e),
+                };
+            };
+            let s = str::from_utf8(&buf).unwrap();
+
+            let k = format!("{}:", key);
+    
+            for line in s.split("\n"){
+                
+                if line.starts_with(&k){
+                    headers.push(String::from(line[k.len()..].trim()));
+                }
+            }
+        },
+        Err(e) => {
+            headers.push(format!("{}", e));
+        }
+    }
+
+    let mut ret = String::new();
+
+    if headers.len() > 0 {
+        ret = headers[0].to_string();
+    }
+
+    return ret;
 }

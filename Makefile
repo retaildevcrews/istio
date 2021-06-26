@@ -1,9 +1,7 @@
-.PHONY: build run create delete check clean deploy test load-test
+.PHONY: create delete check clean deploy test load-test
 
 help :
 	@echo "Usage:"
-	@echo "   make build            - build Istio plug-in"
-	@echo "   make run              - run Istio with plug-in via Docker"
 	@echo "   make create           - create a kind cluster"
 	@echo "   make delete           - delete the kind cluster"
 	@echo "   make deploy           - deploy the apps to the cluster"
@@ -11,15 +9,6 @@ help :
 	@echo "   make clean            - delete the apps from the cluster"
 	@echo "   make test             - run a LodeRunner test (generates warnings)"
 	@echo "   make load-test        - run a 60 second load test"
-
-build:
-	cargo build --target wasm32-unknown-unknown --release
-	cp target/wasm32-unknown-unknown/release/hello_world.wasm ./
-	wasme build precompiled hello_world.wasm --tag hello_world:v0.1
-	rm hello_world.wasm
-
-run: build
-	wasme deploy envoy hello_world:v0.1 --envoy-image=istio/proxyv2:1.5.1 --bootstrap=envoy-bootstrap.yml
 
 delete:
 	# delete the cluster (if exists)
