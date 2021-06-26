@@ -69,7 +69,7 @@ impl HttpContext for HttpHeaders {
                 self.send_http_response(
                     200,
                     vec![("X-Load-Feedback", &s)],
-                    Some(b"Pass\n"),
+                    Some(b"Fail\n"),
                 );
                 Action::Pause
             }
