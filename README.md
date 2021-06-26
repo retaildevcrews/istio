@@ -1,38 +1,28 @@
-# Envoy filter with Rust and WebAssembly
+# Istio Filter
 
-This is a demo accompanying a blogpost about building Envoy filters with Rust and WebAssembly.
+> Sample Istio filter with Rust and Web Assembly
 
-<https://github.com/proxy-wasm/proxy-wasm-rust-sdk>
+## Issues with Web Assembly
 
-## Getting started
+- Currently, `TcpStream` is not supported in Rust Web Assembly
+  - no external TCP calls are supported
+  - we can't use Rust Web Assembly for this project
+- There is a simple sample that works
 
-### Install WebAssembly target for rust
+### Runnning hello
 
-   ```bash
+> This is not a Web Assembly
 
-   # not necessary with Codespaces
+This is a simple Rust hello app that uses curl to retrieve from a website
 
-   rustup update
-   rustup target add wasm32-unknown-unknown
+- Run by pressing `F5`
+- Run from terminal with `cargo run`
 
-   ```
-
-### Install [wasme](https://docs.solo.io/web-assembly-hub/latest/reference/cli/)
-
-   ```bash
-
-   # not necessary with Codespaces
-
-   curl -sL https://run.solo.io/wasme/install | sh
-   export PATH=$HOME/.wasme/bin:$PATH
-
-   ```
-
-### Clone the repo and use the makefile to build and run the demo:
+### Run Istio Web Assembly
 
    ```bash
 
-   make build
+   cd proxy
    make run
 
    ```
@@ -41,6 +31,14 @@ This is a demo accompanying a blogpost about building Envoy filters with Rust an
 
 ```bash
 
-curl -i localhost:8080/healthz
+# This works
+curl -i localhost:8080/burst-check
+
+# This doesn't
+curl -i localhost:8080/this-will-fail
 
 ```
+
+## Links
+
+- Building Envoy filters with Rust and WebAssembly - <https://github.com/proxy-wasm/proxy-wasm-rust-sdk>
