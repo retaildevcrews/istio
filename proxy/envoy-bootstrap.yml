@@ -38,3 +38,13 @@ static_resources:
             address: httpbin.org
             port_value: 80
             ipv4_compat: true
+    - name: burst
+      connect_timeout: 5s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      hosts:
+      - socket_address:
+          protocol: TCP
+          address: localhost
+          port_value: 8080
