@@ -12,47 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use log::trace;
+use log::{debug, trace};
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
-use std::net::{TcpStream};
-use std::io::{self, Read, Write};
-use std::str;
-use std::{thread, time};
+use std::time::Duration;
 
 #[no_mangle]
 pub fn _start() {
     proxy_wasm::set_log_level(LogLevel::Trace);
-    proxy_wasm::set_root_context(|_| -> Box<dyn RootContext> { Box::new(HttpHeadersRoot) });
-}
-
-struct HttpHeadersRoot;
-
-impl Context for HttpHeadersRoot {}
-
-impl RootContext for HttpHeadersRoot {
-    fn get_type(&self) -> Option<ContextType> {
-        Some(ContextType::HttpContext)
-    }
-
-    fn create_http_context(&self, context_id: u32) -> Option<Box<dyn HttpContext>> {
-        Some(Box::new(HttpHeaders { context_id }))
-    }
+    proxy_wasm::set_http_context(|context_id, _| -> Box<dyn HttpContext> {
+        Box::new(HttpHeaders { context_id })
+    });
 }
 
 struct HttpHeaders {
     context_id: u32,
 }
 
-impl Context for HttpHeaders {}
-
 impl HttpContext for HttpHeaders {
     fn on_http_request_headers(&mut self, _: usize) -> Action {
         for (name, value) in &self.get_http_request_headers() {
-            trace!("#{} -> {}: {}", self.context_id, name, value);
+            debug!("#{} -> {}: {}", self.context_id, name, value);
         }
 
+        // match on http path
         match self.get_http_request_header(":path") {
+            // burst-check
             Some(path) if path == "/burst-check" => {
                 
                 self.send_http_response(
@@ -62,78 +47,79 @@ impl HttpContext for HttpHeaders {
                 );
                 Action::Pause
             },
-            Some(path) if path == "/this-will-fail" => {
-                
-                let s = get_header("x-load-feedback");
 
-                self.send_http_response(
-                    200,
-                    vec![("X-Load-Feedback", &s)],
-                    Some(b"Fail\n"),
-                );
+            // proxy test
+            Some(path) if path == "/test" => {
+                // dispatch the web servie call
+                // this has to be registered in envoy-bootstrap.yml
+                let dis = self.dispatch_http_call(
+                    "burst",
+                    vec![
+                        (":method", "GET"),
+                        (":path", "/burst-check"),
+                        (":authority", "localhost"),
+                    ],
+                    None,
+                    vec![],
+                    Duration::from_secs(5));
+
+                // return 500 if dispatch fails
+                if dis.is_err() {
+                    self.send_http_response(
+                        500,
+                        vec![],
+                        Some(b"dispatch failed"),
+                    );
+                }
+
                 Action::Pause
             }
+            // ignore
             _ => Action::Continue,
         }
     }
 
+    // not needed - debugging only
     fn on_http_response_headers(&mut self, _: usize) -> Action {
         for (name, value) in &self.get_http_response_headers() {
-            trace!("#{} <- {}: {}", self.context_id, name, value);
+            debug!("#{} <- {}: {}", self.context_id, name, value);
         }
         Action::Continue
     }
 
+    // not needed - debugging only
     fn on_log(&mut self) {
-        trace!("#{} completed.", self.context_id);
+        debug!("#{} completed.", self.context_id);
     }
 }
 
-fn get_header(key: &str) -> String {
-    let mut headers = Vec::new();
-    let mut buf = vec![];
-    let msg = b"GET / HTTP/1.0\n\n\n";
+impl Context for HttpHeaders {
+    // http callback
+    fn on_http_call_response(&mut self, _: u32, _: usize, body_size: usize, _: usize) {
+        // todo - this is just a sample
+        if let Some(body) = self.get_http_call_response_body(0, body_size) {
+            if !body.is_empty() {
 
-    // this will fail with operation not supported on this platform
-    match TcpStream::connect("127.0.0.1:8080"){
-        Ok(mut stream) => {
-            stream.set_nonblocking(true).expect("set_nonblocking call failed");
+                // todo - this shouldn't be needed
+                self.send_http_response(
+                    200,
+                    vec![],
+                    Some(b"success!\n"),
+                );
 
-            stream.write(msg).unwrap();
-    
-            loop {
-                match stream.read_to_end(&mut buf) {
-                    Ok(_) => break,
-                    Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                        // wait until network socket is ready, typically implemented
-                        // via platform-specific APIs such as epoll or IOCP
-                        //wait_for_fd();
-                        thread::sleep(time::Duration::from_millis(100));
-                    }
-                    Err(e) => panic!("encountered IO error: {}", e),
-                };
-            };
-            let s = str::from_utf8(&buf).unwrap();
+                // without the send_http, this returns 404
+                // the result of the call should be proxied but it's not
+                self.resume_http_request();
 
-            let k = format!("{}:", key);
-    
-            for line in s.split("\n"){
-                
-                if line.starts_with(&k){
-                    headers.push(String::from(line[k.len()..].trim()));
-                }
+                return;
             }
-        },
-        Err(e) => {
-            headers.push(format!("{}", e));
         }
+
+        // request failed
+        self.send_http_response(
+            500,
+            vec![],
+            Some(b"callback failed\n"),
+        );
     }
-
-    let mut ret = String::new();
-
-    if headers.len() > 0 {
-        ret = headers[0].to_string();
-    }
-
-    return ret;
 }
