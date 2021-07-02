@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use log::{debug, trace};
+use log::{debug};
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
 use std::time::Duration;
