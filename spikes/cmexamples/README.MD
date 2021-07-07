@@ -74,7 +74,8 @@ apply -f wip.yml
 ### run proxy status to make sure you see sync sync on product page
 
 istioctl proxy-status
-NAME                                                   CDS        LDS        EDS        RDS          ISTIOD                      VERSION
+
+>NAME                                                   CDS        LDS        EDS        RDS          ISTIOD                      VERSION
 details-v1-79f774bdb9-m4nwd.default                    SYNCED     SYNCED     SYNCED     SYNCED       istiod-664799f4bc-4ntpn     1.10.2
 istio-egressgateway-78cb6c4799-dclwv.istio-system      SYNCED     SYNCED     SYNCED     NOT SENT     istiod-664799f4bc-4ntpn     1.10.2
 istio-ingressgateway-59644976b5-ktrqs.istio-system     SYNCED     SYNCED     SYNCED     SYNCED       istiod-664799f4bc-4ntpn     1.10.2
