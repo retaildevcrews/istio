@@ -4,7 +4,7 @@ You will likely need to tweak things for your own env. These samples should be s
 ##
 Environment
 
-[200~chmar@cmonecsmvm:~/istio/spikes/cmexamples$ rustup show
+chmar@cmonecsmvm:~/istio/spikes/cmexamples$ rustup show
 Default host: x86_64-unknown-linux-gnu
 rustup home:  /home/chmar/.rustup
 
@@ -54,13 +54,13 @@ If you use the pymetric app then apply the yaml in the pymetricyaml folder makin
 switch to the rust directory and build OR edit and build your own riff
  cargo build --release --target=wasm32-unknown-unknown
 
-###delete any existing config map
+### delete any existing config map
 kubectl delete -n default cm wasm-poc-filter
 
-###create the config map with embedded wasm
+### create the config map with embedded wasm
 kubectl create cm wasm_header_poc --from-file=../target/wasm32-unknown-unknown/release/wasm_header_poc.wasm
 
-###patch the pod to maek sure it has access to the wasm
+### patch the pod to maek sure it has access to the wasm
 kubectl patch deployment -n default productpage-v1 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 ### kick the service in effort to reload configmap bytes
