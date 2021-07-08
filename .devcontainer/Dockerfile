@@ -1,4 +1,4 @@
-FROM ghcr.io/retaildevcrews/kind:latest
+FROM ghcr.io/retaildevcrews/kind:beta
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update
@@ -14,7 +14,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
     RUST_VERSION=1.52.1 \
-    USER=akdc
+    USER=vscode
 
 RUN set -eux; \
     dpkgArch="$(dpkg --print-architecture)"; \
@@ -38,10 +38,8 @@ RUN apt-get upgrade -y
 RUN apt-get autoremove -y && \
     apt-get clean -y
 
-WORKDIR /home/akdc
-USER akdc
-
-RUN echo 'export PATH=$HOME/.wasme/bin:$PATH' >> /home/akdc/.bashrc
+WORKDIR /home/vscode
+USER vscode
 
 # install cargo debug
 RUN cargo install cargo-debug
@@ -51,7 +49,7 @@ RUN rustup component add rust-analysis && \
     rustup component add rls
 RUN rustup target add wasm32-unknown-unknown
 
-RUN curl -sL https://run.solo.io/wasme/install | sh
+#RUN curl -sL https://run.solo.io/wasme/install | sh
 
 # install webv
 RUN dotnet tool install -g webvalidate
