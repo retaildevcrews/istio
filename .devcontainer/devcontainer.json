@@ -1,6 +1,6 @@
 {
 	"name": "akdc-rust",
-	"remoteUser": "akdc",
+	"remoteUser": "vscode",
 	//"build": {"dockerfile": "Dockerfile"},
 	"image": "ghcr.io/retaildevcrews/kind-rust:latest",
 	"runArgs": [
