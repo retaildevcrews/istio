@@ -1,14 +1,18 @@
-.PHONY: create delete check clean deploy test load-test
+.PHONY: build create delete check clean deploy test load-test
 
 help :
 	@echo "Usage:"
-	@echo "   make create           - create a kind cluster"
-	@echo "   make delete           - delete the kind cluster"
-	@echo "   make deploy           - deploy the apps to the cluster"
-	@echo "   make check            - check the endpoints with curl"
-	@echo "   make clean            - delete the apps from the cluster"
-	@echo "   make test             - run a LodeRunner test (generates warnings)"
-	@echo "   make load-test        - run a 60 second load test"
+	@echo "   make build        - build the plug-in"
+	@echo "   make create       - create a kind cluster"
+	@echo "   make delete       - delete the kind cluster"
+	@echo "   make deploy       - deploy the apps to the cluster"
+	@echo "   make check        - check the endpoints with curl"
+	@echo "   make clean        - delete the apps from the cluster"
+	@echo "   make test         - run a LodeRunner test (generates warnings)"
+	@echo "   make load-test    - run a 60 second load test"
+
+build:
+	cargo build --release --target=wasm32-unknown-unknown
 
 delete:
 	# delete the cluster (if exists)
