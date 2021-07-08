@@ -1,5 +1,7 @@
 FROM ghcr.io/retaildevcrews/kind:beta
 
+ARG USERNAME=vscode
+
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update
 
@@ -38,8 +40,8 @@ RUN apt-get upgrade -y
 RUN apt-get autoremove -y && \
     apt-get clean -y
 
-WORKDIR /home/vscode
-USER vscode
+WORKDIR /home/${USERNAME}
+USER ${USERNAME}
 
 # install cargo debug
 RUN cargo install cargo-debug
