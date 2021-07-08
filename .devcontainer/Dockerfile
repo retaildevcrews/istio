@@ -16,7 +16,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
     RUST_VERSION=1.52.1 \
-    USER=vscode
+    USER=${USERNAME}
 
 RUN set -eux; \
     dpkgArch="$(dpkg --print-architecture)"; \
