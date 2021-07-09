@@ -13,6 +13,7 @@ help :
 
 build :
 	cargo build --release --target=wasm32-unknown-unknown
+	cp target/wasm32-unknown-unknown/release/wasm_header_poc.wasm .
 
 build-metrics :
 	docker build pymetric -t pymetric:local
