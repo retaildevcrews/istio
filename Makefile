@@ -1,4 +1,4 @@
-.PHONY: build create delete check clean deploy test load-test
+.PHONY: build build-metrics create delete check clean deploy test load-test
 
 help :
 	@echo "Usage:"
@@ -11,15 +11,19 @@ help :
 	@echo "   make test         - run a LodeRunner test (generates warnings)"
 	@echo "   make load-test    - run a 60 second load test"
 
-build:
+build :
 	cargo build --release --target=wasm32-unknown-unknown
+
+build-metrics :
+	docker build pymetric -t pymetric:local
+	kind load docker-image pymetric:local
 
 delete:
 	# delete the cluster (if exists)
 	@# this will fail harmlessly if the cluster does not exist
 	@kind delete cluster
 
-create:
+create :
 	# create the cluster and wait for ready
 	@# this will fail harmlessly if the cluster exists
 	@# default cluster name is kind
@@ -41,7 +45,7 @@ create:
 	sleep 5
 	@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
-deploy:
+deploy : build-metrics
 	# deploy the app
 	@# continue on most errors
 	-kubectl apply -f deploy/ngsa-memory
@@ -52,6 +56,9 @@ deploy:
 
 	# wait for the pods to start
 	@kubectl wait pod loderunner --for condition=ready --timeout=30s
+
+	# deploy metrics server
+	@kubectl apply -f deploy/pymetric
 
 	# display pod status
 	@kubectl get po -A
@@ -72,10 +79,10 @@ clean :
 	# show running pods
 	@kubectl get po -A
 
-test:
+test :
 	# run a single test
 	cd deploy/loderunner && webv -s http://localhost:30080 -f baseline.json
 
-load-test:
+load-test :
 	# run a 10 second load test
 	cd deploy/loderunner && webv -s http://localhost:30080 -f benchmark.json -r -l 1 --duration 10
