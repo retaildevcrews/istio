@@ -44,7 +44,7 @@ spec:
       serviceAccountName: pymetric
       containers:
       - name: pymetric
-        image: localhost:5000/pymetric:v3 
+        image: pymetric:local
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 32888 
