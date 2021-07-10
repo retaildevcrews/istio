@@ -24,6 +24,11 @@ spec:
         args:
           - --in-memory
           - --prometheus
+          - --url-prefix
+          - /memory
+          - --burst-header
+          - --burst-service
+          - memory
           - --log-level
           - Warning
           - --request-log-level
@@ -44,10 +49,46 @@ metadata:
   labels:
     app: ngsa-memory
 spec:
-  type: NodePort
   selector:
     app: ngsa-memory
   ports:
     - port: 8080
-      targetPort: 8080
-      nodePort: 30080
+      name: http
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: ngsa-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ngsa-vs
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - ngsa-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: ngsa-memory
+        port:
+          number: 8088
