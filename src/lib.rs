@@ -32,9 +32,9 @@ struct FilterConfig {
 impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
-            header_providing_service_cluster: "luacluster".to_owned(),
+            header_providing_service_cluster: "healthcluster".to_owned(),
             header_providing_service_path: "/pymetric".to_owned(),
-            header_providing_service_authority: "luahost".to_owned(),
+            header_providing_service_authority: "172.19.0.2".to_owned(),
             header_cache_expiry: Duration::from_secs(360),
         }
     }
@@ -111,11 +111,11 @@ impl RootContext for RootHandler {
 
                 // Dispatch an async HTTP call to the configured cluster.
                 self.dispatch_http_call(
-                    &config.header_providing_service_cluster,
+                    "healthcluster",
                     vec![
                         (":method", "GET"),
-                        (":path", &config.header_providing_service_path),
-                        (":authority", &config.header_providing_service_authority),
+                        (":path", "/pymetric"),
+                        (":authority", "172.19.0.2"),
                     ],
                     None,
                     vec![],
@@ -227,4 +227,3 @@ mod tests {
         assert_eq!(2 + 2, 4);
     }
 }
-

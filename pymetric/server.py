@@ -4,6 +4,9 @@ import psutil
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
+        self.set_header("x-custom-1",str(max([x / psutil.cpu_count() * 100 for x in psutil.getloadavg()])))
+                
+        self.set_header("x-custom-2",psutil.cpu_count())
         self.write({"cpuavg":max([x / psutil.cpu_count() * 100 for x in psutil.getloadavg()]),
             "numcpu":psutil.cpu_count()})
 

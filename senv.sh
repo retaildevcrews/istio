@@ -1,0 +1,1 @@
+export PATH=/workspaces/istio/istio-1.10.2/bin:$PATH
