@@ -9,7 +9,7 @@ Steps
 
 
 1) source senv.sh  #this switches thte path and sets istio to 1.10.2
-2) make -f Makelocal #this builds everything 
+2) make -f Makelocal build #this builds everything 
 3) source tcall.sh # this exports all the ports in use by apps behind gateway to env vars.
 4) edit cmdemoyml/filter.yml #change the port and ip to what you see in the $GATEWAY_URL variable
 5) edit the src/lib.rs line 118 and put in correct IP #switch the IP address in code
