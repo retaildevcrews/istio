@@ -10,12 +10,6 @@ docker network create kind
 # create local registry
 docker run -d --net kind --restart=always -p "127.0.0.1:5000:5000" --name kind-registry registry:2
 
-# pull docker image
-docker pull ghcr.io/retaildevcrews/ngsa-app:beta
-docker tag ghcr.io/retaildevcrews/ngsa-app:beta localhost:5000/retaildevcrews/ngsa-app:beta
-docker push localhost:5000/retaildevcrews/ngsa-app:beta
-
 # build pymetric
-docker build pymetric -t pymetric:local
-docker tag  pymetric:local localhost:5000/pymetric:local
+docker build pymetric -t localhost:5000/pymetric:local
 docker push localhost:5000/pymetric:local
