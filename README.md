@@ -5,9 +5,12 @@
 ## TODO
 
 - Not working yet
-  - LodeRunner
-  - Prometheus
-  - Grafana
+  - need to merge the kind configs
+    - Prometheus
+    - Grafana
+  - need to figure out what has to be left deployed
+    - make clean
+    - make deploy
 
 ## Run Istio Web Assembly
 
