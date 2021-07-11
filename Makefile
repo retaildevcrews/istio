@@ -16,37 +16,26 @@ build :
 	cargo build --release --target=wasm32-unknown-unknown
 	cp target/wasm32-unknown-unknown/release/wasm_header_poc.wasm .
 
-build-metrics :
-	docker build pymetric -t pymetric:local
-
 delete:
 	# delete the cluster (if exists)
 	@# this will fail harmlessly if the cluster does not exist
 	-kind delete cluster
 
-deploy : build-metrics
-	# deploy the app
-	@# continue on most errors
-	-kubectl apply -f deploy/ngsa-memory
-	@kubectl wait pod ngsa-memory --for condition=ready --timeout=30s
-
-	# deploy metrics server
-	@kubectl apply -f deploy/pymetric
-
-	# display pod status
-	@kubectl get po
+deploy :
+	# TODO deploy the app
 
 check :
 	# check the endpoints
-	@http http://${GATEWAY_URL}/healthz
+	@http http://${GATEWAY_URL}/memory/healthz
 
 clean :
 	# delete the deployment
+	# TODO - implement
 	@# continue on error
-	@kubectl delete --ignore-not-found -f  cmdemoyml/pymetric.yaml
-	@kubectl delete --ignore-not-found -f  cmdemoyml/pymetric-gw.yaml
-	@kubectl delete --ignore-not-found -f  cmdemoyml/ngsa.yaml
-	@kubectl delete --ignore-not-found -f  cmdemoyml/ngsa-gw.yaml
+	@kubectl delete --ignore-not-found -f  deploy/pymetric/pymetric.yaml
+	@kubectl delete --ignore-not-found -f  deploy/pymetric/pymetric-gw.yaml
+	@kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-memory.yaml
+	@kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-gw.yaml
 
 	# show running pods
 	@kubectl get po -A
@@ -78,20 +67,12 @@ create : delete
 	#sleep 5
 	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
-	kubectl apply -f cmdemoyml/pymetric.yaml
-	kubectl apply -f cmdemoyml/pymetric-gw.yaml
-	kubectl apply -f cmdemoyml/ngsa.yaml
-	kubectl apply -f cmdemoyml/ngsa-gw.yaml
+	kubectl apply -f deploy/pymetric/pymetric.yaml
+	kubectl apply -f deploy/pymetric/pymetric-gw.yaml
+	kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
+	kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
+
 	kubectl wait pod --for condition=ready --all --timeout=60s
 
-	@echo "source tcall.sh"
-
-finish :
 	#Patching Istio ...
 	@./patch.sh
-
-	@kubectl apply -f cmdemoyml/filter.yml
-
-	@-kubectl wait pod --for condition=ready --all --timeout=60s
-
-	@kubectl get pod
