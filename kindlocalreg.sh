@@ -23,10 +23,6 @@ containerdConfigPatches:
     endpoint = ["http://${reg_name}:${reg_port}"]
 EOF
 
-# connect the registry to the cluster network
-# (the network may already be connected)
-docker network connect "kind" "${reg_name}" || true
-
 # Document the local registry
 # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
 cat <<EOF | kubectl apply -f -
