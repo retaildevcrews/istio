@@ -1,4 +1,4 @@
-.PHONY: build build-metrics create delete check clean deploy test load-test
+.PHONY: build build-metrics create delete check clean deploy test load-test new-create
 
 help :
 	@echo "Usage:"
@@ -23,9 +23,9 @@ build-metrics :
 delete:
 	# delete the cluster (if exists)
 	@# this will fail harmlessly if the cluster does not exist
-	@kind delete cluster
+	-kind delete cluster
 
-create :
+create : delete
 	# create the cluster and wait for ready
 	@# this will fail harmlessly if the cluster exists
 	@# default cluster name is kind
@@ -40,7 +40,6 @@ create :
 	@kubectl label namespace default istio-injection=enabled
 
 	# connect the registry to the cluster network
-	-docker network create kind
 	-docker network connect "kind" "kind-registry"
 
 	# Install prometheus
@@ -52,10 +51,7 @@ create :
 	#sleep 5
 	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
-	@export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
-	@export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')
-	@export INGRESS_HOST=$(kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].status.hostIP}')
-	@export GATEWAY_URL=$INGRESS_HOST:$INGRESS_PORT
+	@source tcall.sh
 
 deploy : build-metrics
 	# deploy the app
@@ -91,3 +87,21 @@ test :
 load-test :
 	# run a 10 second load test
 	cd deploy/loderunner && webv -s http://localhost:30080 -f benchmark.json -r -l 1 --duration 10
+
+new-create : delete
+	./kindlocalreg.sh kind
+
+	kubectl config use-context kind-kind
+
+	istioctl install --set profile=demo -y
+	kubectl label namespace default istio-injection=enabled
+
+	kubectl wait node --for condition=ready --all --timeout=60s
+
+	kubectl apply -f cmdemoyml/pymetric.yaml
+	kubectl apply -f cmdemoyml/pymetric-gw.yaml
+	kubectl apply -f cmdemoyml/ngsa.yaml
+	kubectl apply -f cmdemoyml/ngsa-gw.yaml
+	kubectl wait pod --for condition=ready --all --timeout=60s
+
+	#source tcall.sh
