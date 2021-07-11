@@ -19,7 +19,7 @@ spec:
     - --prometheus
     - -r
     - -s
-    - http://ngsa-memory:8080
+    - http://ngsa:8080
     - -f
     - benchmark.json
     - --zone
