@@ -4,9 +4,6 @@
 
 ## TODO
 
-- For now, you have to create a new Codespace from this branch
-  - the kind-rust image has been updated
-  - post-install.sh has been updated
 - Not working yet
   - LodeRunner
   - Prometheus
