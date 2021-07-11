@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
-  name: pymetric-gateway
+  name: ngsa-gateway
 spec:
   selector:
     istio: ingressgateway # use istio default controller
@@ -16,18 +16,20 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: pymetric-vs
+  name: ngsa-vs
 spec:
   hosts:
   - "*"
   gateways:
-  - pymetric-gateway
+  - ngsa-gateway
   http:
   - match:
     - uri:
-        exact: /pymetric
+        prefix: /memory/
+    rewrite:
+      uri: /
     route:
     - destination:
-        host: pymetric
+        host: ngsa
         port:
-          number: 32888 
+          number: 8080

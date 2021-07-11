@@ -1,34 +1,58 @@
+##################################################################################################
+# Details service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ngsa
+  labels:
+    app: ngsa
+    service: ngsa
+spec:
+  ports:
+  - port: 8080 
+    name: http
+  selector:
+    app: ngsa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ngsa
+  labels:
+    account: ngsa
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ngsa-memory
+  name: ngsa
   labels:
-    app: ngsa-memory
-    version: beta
+    app: ngsa
+    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ngsa-memory
-      version: beta
+      app: ngsa
+      version: v1
   template:
     metadata:
       labels:
-        app: ngsa-memory
-        version: beta
+        app: ngsa
+        version: v1
     spec:
+      serviceAccountName: ngsa
       containers:
-      - name: app
-        imagePullPolicy: Always
-        image: ghcr.io/retaildevcrews/ngsa-app:beta
+      - name: ngsa
+        image: localhost:5000/retaildevcrews/ngsa-app:beta
         args:
           - --in-memory
           - --prometheus
-          - --url-prefix
-          - /memory
           - --burst-header
           - --burst-service
           - memory
+          - --url-prefix
+          - /memory
           - --log-level
           - Warning
           - --request-log-level
@@ -37,58 +61,9 @@ spec:
           - dev
           - --region
           - dev
+          - --burst-header
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8080
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: ngsa-memory
-  labels:
-    app: ngsa-memory
-spec:
-  selector:
-    app: ngsa-memory
-  ports:
-    - port: 8080
-      name: http
-
----
-
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: ngsa-gateway
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
-
----
-
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: ngsa-vs
-spec:
-  hosts:
-  - "*"
-  gateways:
-  - ngsa-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /
-    route:
-    - destination:
-        host: ngsa-memory
-        port:
-          number: 8088
+        - containerPort: 8080 
+        securityContext:
+          runAsUser: 1000
