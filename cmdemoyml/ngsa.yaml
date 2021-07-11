@@ -48,6 +48,11 @@ spec:
         args:
           - --in-memory
           - --prometheus
+          - --burst-header
+          - --burst-service
+          - memory
+          - --url-prefix
+          - /memory
           - --log-level
           - Warning
           - --request-log-level
