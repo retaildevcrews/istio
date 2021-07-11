@@ -42,11 +42,11 @@ clean :
 
 test :
 	# run a single test
-	cd deploy/loderunner && webv -s http://localhost:30080 -f baseline.json
+	cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f baseline.json
 
 load-test :
 	# run a 10 second load test
-	cd deploy/loderunner && webv -s http://localhost:30080 -f benchmark.json -r -l 1 --duration 10
+	cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 1 --duration 10
 
 create : delete
 	./kindlocalreg.sh kind
