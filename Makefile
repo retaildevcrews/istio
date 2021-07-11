@@ -84,12 +84,14 @@ create : delete
 	kubectl apply -f cmdemoyml/ngsa-gw.yaml
 	kubectl wait pod --for condition=ready --all --timeout=60s
 
-	#source tcall.sh
+	@echo "source tcall.sh"
 
 finish :
 	#Patching Istio ...
 	@./patch.sh
 
 	@kubectl apply -f cmdemoyml/filter.yml
+
+	@-kubectl wait pod --for condition=ready --all --timeout=60s
 
 	@kubectl get pod
