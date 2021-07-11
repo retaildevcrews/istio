@@ -5,11 +5,11 @@ help :
 	@echo "   make build        - build the plug-in"
 	@echo "   make create       - create a kind cluster"
 	@echo "   make delete       - delete the kind cluster"
-	@echo "   make deploy       - deploy the apps to the cluster"
 	@echo "   make check        - check the endpoints with curl"
-	@echo "   make clean        - delete the apps from the cluster"
-	@echo "   make test         - run a LodeRunner test (generates warnings)"
-	@echo "   make load-test    - run a 60 second load test"
+	@echo "   make deploy       - deploy the apps to the cluster (not working)"
+	@echo "   make clean        - delete the apps from the cluster (not working)"
+	@echo "   make test         - run a LodeRunner test (not working)"
+	@echo "   make load-test    - run a 60 second load test (not working)"
 
 build :
 	rm -f wasm_header_poc.wasm
