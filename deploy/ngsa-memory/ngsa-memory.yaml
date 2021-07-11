@@ -44,7 +44,7 @@ spec:
       serviceAccountName: ngsa
       containers:
       - name: ngsa
-        image: localhost:5000/retaildevcrews/ngsa-app:beta
+        image: ghcr.io/retaildevcrews/ngsa-app:beta
         args:
           - --in-memory
           - --prometheus
