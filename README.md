@@ -7,6 +7,10 @@
 - For now, you have to create a new Codespace from this branch
   - the kind-rust image has been updated
   - post-install.sh has been updated
+- Not working yet
+  - LodeRunner
+  - Prometheus
+  - Grafana
 
 ## Run Istio Web Assembly
 
@@ -14,7 +18,7 @@
 
    ```bash
 
-   make build
+   make create
 
    ```
 
@@ -22,27 +26,16 @@
 
 ```bash
 
-### TODO - automate this
-
-source tcall.sh
-
-# edit cmdemoyml/filter.yml
-# edit src/lib.rs
-# change the IP and port as needed
+# load new env vars
+# exit and start new shell will also work
+source ~/.bashrc
 
 ```
 
-### Complete the setup
+### Verify the setup
 
 ```bash
 
-make finish
-
-# repeat until the pods are ready
-### TODO - using wait doesn't work yet
-kubectl get po
-
-# verify deployment
 # may have to retry a couple of times
 make check
 
