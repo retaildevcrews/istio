@@ -3,15 +3,19 @@
 IP=$(kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].status.hostIP}')
 PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
 
+# update IP and port
 sed -i -r "s/address: .+/address: $IP/g" deploy/filter.yml
 sed -i -r "s/port_value: .+/port_value: $PORT/g" deploy/filter.yml
 sed -i -r "s/:authority.+/:authority\", \"$IP\"),/g" src/lib.rs
+sed -i -r "s/header_providing_service_authority:.+/header_providing_service_authority: \"$IP\".to_owned(),/g" src/lib.rs
 
+# remove existing exports
 sed -i -r "/export INGRESS_HOST=.+/d" ~/.bashrc
 sed -i -r "/export INGRESS_PORT=.+/d" ~/.bashrc
 sed -i -r "/export SECURE_INGRESS_PORT=.+/d" ~/.bashrc
 sed -i -r "/export GATEWAY_URL=.+/d" ~/.bashrc
 
+# add exports to .bashrc
 echo "export INGRESS_HOST=$IP" >> ~/.bashrc
 echo "export INGRESS_PORT=$PORT" >> ~/.bashrc
 echo "export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')" >> ~/.bashrc
@@ -33,8 +37,6 @@ kubectl scale deployments/ngsa --replicas=1
 kubectl apply -f deploy/filter.yml
 
 kubectl wait pod --for condition=ready --all --timeout=60s
-
-kubectl get pod
 
 echo "to load env vars"
 echo "    source ~/.bashrc"
