@@ -53,6 +53,7 @@ delete:
 
 deploy :
 	# TODO deploy the app
+	@kubectl apply -f deploy/loderunner/loderunner.yaml
 
 check :
 	# check the endpoints
