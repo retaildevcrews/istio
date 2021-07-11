@@ -1,4 +1,4 @@
-.PHONY: build build-metrics create delete check clean deploy test load-test finish
+.PHONY: build build-metrics create delete check clean deploy test load-test
 
 help :
 	@echo "Usage:"
