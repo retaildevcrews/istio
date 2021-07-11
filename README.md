@@ -37,7 +37,7 @@ source ~/.bashrc
 ```bash
 
 # may have to retry a couple of times
-make check
+make test-all
 
 ```
 
