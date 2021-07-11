@@ -62,4 +62,4 @@ spec:
                   socket_address:
                     protocol: TCP
                     address: 172.18.0.2
-                    port_value: 32083
+                    port_value: 30654
