@@ -6,7 +6,7 @@ sudo  cp deploy/grafanadata/grafana.db /grafana
 sudo  chown -R 472:472 /grafana
 
 # create local registry
-docker run -d --restart=always -p "5000:5000" --name kind-registry registry:2
+docker run -d --restart=always -p "127.0.0.1:5000:5000" --name kind-registry registry:2
 
 # pull docker image
 docker pull ghcr.io/retaildevcrews/ngsa-app:beta
