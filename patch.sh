@@ -7,7 +7,7 @@ PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.s
 sed -i -r "s/address: .+/address: $IP/g" deploy/filter.yml
 sed -i -r "s/port_value: .+/port_value: $PORT/g" deploy/filter.yml
 sed -i -r "s/:authority.+/:authority\", \"$IP\"),/g" src/lib.rs
-sed -i -r "s/header_providing_service_authority:.+/header_providing_service_authority: \"$IP\".to_owned(),/g" src/lib.rs
+#sed -i -r "s/header_providing_service_authority:.+/header_providing_service_authority: \"$IP\".to_owned(),/g" src/lib.rs
 
 # remove existing exports
 sed -i -r "/export INGRESS_HOST=.+/d" ~/.bashrc
