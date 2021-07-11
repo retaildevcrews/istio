@@ -10,9 +10,4 @@ echo "edit cmdemoyml/filter.yml - change the port and ip to what you see in the 
 echo "edit the src/lib.rs line 118 and put in correct IP"
 
 echo ""
-echo "run ./patch.sh"
-echo "http http://$GATEWAY_URL/healthz"
-
-echo ""
-echo "kubectl apply -f cmdemoyml/filter.yml"
-echo "http http://$GATEWAY_URL/healthz"
+echo "run make finish"

@@ -1,4 +1,4 @@
-.PHONY: build build-metrics create delete check clean deploy test load-test new-create
+.PHONY: build build-metrics create delete check clean deploy test load-test finish
 
 help :
 	@echo "Usage:"
@@ -18,40 +18,11 @@ build :
 
 build-metrics :
 	docker build pymetric -t pymetric:local
-	kind load docker-image pymetric:local
 
 delete:
 	# delete the cluster (if exists)
 	@# this will fail harmlessly if the cluster does not exist
 	-kind delete cluster
-
-create : delete
-	# create the cluster and wait for ready
-	@# this will fail harmlessly if the cluster exists
-	@# default cluster name is kind
-
-	@kind create cluster --config deploy/kind/kind.yaml
-
-	# wait for cluster to be ready
-	@kubectl wait node --for condition=ready --all --timeout=60s
-
-	# Install istio
-	@istioctl install --set profile=demo -y
-	@kubectl label namespace default istio-injection=enabled
-
-	# connect the registry to the cluster network
-	-docker network connect "kind" "kind-registry"
-
-	# Install prometheus
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
-
-	# Install kiali
-	#@kubectl apply -f deploy/kiali
-	
-	#sleep 5
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
-
-	@source tcall.sh
 
 deploy : build-metrics
 	# deploy the app
@@ -66,8 +37,8 @@ deploy : build-metrics
 	@kubectl get po
 
 check :
-	# curl all of the endpoints
-	@curl localhost:30080/version
+	# check the endpoints
+	@http http://${GATEWAY_URL}/healthz
 
 clean :
 	# delete the deployment
@@ -88,7 +59,7 @@ load-test :
 	# run a 10 second load test
 	cd deploy/loderunner && webv -s http://localhost:30080 -f benchmark.json -r -l 1 --duration 10
 
-new-create : delete
+create : delete
 	./kindlocalreg.sh kind
 
 	kubectl config use-context kind-kind
@@ -98,6 +69,15 @@ new-create : delete
 
 	kubectl wait node --for condition=ready --all --timeout=60s
 
+	# Install prometheus
+	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
+
+	# Install kiali
+	#@kubectl apply -f deploy/kiali
+	
+	#sleep 5
+	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
+
 	kubectl apply -f cmdemoyml/pymetric.yaml
 	kubectl apply -f cmdemoyml/pymetric-gw.yaml
 	kubectl apply -f cmdemoyml/ngsa.yaml
@@ -105,3 +85,11 @@ new-create : delete
 	kubectl wait pod --for condition=ready --all --timeout=60s
 
 	#source tcall.sh
+
+finish :
+	#Patching Istio ...
+	@./patch.sh
+
+	@kubectl apply -f cmdemoyml/filter.yml
+
+	@kubectl get pod
