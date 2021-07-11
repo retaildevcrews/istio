@@ -1,4 +1,4 @@
-.PHONY: build build-metrics create delete check clean deploy test load-test
+.PHONY: build build-metrics create delete check clean deploy test load-test test-all
 
 help :
 	@echo "Usage:"
@@ -8,8 +8,38 @@ help :
 	@echo "   make check        - check the endpoints with curl"
 	@echo "   make deploy       - deploy the apps to the cluster (not working)"
 	@echo "   make clean        - delete the apps from the cluster (not working)"
-	@echo "   make test         - run a LodeRunner test (not working)"
-	@echo "   make load-test    - run a 60 second load test (not working)"
+	@echo "   make test         - run a LodeRunner test"
+	@echo "   make load-test    - run a 60 second load test"
+	@echo "   make test-all     - check, test and load-test"
+
+create : delete
+	./kindlocalreg.sh kind
+
+	kubectl config use-context kind-kind
+
+	istioctl install --set profile=demo -y
+	kubectl label namespace default istio-injection=enabled
+
+	kubectl wait node --for condition=ready --all --timeout=60s
+
+	# Install prometheus
+	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
+
+	# Install kiali
+	#@kubectl apply -f deploy/kiali
+	
+	#sleep 5
+	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
+
+	kubectl apply -f deploy/pymetric/pymetric.yaml
+	kubectl apply -f deploy/pymetric/pymetric-gw.yaml
+	kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
+	kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
+
+	kubectl wait pod --for condition=ready --all --timeout=60s
+
+	#Patching Istio ...
+	@./patch.sh
 
 build :
 	rm -f wasm_header_poc.wasm
@@ -48,31 +78,5 @@ load-test :
 	# run a 10 second load test
 	cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 1 --duration 10
 
-create : delete
-	./kindlocalreg.sh kind
-
-	kubectl config use-context kind-kind
-
-	istioctl install --set profile=demo -y
-	kubectl label namespace default istio-injection=enabled
-
-	kubectl wait node --for condition=ready --all --timeout=60s
-
-	# Install prometheus
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
-
-	# Install kiali
-	#@kubectl apply -f deploy/kiali
-	
-	#sleep 5
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
-
-	kubectl apply -f deploy/pymetric/pymetric.yaml
-	kubectl apply -f deploy/pymetric/pymetric-gw.yaml
-	kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
-	kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
-
-	kubectl wait pod --for condition=ready --all --timeout=60s
-
-	#Patching Istio ...
-	@./patch.sh
+test-all : check test load-test
+	# ran all tests
