@@ -6,7 +6,7 @@ metadata:
 spec:
   workloadSelector:
     labels:
-      app: productpage
+      app: ngsa
   configPatches:
     # The first patch adds the lua filter to the listener/http connection manager
   - applyTo: HTTP_FILTER
@@ -37,8 +37,8 @@ spec:
          "@type": "type.googleapis.com/google.protobuf.StringValue"
          value: |
           { 
-            "header_providing_service_cluster": "luacluster",
-            "header_providing_service_authority": "luahost"
+            "header_providing_service_cluster": "healthcluster",
+            "header_providing_service_authority": "healthcheck"
           }               
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added
@@ -48,19 +48,18 @@ spec:
     patch:
       operation: ADD
       value: # cluster specification
-        name: "luacluster"
+        name: "healthcluster"
         type: LOGICAL_DNS
         dns_lookup_family: V4_ONLY
         connect_timeout: 0.5s
         lb_policy: ROUND_ROBIN
         load_assignment:
-          cluster_name: luacluster
+          cluster_name: healthcluster
           endpoints:
           - lb_endpoints:
             - endpoint:
                 address:
                   socket_address:
                     protocol: TCP
-                    address: luahost
-                    port_value: 32742
-
+                    address: 172.18.0.3
+                    port_value: 30383

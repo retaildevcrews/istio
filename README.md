@@ -2,33 +2,42 @@
 
 > Sample Istio filter with Rust and Web Assembly
 
-## Runnning hello
+## TODO
 
-> This is not a Web Assembly
+- Not working yet
+  - need to merge the kind configs
+    - Prometheus
+    - Grafana
+  - need to figure out what has to be left deployed
+    - make clean
+    - make deploy
 
-This is a simple Rust hello app that uses curl to retrieve from a website
+## Run Istio Web Assembly
 
-- Run by pressing `F5`
-- Run from terminal with `cargo run`
-
-### Run Istio Web Assembly
+- Create the kind cluster
 
    ```bash
 
-   cd proxy
-   make run
+   make create
 
    ```
 
-### Start a new terminal
+### Set env vars
 
 ```bash
 
-# sample endpoint
-curl -i localhost:8080/burst-check
+# load new env vars
+# exit and start new shell will also work
+source ~/.bashrc
 
-# proxied endpoint
-curl -i localhost:8080/test
+```
+
+### Verify the setup
+
+```bash
+
+# may have to retry a couple of times
+make test-all
 
 ```
 
