@@ -13,9 +13,9 @@ help :
 	@echo "   make test-all     - check, test and load-test"
 
 create : delete
-	./kindlocalreg.sh kind
+	kind create cluster --config deploy/kind/kind.yaml
 
-	kubectl config use-context kind-kind
+	kubectl apply -f deploy/kind/config.yaml
 
 	istioctl install --set profile=demo -y
 	kubectl label namespace default istio-injection=enabled
