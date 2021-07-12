@@ -37,4 +37,4 @@ kubectl wait pod --for condition=ready --all --timeout=60s
 
 echo "to load env vars"
 echo "    source ~/.bashrc"
-echo "run - make check"
+echo "run - make test-all"
