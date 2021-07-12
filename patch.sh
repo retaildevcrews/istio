@@ -6,7 +6,7 @@ PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.s
 # update IP and port
 sed -i -r "s/address: .+/address: $IP/g" deploy/filter.yml
 sed -i -r "s/port_value: .+/port_value: $PORT/g" deploy/filter.yml
-sed -i -r "s/:authority.+/:authority\", \"$IP\"),/g" src/lib.rs
+sed -i -r "s/\"service_authority\": .+/\"service_authority\": \"$IP\",/g" deploy/filter.yml
 
 # remove existing exports
 sed -i -r "/export INGRESS_HOST=.+/d" ~/.bashrc
@@ -19,9 +19,6 @@ echo "export INGRESS_HOST=$IP" >> ~/.bashrc
 echo "export INGRESS_PORT=$PORT" >> ~/.bashrc
 echo "export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')" >> ~/.bashrc
 echo 'export GATEWAY_URL=$INGRESS_HOST:$INGRESS_PORT' >> ~/.bashrc
-
-# build the app
-make build
 
 kubectl delete --ignore-not-found -n default cm wasm-poc-filter
 kubectl create cm -n default wasm-poc-filter --from-file=wasm_header_poc.wasm

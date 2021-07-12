@@ -37,8 +37,10 @@ spec:
          "@type": "type.googleapis.com/google.protobuf.StringValue"
          value: |
           { 
-            "header_providing_service_cluster": "healthcluster",
-            "header_providing_service_authority": "healthcheck"
+            "service_cluster": "healthcluster",
+            "service_authority": "172.18.0.3",
+            "service_path": "/pymetric",
+            "cache_seconds": 60
           }               
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added
@@ -62,4 +64,4 @@ spec:
                   socket_address:
                     protocol: TCP
                     address: 172.18.0.3
-                    port_value: 30383
+                    port_value: 30028
