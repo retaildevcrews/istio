@@ -38,7 +38,8 @@ spec:
          value: |
           { 
             "header_providing_service_cluster": "healthcluster",
-            "header_providing_service_authority": "healthcheck"
+            "header_providing_service_authority": "172.18.0.3",
+            "header_providing_service_path": "/pymetric"
           }               
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added
