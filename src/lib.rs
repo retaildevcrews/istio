@@ -16,26 +16,26 @@ const INITIALISATION_TICK: Duration = Duration::from_secs(2);
 struct FilterConfig {
     /// The Envoy cluster name housing a HTTP service that will provide headers
     /// to add to requests.
-    header_providing_service_cluster: String,
+    service_cluster: String,
 
     /// The path to call on the HTTP service providing headers.
-    header_providing_service_path: String,
+    service_path: String,
 
     /// The authority to set when calling the HTTP service providing headers.
-    header_providing_service_authority: String,
+    service_authority: String,
 
-    /// The length of time to keep headers cached.
-    #[serde(with = "serde_humanize_rs")]
-    header_cache_expiry: Duration,
+    /// Cache duration in seconds
+    cache_seconds: u64
 }
 
+// todo - should fail if no config
 impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
-            header_providing_service_cluster: "healthcluster".to_owned(),
-            header_providing_service_path: "/pymetric".to_owned(),
-            header_providing_service_authority: "172.19.0.2".to_owned(),
-            header_cache_expiry: Duration::from_secs(360),
+            service_cluster: "healthcluster".to_owned(),
+            service_path: "/pymetric".to_owned(),
+            service_authority: "172.19.0.2".to_owned(),
+            cache_seconds: 60
         }
     }
 }
@@ -107,15 +107,15 @@ impl RootContext for RootHandler {
                 // We could be in the initialisation tick here so update our
                 // tick period to the configured expiry before doing anything.
                 // This will be reset to an initialisation tick upon failures.
-                self.set_tick_period(config.header_cache_expiry);
+                self.set_tick_period(Duration::from_secs(config.cache_seconds));
 
                 // Dispatch an async HTTP call to the configured cluster.
                 self.dispatch_http_call(
-                    "healthcluster",
+                    &config.service_cluster,
                     vec![
                         (":method", "GET"),
-                        (":path", "/pymetric"),
-                        (":authority", "172.18.0.2"),
+                        (":path", &config.service_path),
+                        (":authority", &config.service_authority),
                     ],
                     None,
                     vec![],
