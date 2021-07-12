@@ -12,7 +12,7 @@ help :
 	@echo "   make load-test    - run a 60 second load test"
 	@echo "   make test-all     - check, test and load-test"
 
-create : delete
+create : delete build
 	kind create cluster --config deploy/kind/kind.yaml
 
 	kubectl apply -f deploy/kind/config.yaml
