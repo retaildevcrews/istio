@@ -11,5 +11,5 @@ docker network create kind
 docker run -d --net kind --restart=always -p "127.0.0.1:5000:5000" --name kind-registry registry:2
 
 # build pymetric
-docker build pymetric -t localhost:5000/pymetric:local
-docker push localhost:5000/pymetric:local
+docker build burst -t localhost:5000/burst:local
+docker push localhost:5000/burst:local
