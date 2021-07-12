@@ -5,10 +5,9 @@
 ## TODO
 
 - Not working yet
-  - need to merge the kind configs
-    - Prometheus
-    - Grafana
-  - need to figure out what has to be left deployed
+  - Prometheus
+  - Grafana
+  - need to figure out what has to be deployed vs make create
     - make clean
     - make deploy
 
