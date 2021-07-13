@@ -31,8 +31,8 @@ create : delete build
 	#sleep 5
 	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
-	kubectl apply -f deploy/pymetric/pymetric.yaml
-	kubectl apply -f deploy/pymetric/pymetric-gw.yaml
+	kubectl apply -f deploy/burst/burst.yaml
+	kubectl apply -f deploy/burst/gw-burst.yaml
 	kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
 	kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
 
@@ -63,8 +63,8 @@ clean :
 	# delete the deployment
 	# TODO - implement
 	@# continue on error
-	@kubectl delete --ignore-not-found -f  deploy/pymetric/pymetric.yaml
-	@kubectl delete --ignore-not-found -f  deploy/pymetric/pymetric-gw.yaml
+	@kubectl delete --ignore-not-found -f  deploy/burst/burst.yaml
+	@kubectl delete --ignore-not-found -f  deploy/burst/gw-burst.yaml
 	@kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-memory.yaml
 	@kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-gw.yaml
 
