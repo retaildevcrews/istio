@@ -45,12 +45,12 @@ spec:
       containers:
       - name: ngsa
         image: ghcr.io/retaildevcrews/ngsa-app:beta
+        resources:
+          limits:
+            cpu: "500m"
         args:
           - --in-memory
           - --prometheus
-          - --burst-header
-          - --burst-service
-          - memory
           - --url-prefix
           - /memory
           - --log-level
@@ -61,7 +61,6 @@ spec:
           - dev
           - --region
           - dev
-          - --burst-header
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080 
