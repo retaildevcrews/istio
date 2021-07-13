@@ -1,0 +1,52 @@
+##################################################################################################
+# Details service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: burst
+  labels:
+    app: burst
+    service: burst
+spec:
+  ports:
+  - port: 32888 
+    name: http
+  selector:
+    app: burst
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: burst
+  labels:
+    account: burst
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burst
+  labels:
+    app: burst
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: burst
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: burst
+        version: v1
+    spec:
+      serviceAccountName: burst
+      containers:
+      - name: burst
+        image: localhost:5000/burst:local
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 32888 
+        securityContext:
+          runAsUser: 1000
