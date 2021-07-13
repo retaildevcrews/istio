@@ -39,7 +39,7 @@ spec:
           { 
             "service_cluster": "healthcluster",
             "service_authority": "172.18.0.3",
-            "service_path": "/pymetric",
+            "service_path": "/api/burst",
             "cache_seconds": 60
           }               
   # The second patch adds the cluster that is referenced by the lua code

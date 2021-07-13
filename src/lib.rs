@@ -33,7 +33,7 @@ impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
             service_cluster: "healthcluster".to_owned(),
-            service_path: "/pymetric".to_owned(),
+            service_path: "/api/burst".to_owned(),
             service_authority: "172.19.0.2".to_owned(),
             cache_seconds: 60
         }
@@ -179,7 +179,7 @@ impl HttpContext for HttpHandler {
                     String::from_utf8(cache.clone()).unwrap()
                 );
                     let mystr = String::from_utf8(cache.clone()).unwrap();
-                    self.set_http_response_header("x-thingy",Some(&mystr));
+                    self.set_http_response_header("X-Load-Feedback",Some(&mystr));
                 /*
                 match self.parse_headers(&cache) {
                     Ok(headers) => {
