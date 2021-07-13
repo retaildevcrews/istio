@@ -58,17 +58,10 @@ create : delete build
 	@echo "run - make check"
 
 build :
-	# delete filter and config map
-	@kubectl delete --ignore-not-found -f deploy/filter.yaml
-	@kubectl delete --ignore-not-found cm wasm-poc-filter
-
 	# build the WebAssembly
 	@rm -f wasm_header_poc.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
 	@cp target/wasm32-unknown-unknown/release/wasm_header_poc.wasm .
-
-	@# add config map
-	@kubectl create cm wasm-poc-filter --from-file=wasm_header_poc.wasm
 
 delete:
 	# delete the cluster (if exists)
