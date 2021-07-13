@@ -4,8 +4,9 @@ use proxy_wasm::{
     types::{Action, LogLevel},
 };
 use serde::Deserialize;
-use serde_json::{Map, Value};
-use std::{cell::RefCell, collections::HashMap, error::Error, time::Duration};
+// use serde_json::{Map, Value};
+use std::{cell::RefCell, collections::HashMap, time::Duration};
+//use std::{cell::RefCell, collections::HashMap, error::Error, time::Duration};
 
 const POWERED_BY: &str = "header-augmenting-filter";
 const CACHE_KEY: &str = "cache";
@@ -220,12 +221,12 @@ impl HttpContext for HttpHandler {
 impl Context for HttpHandler {}
 
 impl HttpHandler {
-    fn parse_headers(&self, res: &[u8]) -> Result<Map<String, Value>, Box<dyn Error>> {
-        Ok(serde_json::from_slice::<Value>(&res)?
-            .as_object()
-            .unwrap()
-            .clone())
-    }
+    // fn parse_headers(&self, res: &[u8]) -> Result<Map<String, Value>, Box<dyn Error>> {
+    //     Ok(serde_json::from_slice::<Value>(&res)?
+    //         .as_object()
+    //         .unwrap()
+    //         .clone())
+    // }
 }
 
 #[cfg(test)]
