@@ -82,6 +82,10 @@ load-test :
 test-all : check test load-test
 	# ran all tests
 
+burstserver-build :
+	docker build burst -t localhost:5000/burst:local
+	docker push localhost:5000/burst:local
+
 # Metrics Testing Additions
 
 create-metrics-server :
