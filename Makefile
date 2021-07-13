@@ -38,8 +38,27 @@ create : delete build
 
 	kubectl wait pod --for condition=ready --all --timeout=60s
 
-	#Patching Istio ...
+	# Patching Istio ...
 	@./patch.sh
+
+	@# delete filter and config map
+	@kubectl -f delete --ignore-not-found deploy/filter.yaml
+	@kubectl delete --ignore-not-found cm wasm-poc-filter
+
+	@# add config map
+	@kubectl create cm wasm-poc-filter --from-file=wasm_header_poc.wasm
+
+	@# patch any deployments
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+
+	@# turn the wasm filter on for each deployment
+	@kubectl apply -f deploy/filter.yml
+
+	@kubectl wait pod --for condition=ready --all --timeout=60s
+
+	@echo "to load env vars"
+	@echo "    source ~/.bashrc"
+	@echo "run - make test-all"
 
 build :
 	rm -f wasm_header_poc.wasm
