@@ -10,7 +10,7 @@ metadata:
     service: burst
 spec:
   ports:
-  - port: 32888 
+  - port: 4120 
     name: http
   selector:
     app: burst
@@ -47,6 +47,6 @@ spec:
         image: localhost:5000/burst:local
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 32888 
+        - containerPort: 4120 
         securityContext:
           runAsUser: 1000
