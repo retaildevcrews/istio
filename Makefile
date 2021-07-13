@@ -42,7 +42,7 @@ create : delete build
 	@./patch.sh
 
 	@# delete filter and config map
-	@kubectl -f delete --ignore-not-found deploy/filter.yaml
+	@kubectl delete --ignore-not-found -f deploy/filter.yaml
 	@kubectl delete --ignore-not-found cm wasm-poc-filter
 
 	@# add config map
@@ -52,7 +52,7 @@ create : delete build
 	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	@# turn the wasm filter on for each deployment
-	@kubectl apply -f deploy/filter.yml
+	@# kubectl apply -f deploy/filter.yaml
 
 	@kubectl wait pod --for condition=ready --all --timeout=60s
 
