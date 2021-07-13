@@ -81,3 +81,20 @@ load-test :
 
 test-all : check test load-test
 	# ran all tests
+
+# Metrics Testing Additions
+
+create-metrics-server :
+       # deploy metrics server with --kubelet-insecure-tls flag
+       kubectl apply -f deploy/metrics/components.yaml
+
+get-metrics :
+       # retrieve current values from metrics server
+       kubectl get --raw https://localhost:5443/apis/metrics.k8s.io/v1beta1/pods | jq
+
+create-hpa-ngsa :
+       # create HPA for ngsa deployment for testing
+       kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=5
+
+delete-hpa-ngsa :
+       kubectl delete hpa ngsa
