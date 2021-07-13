@@ -39,9 +39,9 @@ impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
             service_cluster: "healthcluster".to_owned(),
-            service_path: "burstmetrics".to_owned(),
+            service_path: "/burstmetrics".to_owned(),
             service_authority: "172.19.0.2".to_owned(),
-            cache_seconds: 60,
+            cache_seconds: 10,
             namespace: "default".to_owned(),
             deployment: "ngsa".to_owned()
         }
@@ -122,7 +122,7 @@ impl RootContext for RootHandler {
                     &config.service_cluster,
                     vec![
                         (":method", "GET"),
-                        (":path", format!("{}/{}/{}", config.service_path, config.namespace, config.deployment)),
+                        (":path", &format!("{}/{}/{}", config.service_path, config.namespace, config.deployment)),
                         (":authority", &config.service_authority),
                     ],
                     None,
