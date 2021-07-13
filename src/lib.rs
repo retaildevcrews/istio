@@ -25,7 +25,13 @@ struct FilterConfig {
     service_authority: String,
 
     /// Cache duration in seconds
-    cache_seconds: u64
+    cache_seconds: u64,
+
+    /// Namespace of this app
+    namespace: String,
+
+    /// Name of this deployment
+    deployment: String
 }
 
 // todo - should fail if no config
@@ -33,9 +39,11 @@ impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
             service_cluster: "healthcluster".to_owned(),
-            service_path: "/api/burst".to_owned(),
+            service_path: "burstmetrics".to_owned(),
             service_authority: "172.19.0.2".to_owned(),
-            cache_seconds: 60
+            cache_seconds: 60,
+            namespace: "default".to_owned(),
+            deployment: "ngsa".to_owned()
         }
     }
 }
@@ -114,7 +122,7 @@ impl RootContext for RootHandler {
                     &config.service_cluster,
                     vec![
                         (":method", "GET"),
-                        (":path", &config.service_path),
+                        (":path", format!("{}/{}/{}", config.service_path, config.namespace, config.deployment)),
                         (":authority", &config.service_authority),
                     ],
                     None,
