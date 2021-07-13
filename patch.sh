@@ -4,9 +4,9 @@ IP=$(kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items
 PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
 
 # update IP and port
-sed -i -r "s/address: .+/address: $IP/g" deploy/filter.yml
-sed -i -r "s/port_value: .+/port_value: $PORT/g" deploy/filter.yml
-sed -i -r "s/\"service_authority\": .+/\"service_authority\": \"$IP\",/g" deploy/filter.yml
+sed -i -r "s/address: .+/address: $IP/g" deploy/filter.yaml
+sed -i -r "s/port_value: .+/port_value: $PORT/g" deploy/filter.yaml
+sed -i -r "s/\"service_authority\": .+/\"service_authority\": \"$IP\",/g" deploy/filter.yaml
 
 # remove existing exports
 sed -i -r "/export INGRESS_HOST=.+/d" ~/.bashrc
