@@ -39,8 +39,10 @@ spec:
           { 
             "service_cluster": "healthcluster",
             "service_authority": "172.18.0.3",
-            "service_path": "/api/burst",
-            "cache_seconds": 60
+            "service_path": "/burstmetrics",
+            "cache_seconds": 10,
+            "namespace": "default",
+            "deployment": "ngsa"
           }               
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added
