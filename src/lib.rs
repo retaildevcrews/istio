@@ -34,16 +34,16 @@ struct FilterConfig {
     deployment: String
 }
 
-// todo - should fail if no config
+// the plug-in will fail if no config
 impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
-            service_cluster: "healthcluster".to_owned(),
-            service_path: "/burstmetrics".to_owned(),
-            service_authority: "172.19.0.2".to_owned(),
-            cache_seconds: 10,
-            namespace: "default".to_owned(),
-            deployment: "ngsa".to_owned()
+            service_cluster: "".to_owned(),
+            service_path: "".to_owned(),
+            service_authority: "".to_owned(),
+            cache_seconds: 60 * 60 * 24,
+            namespace: "".to_owned(),
+            deployment: "".to_owned()
         }
     }
 }
