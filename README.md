@@ -36,7 +36,29 @@ source ~/.bashrc
 ```bash
 
 # may have to retry a couple of times
-make test-all
+make check
+
+```
+
+### Add the wasm filter
+
+> this doesn't have to be a separate step
+
+- the above deployed everything but the WebAssembly is not enabled, so the `x-load-feedback` header isn't added
+
+```bash
+
+# enable the WebAssembly
+kubectl apply -f deploy/filter.yaml
+
+# verify the new header (may have to retry a couple of times)
+make check
+
+# remove the assembly
+kubectl delete -f deploy/filter.yaml
+
+# verify the header isn't added (may have to retry a couple of times)
+make check
 
 ```
 

@@ -25,17 +25,25 @@ struct FilterConfig {
     service_authority: String,
 
     /// Cache duration in seconds
-    cache_seconds: u64
+    cache_seconds: u64,
+
+    /// Namespace of this app
+    namespace: String,
+
+    /// Name of this deployment
+    deployment: String
 }
 
-// todo - should fail if no config
+// the plug-in will fail if no config
 impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
-            service_cluster: "healthcluster".to_owned(),
-            service_path: "/pymetric".to_owned(),
-            service_authority: "172.19.0.2".to_owned(),
-            cache_seconds: 60
+            service_cluster: "".to_owned(),
+            service_path: "".to_owned(),
+            service_authority: "".to_owned(),
+            cache_seconds: 60 * 60 * 24,
+            namespace: "".to_owned(),
+            deployment: "".to_owned()
         }
     }
 }
@@ -114,7 +122,7 @@ impl RootContext for RootHandler {
                     &config.service_cluster,
                     vec![
                         (":method", "GET"),
-                        (":path", &config.service_path),
+                        (":path", &format!("{}/{}/{}", config.service_path, config.namespace, config.deployment)),
                         (":authority", &config.service_authority),
                     ],
                     None,
@@ -179,7 +187,7 @@ impl HttpContext for HttpHandler {
                     String::from_utf8(cache.clone()).unwrap()
                 );
                     let mystr = String::from_utf8(cache.clone()).unwrap();
-                    self.set_http_response_header("x-thingy",Some(&mystr));
+                    self.set_http_response_header("X-Load-Feedback",Some(&mystr));
                 /*
                 match self.parse_headers(&cache) {
                     Ok(headers) => {
