@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Burst.Controllers
 {
     [ApiController]
-    [Route("/api/burst")]
+    [Route("/burstmetrics")]
     public class ApiController : ControllerBase
     {
         private readonly ILogger<ApiController> _logger;
@@ -18,10 +18,12 @@ namespace Burst.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        public IActionResult Get()
+        [HttpGet("{ns}/{deployment}")]
+
+        public IActionResult Get(string ns, string deployment)
         {
-            return Ok("service: ngsa-memory, current-load: 27, target-load: 60, max-load: 85");
+            Console.WriteLine($"{DateTime.Now:s}  {Request.Path.ToString()}");
+            return Ok($"service: {ns}/{deployment}, current-load: 27, target-load: 60, max-load: 85");
         }
     }
 }
