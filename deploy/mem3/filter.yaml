@@ -1,0 +1,69 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: reviews-wasm
+  namespace: default
+spec:
+  workloadSelector:
+    labels:
+      app: mem3
+  configPatches:
+    # The first patch adds the lua filter to the listener/http connection manager
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+            subFilter:
+              name: "envoy.filters.http.router"
+    patch:
+     operation: INSERT_BEFORE 
+     value:
+      name: my-wasm-extension
+      typed_config:
+       "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+       config:
+        root_id: my-wasm-root-id
+        vm_config:
+         vm_id: my-wasm-vm-id
+         runtime: envoy.wasm.runtime.v8
+         allow_precompiled: true
+         code:
+          local:
+           filename: /var/local/lib/wasm-filters/wasm_header_poc.wasm
+        configuration:
+         "@type": "type.googleapis.com/google.protobuf.StringValue"
+         value: |
+          { 
+            "service_cluster": "healthcluster",
+            "service_authority": "172.18.0.3",
+            "service_path": "/burstmetrics",
+            "cache_seconds": 10,
+            "namespace": "default",
+            "deployment": "mem3"
+          }               
+  # The second patch adds the cluster that is referenced by the lua code
+  # cds match is omitted as a new cluster is being added
+  - applyTo: CLUSTER
+    match:
+      context: SIDECAR_OUTBOUND
+    patch:
+      operation: ADD
+      value: # cluster specification
+        name: "healthcluster"
+        type: LOGICAL_DNS
+        dns_lookup_family: V4_ONLY
+        connect_timeout: 0.5s
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: healthcluster
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    protocol: TCP
+                    address: 172.18.0.3
+                    port_value: 30388
