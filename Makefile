@@ -20,14 +20,14 @@ create : delete build
 
 	kubectl wait node --for condition=ready --all --timeout=60s
 
-	# Install prometheus
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
+    # Install prometheus
+    #@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
 
-	# Install kiali
-	#@kubectl apply -f deploy/kiali
+    # Install kiali
+    #@kubectl apply -f deploy/kiali
 	
-	#sleep 5
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
+    #sleep 5
+    #@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
 	@kubectl apply -f deploy/burst/burst.yaml
 	@kubectl apply -f deploy/burst/gw-burst.yaml
@@ -57,7 +57,7 @@ create : delete build
 	@echo "    source ~/.bashrc"
 	@echo "run - make check"
 
-build :
+build : burstserver-build
 	# build the WebAssembly
 	@rm -f wasm_header_poc.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
@@ -98,7 +98,7 @@ clean :
 
 test :
 	# run a 10 second test
-	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 500 --duration 10
+	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 500 --duration 30
 
 burstserver-build :
 	docker build burst -t localhost:5000/burst:local
@@ -112,7 +112,7 @@ create-metrics-server :
 
 get-metrics :
 	# retrieve current values from metrics server
-	kubectl get --raw https://localhost:5443/apis/metrics.k8s.io/v1beta1/pods | jq
+	kubectl get --raw https://localhost:5443/apis/metrics.k8s.io/v1beta1/pods
 
 create-hpa-ngsa :
 	# create HPA for ngsa deployment for testing
