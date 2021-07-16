@@ -26,10 +26,10 @@ namespace Burst
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IK8sHPAStatusService, K8sHPAStatusService>();
+            services.AddSingleton<IK8sHPAMetricsService, K8sHPAMetricsService>();
             // Since we already added service, we will not add it again.
             // Rather we'll get it from service collection (provider).
-            services.AddHostedService<K8sHPAStatusService>(provider => provider.GetService<IK8sHPAStatusService>() as K8sHPAStatusService);
+            services.AddHostedService<K8sHPAMetricsService>(provider => provider.GetService<IK8sHPAMetricsService>() as K8sHPAMetricsService);
             services.AddControllers();
         }
 
