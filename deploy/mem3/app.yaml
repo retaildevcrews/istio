@@ -44,7 +44,7 @@ spec:
       serviceAccountName: mem3
       containers:
       - name: mem3
-        image: ghcr.io/retaildevcrews/mem3-app:beta
+        image: ghcr.io/retaildevcrews/ngsa-app:beta
         resources:
           limits:
             cpu: "500m"

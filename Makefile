@@ -29,10 +29,10 @@ create : delete build
 	#sleep 5
 	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
-	@kubectl apply -f deploy/burst/burst.yaml
-	@kubectl apply -f deploy/burst/gw-burst.yaml
-	@kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
-	@kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
+	kubectl apply -f deploy/burst/burst.yaml
+	kubectl apply -f deploy/burst/gw-burst.yaml
+	kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
+	kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
 
 	kubectl wait pod --for condition=ready --all --timeout=60s
 
@@ -98,7 +98,7 @@ clean :
 
 test :
 	# run a 10 second test
-	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 500 --duration 10
+	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json mem1.json mem2.json mem3.json -r -l 100 --duration 10
 
 burstserver-build :
 	docker build burst -t localhost:5000/burst:local
@@ -120,3 +120,30 @@ create-hpa-ngsa :
 
 delete-hpa-ngsa :
 	kubectl delete hpa ngsa
+
+mem1 :
+	@kubectl apply -f deploy/mem1/app.yaml
+	@kubectl apply -f deploy/mem1/gw.yaml
+	@kubectl patch deployment mem1 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl apply -f deploy/mem1/filter.yaml
+
+mem1-check :
+	@http http://${GATEWAY_URL}/mem1/healthz
+
+mem2 :
+	@kubectl apply -f deploy/mem2/app.yaml
+	@kubectl apply -f deploy/mem2/gw.yaml
+	@kubectl patch deployment mem2 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl apply -f deploy/mem2/filter.yaml
+
+mem2-check :
+	@http http://${GATEWAY_URL}/mem2/healthz
+
+mem3 :
+	@kubectl apply -f deploy/mem3/app.yaml
+	@kubectl apply -f deploy/mem3/gw.yaml
+	@kubectl patch deployment mem3 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl apply -f deploy/mem3/filter.yaml
+
+mem3-check :
+	@http http://${GATEWAY_URL}/mem3/healthz

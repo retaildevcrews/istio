@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: reviews-wasm
+  name: m3m1-wasm
   namespace: default
 spec:
   workloadSelector:
@@ -66,4 +66,4 @@ spec:
                   socket_address:
                     protocol: TCP
                     address: 172.18.0.3
-                    port_value: 30388
+                    port_value: 32460

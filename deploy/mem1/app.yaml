@@ -44,7 +44,7 @@ spec:
       serviceAccountName: mem1
       containers:
       - name: mem1
-        image: ghcr.io/retaildevcrews/mem1-app:beta
+        image: ghcr.io/retaildevcrews/ngsa-app:beta
         resources:
           limits:
             cpu: "500m"
