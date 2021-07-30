@@ -13,4 +13,8 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="KubernetesClient" Version="5.0.13" />
+  </ItemGroup>
+
 </Project>

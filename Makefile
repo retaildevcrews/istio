@@ -20,14 +20,14 @@ create : delete build
 
 	kubectl wait node --for condition=ready --all --timeout=60s
 
-	# Install prometheus
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
+	@# Install prometheus
+	@#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
 
-	# Install kiali
-	#@kubectl apply -f deploy/kiali
+	@# Install kiali
+	@#@kubectl apply -f deploy/kiali
 	
-	#sleep 5
-	#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
+	@#sleep 5
+	@#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
 	@kubectl apply -f deploy/burst/burst.yaml
 	@kubectl apply -f deploy/burst/gw-burst.yaml
@@ -57,7 +57,7 @@ create : delete build
 	@echo "    source ~/.bashrc"
 	@echo "run - make check"
 
-build :
+build : burstserver-build
 	# build the WebAssembly
 	@rm -f wasm_header_poc.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
@@ -110,13 +110,24 @@ create-metrics-server :
 	# deploy metrics server with --kubelet-insecure-tls flag
 	kubectl apply -f deploy/metrics/components.yaml
 
-get-metrics :
-	# retrieve current values from metrics server
-	kubectl get --raw https://localhost:5443/apis/metrics.k8s.io/v1beta1/pods | jq
+delete-metrics-server :
+	# deploy metrics server with --kubelet-insecure-tls flag
+	kubectl delete -f deploy/metrics/components.yaml
 
-create-hpa-ngsa :
+get-pod-metrics :
+	# retrieve current values from metrics server
+	kubectl get --raw https://localhost:5443/apis/metrics.k8s.io/v1beta1/pods
+
+get-burst-metrics :
+    # We're assuming the hpa is in default namespace and tied to ngsa deployment
+    # HPA takes 15~30 seconds to receive metrics from metrics-server
+    # If you see cpu-load and target-load as -1, then try again
+    # If connectionError then check hpa and metrics server 
+	@http http://${GATEWAY_URL}/burstmetrics/default/ngsa
+
+create-hpa-ngsa : create-metrics-server
 	# create HPA for ngsa deployment for testing
 	kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=5
 
-delete-hpa-ngsa :
+delete-hpa-ngsa : delete-metrics-server
 	kubectl delete hpa ngsa
