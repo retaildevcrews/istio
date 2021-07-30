@@ -1,0 +1,8 @@
+# should return 200
+GET http://localhost:8080/version HTTP/1.1
+
+# should return 200
+GET http://localhost:8080/healthz HTTP/1.1
+
+# should return 200
+GET http://localhost:8080/healthz/ietf HTTP/1.1

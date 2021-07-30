@@ -16,7 +16,7 @@ RUN dotnet publish -c Release -o /app
 FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine AS release
 
 ### if port is changed, also update value in Config
-EXPOSE 4120
+EXPOSE 8080
 WORKDIR /app
 
 ### create a user
@@ -32,4 +32,4 @@ USER ngsa
 ### copy the app
 COPY --from=build /app .
 
-ENTRYPOINT [ "dotnet",  "burst.dll" ]
+ENTRYPOINT [ "dotnet",  "aspnetapp.dll" ]
