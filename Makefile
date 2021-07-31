@@ -1,15 +1,15 @@
-.PHONY: build build-metrics create delete check clean deploy test
+.PHONY: build build-metrics create delete check clean deploy test build-burstserver
 
 help :
 	@echo "Usage:"
-	@echo "   make build        - build the plug-in"
-	@echo "   make create       - create a kind cluster"
-	@echo "   make delete       - delete the kind cluster"
-	@echo "   make check        - check the endpoints with curl"
-	@echo "   make deploy       - deploy the apps to the cluster (not working)"
-	@echo "   make clean        - delete the apps from the cluster (not working)"
-	@echo "   make test         - run a LodeRunner test"
-
+	@echo "   make build               - build the plug-in"
+	@echo "   make create              - create a kind cluster"
+	@echo "   make delete              - delete the kind cluster"
+	@echo "   make check               - check the endpoints with curl"
+	@echo "   make deploy              - deploy the apps to the cluster (not working)"
+	@echo "   make clean               - delete the apps from the cluster (not working)"
+	@echo "   make test                - run a LodeRunner test"
+	@echo "   make build-burstserver   - build the burst metrics server"
 create : delete build
 	kind create cluster --config deploy/kind/kind.yaml
 
@@ -29,10 +29,16 @@ create : delete build
 	@#sleep 5
 	@#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
 
-	kubectl apply -f deploy/burst/burst.yaml
-	kubectl apply -f deploy/burst/gw-burst.yaml
-	kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
-	kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
+	@kubectl apply -f deploy/burst/burst.yaml
+	@kubectl apply -f deploy/burst/gw-burst.yaml
+	@kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
+	@kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
+
+	# deploy metrics server
+	@kubectl apply -f deploy/metrics/components.yaml
+
+	# create HPA for ngsa deployment for testing
+	kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=2
 
 	kubectl wait pod --for condition=ready --all --timeout=60s
 
@@ -57,7 +63,7 @@ create : delete build
 	@echo "    source ~/.bashrc"
 	@echo "run - make check"
 
-build : burstserver-build
+build : build-burstserver
 	# build the WebAssembly
 	@rm -f wasm_header_poc.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
@@ -97,22 +103,13 @@ clean :
 	@kubectl get po -A
 
 test :
-	# run a 600 second test
-	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 1 --duration 600
+	# run a 90 second test
+	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 20 --duration 90
 
-burstserver-build :
-	docker build burst -t localhost:5000/burst:local
-	docker push localhost:5000/burst:local
-
-# Metrics Testing Additions
-
-create-metrics-server :
-	# deploy metrics server with --kubelet-insecure-tls flag
-	kubectl apply -f deploy/metrics/components.yaml
-
-delete-metrics-server :
-	# deploy metrics server with --kubelet-insecure-tls flag
-	kubectl delete -f deploy/metrics/components.yaml
+build-burstserver :
+	# build burst metrics server
+	@docker build burst -t localhost:5000/burst:local
+	@docker push localhost:5000/burst:local
 
 get-pod-metrics :
 	# retrieve current values from metrics server
@@ -125,12 +122,8 @@ get-burst-metrics :
     # If connectionError then check hpa and metrics server 
 	@http http://${GATEWAY_URL}/burstmetrics/default/ngsa
 
-create-hpa-ngsa : create-metrics-server
-	# create HPA for ngsa deployment for testing
-	kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=2
 
-delete-hpa-ngsa : delete-metrics-server
-	kubectl delete hpa ngsa
+### not working yet
 
 mem1 :
 	@kubectl apply -f deploy/mem1/app.yaml
