@@ -25,10 +25,10 @@ sed -i -r "s/\"service_authority\": .+/\"service_authority\": \"$IP\",/g" deploy
 sed -i -r "/export INGRESS_HOST=.+/d" ~/.bashrc
 sed -i -r "/export INGRESS_PORT=.+/d" ~/.bashrc
 sed -i -r "/export SECURE_INGRESS_PORT=.+/d" ~/.bashrc
-sed -i -r "/export GATEWAY_URL=.+/d" ~/.bashrc
+sed -i -r "/export K8s=.+/d" ~/.bashrc
 
 # add exports to .bashrc
 echo "export INGRESS_HOST=$IP" >> ~/.bashrc
 echo "export INGRESS_PORT=$PORT" >> ~/.bashrc
 echo "export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')" >> ~/.bashrc
-echo 'export GATEWAY_URL=$INGRESS_HOST:$INGRESS_PORT' >> ~/.bashrc
+echo 'export K8s=$INGRESS_HOST:$INGRESS_PORT' >> ~/.bashrc

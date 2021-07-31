@@ -86,11 +86,11 @@ deploy :
 
 check :
 	# get the metrics
-	@curl -q http://${GATEWAY_URL}/burstmetrics/default/ngsa
+	@curl -q http://${K8s}/burstmetrics/default/ngsa
 	@echo ""
 
 	# check the healthz endpoint
-	@http http://${GATEWAY_URL}/memory/healthz
+	@http http://${K8s}/memory/healthz
 
 clean :
 	@# TODO - implement
@@ -108,7 +108,7 @@ clean :
 
 test :
 	# run a 90 second test
-	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 20 --duration 90
+	@cd deploy/loderunner && webv -s http://${K8s} -f benchmark.json -r -l 20 --duration 90
 
 build-burstserver :
 	# build burst metrics server
@@ -129,7 +129,7 @@ mem1 :
 	@kubectl apply -f deploy/mem1/filter.yaml
 
 mem1-check :
-	@http http://${GATEWAY_URL}/mem1/healthz
+	@http http://${K8s}/mem1/healthz
 
 mem2 :
 	@kubectl apply -f deploy/mem2/app.yaml
@@ -138,7 +138,7 @@ mem2 :
 	@kubectl apply -f deploy/mem2/filter.yaml
 
 mem2-check :
-	@http http://${GATEWAY_URL}/mem2/healthz
+	@http http://${K8s}/mem2/healthz
 
 mem3 :
 	@kubectl apply -f deploy/mem3/app.yaml
@@ -147,4 +147,4 @@ mem3 :
 	@kubectl apply -f deploy/mem3/filter.yaml
 
 mem3-check :
-	@http http://${GATEWAY_URL}/mem3/healthz
+	@http http://${K8s}/mem3/healthz
