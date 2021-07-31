@@ -23,6 +23,8 @@
 
 ### Set env vars
 
+> Do not forget this step!
+
 ```bash
 
 # load new env vars
@@ -40,24 +42,20 @@ make check
 
 ```
 
-### Add the wasm filter
+### Add load
 
-> this doesn't have to be a separate step
-
-- the above deployed everything but the WebAssembly is not enabled, so the `x-load-feedback` header isn't added
+- Start a new terminal window
 
 ```bash
 
-# enable the WebAssembly
-kubectl apply -f deploy/filter.yaml
+make test
 
-# verify the new header (may have to retry a couple of times)
-make check
+```
 
-# remove the assembly
-kubectl delete -f deploy/filter.yaml
+- Go back to previous terminal
 
-# verify the header isn't added (may have to retry a couple of times)
+```bash
+
 make check
 
 ```

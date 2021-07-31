@@ -40,7 +40,7 @@ spec:
             "service_cluster": "healthcluster",
             "service_authority": "172.18.0.3",
             "service_path": "/burstmetrics",
-            "cache_seconds": 10,
+            "cache_seconds": 3,
             "namespace": "default",
             "deployment": "mem1"
           }               
@@ -66,4 +66,4 @@ spec:
                   socket_address:
                     protocol: TCP
                     address: 172.18.0.3
-                    port_value: 30469
+                    port_value: 32662
