@@ -59,7 +59,7 @@ namespace Ngsa.Middleware
             // implement the middleware
             builder.Use(async (context, next) =>
             {
-                string path = "/version";
+                string path = "/burstmetrics/version";
 
                 // matches /version
                 if (context.Request.Path.StartsWithSegments(path, StringComparison.OrdinalIgnoreCase))
