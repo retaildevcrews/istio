@@ -86,11 +86,12 @@ deploy :
 	@kubectl apply -f deploy/loderunner/loderunner.yaml
 
 check :
-	# check the endpoints
-	@http http://${GATEWAY_URL}/memory/healthz
-
 	# get the metrics
-	@http http://${GATEWAY_URL}/burstmetrics/default/ngsa
+	@curl -q http://${GATEWAY_URL}/burstmetrics/default/ngsa
+	@echo ""
+
+	# check the healthz endpoint
+	@http http://${GATEWAY_URL}/memory/healthz
 
 clean :
 	@# TODO - implement
