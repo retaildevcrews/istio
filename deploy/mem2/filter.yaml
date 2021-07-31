@@ -1,12 +1,12 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: reviews-wasm
+  name: mem2-wasm
   namespace: default
 spec:
   workloadSelector:
     labels:
-      app: ngsa
+      app: mem2
   configPatches:
     # The first patch adds the lua filter to the listener/http connection manager
   - applyTo: HTTP_FILTER
@@ -42,7 +42,7 @@ spec:
             "service_path": "/burstmetrics",
             "cache_seconds": 10,
             "namespace": "default",
-            "deployment": "ngsa"
+            "deployment": "mem2"
           }               
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added
