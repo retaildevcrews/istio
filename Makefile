@@ -97,8 +97,8 @@ clean :
 	@kubectl get po -A
 
 test :
-	# run a 10 second test
-	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json mem1.json mem2.json mem3.json -r -l 100 --duration 10
+	# run a 600 second test
+	@cd deploy/loderunner && webv -s http://${GATEWAY_URL} -f benchmark.json -r -l 1 --duration 600
 
 burstserver-build :
 	docker build burst -t localhost:5000/burst:local
@@ -127,7 +127,7 @@ get-burst-metrics :
 
 create-hpa-ngsa : create-metrics-server
 	# create HPA for ngsa deployment for testing
-	kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=5
+	kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=2
 
 delete-hpa-ngsa : delete-metrics-server
 	kubectl delete hpa ngsa
