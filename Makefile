@@ -55,7 +55,7 @@ create : delete build build-burstserver
 	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	@# turn the wasm filter on for each deployment
-	@kubectl apply -f deploy/filter.yaml
+	@kubectl apply -f deploy/ngsa-memory/filter.yaml
 
 	@kubectl wait pod --for condition=ready --all --timeout=60s
 
@@ -96,7 +96,7 @@ clean :
 	@# TODO - implement
 
 	# delete filter and config map
-	kubectl delete --ignore-not-found -f deploy/filter.yaml
+	kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
 	kubectl delete --ignore-not-found cm wasm-poc-filter
 
 	# delete ngsa
