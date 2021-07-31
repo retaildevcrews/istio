@@ -11,7 +11,7 @@ help :
 	@echo "   make test                - run a LodeRunner test"
 	@echo "   make build-burstserver   - build the burst metrics server"
 	@echo "   get-pod-metrics          - get the raw pod metrics"
-create : delete build
+create : delete build build-burstserver
 	kind create cluster --config deploy/kind/kind.yaml
 
 	kubectl apply -f deploy/kind/config.yaml
@@ -55,8 +55,7 @@ create : delete build
 	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	@# turn the wasm filter on for each deployment
-	@# this is commented out for testing
-	@# kubectl apply -f deploy/filter.yaml
+	@kubectl apply -f deploy/filter.yaml
 
 	@kubectl wait pod --for condition=ready --all --timeout=60s
 
@@ -64,7 +63,7 @@ create : delete build
 	@echo "    source ~/.bashrc"
 	@echo "run - make check"
 
-build : build-burstserver
+build :
 	# build the WebAssembly
 	@rm -f wasm_header_poc.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
