@@ -1,4 +1,4 @@
-.PHONY: build build-metrics create delete check clean deploy test build-burstserver
+.PHONY: build build-metrics create delete check clean deploy test build-burstserver get-pod-metrics
 
 help :
 	@echo "Usage:"
@@ -10,6 +10,7 @@ help :
 	@echo "   make clean               - delete the apps from the cluster (not working)"
 	@echo "   make test                - run a LodeRunner test"
 	@echo "   make build-burstserver   - build the burst metrics server"
+	@echo "   get-pod-metrics          - get the raw pod metrics"
 create : delete build
 	kind create cluster --config deploy/kind/kind.yaml
 
@@ -88,6 +89,9 @@ check :
 	# check the endpoints
 	@http http://${GATEWAY_URL}/memory/healthz
 
+	# get the metrics
+	@http http://${GATEWAY_URL}/burstmetrics/default/ngsa
+
 clean :
 	@# TODO - implement
 
@@ -114,13 +118,6 @@ build-burstserver :
 get-pod-metrics :
 	# retrieve current values from metrics server
 	kubectl get --raw https://localhost:5443/apis/metrics.k8s.io/v1beta1/pods
-
-get-burst-metrics :
-    # We're assuming the hpa is in default namespace and tied to ngsa deployment
-    # HPA takes 15~30 seconds to receive metrics from metrics-server
-    # If you see cpu-load and target-load as -1, then try again
-    # If connectionError then check hpa and metrics server 
-	@http http://${GATEWAY_URL}/burstmetrics/default/ngsa
 
 
 ### not working yet
