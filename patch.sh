@@ -32,3 +32,5 @@ echo "export INGRESS_HOST=$IP" >> ~/.bashrc
 echo "export INGRESS_PORT=$PORT" >> ~/.bashrc
 echo "export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')" >> ~/.bashrc
 echo 'export K8s=$INGRESS_HOST:$INGRESS_PORT' >> ~/.bashrc
+
+export K8s=$IP:$PORT
