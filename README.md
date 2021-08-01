@@ -60,6 +60,10 @@ make check
 
 ```
 
+## Request Flow
+
+![Request Flow](images/flow.png)
+
 ## Links
 
 - Building Envoy filters with Rust and WebAssembly - <https://github.com/proxy-wasm/proxy-wasm-rust-sdk>
