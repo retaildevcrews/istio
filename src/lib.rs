@@ -22,6 +22,9 @@ struct FilterConfig {
     /// The authority to set when calling the HTTP service providing headers.
     service_authority: String,
 
+    /// user agent
+    user_agent: String,
+
     /// Cache duration in seconds
     cache_seconds: u64,
 
@@ -39,6 +42,7 @@ impl Default for FilterConfig {
             service_cluster: "".to_owned(),
             service_path: "".to_owned(),
             service_authority: "".to_owned(),
+            user_agent: "".to_owned(),
             cache_seconds: 60 * 60 * 24,
             namespace: "".to_owned(),
             deployment: "".to_owned()
@@ -183,29 +187,42 @@ struct HttpHandler {}
 
 impl HttpContext for HttpHandler {
     fn on_http_response_headers(&mut self, _num_headers: usize) -> Action {
-        match self.get_shared_data(CACHE_KEY) {
-            (Some(cache), _) => {
-                debug!(
-                    "using existing header cache: {}",
-                    String::from_utf8(cache.clone()).unwrap()
-                );
-                let mystr = String::from_utf8(cache.clone()).unwrap();
-                self.set_http_response_header("X-Load-Feedback",Some(&mystr));
 
-                Action::Continue
-            }
-            (None, _) => {
-                warn!("filter not initialized");
-
+        match self.get_http_request_header(":user-agent") {
+            Some(agent) if agent != "/hello" => {
                 self.send_http_response(
-                    500,
-                    vec![("Powered-By", POWERED_BY)],
-                    Some(b"Filter not initialised"),
+                    200,
+                    vec![("Hello", "World"), ("Powered-By", "proxy-wasm")],
+                    Some(agent.as_bytes()),
                 );
-
                 Action::Pause
             }
+            _ => Action::Continue
         }
+
+        // match self.get_shared_data(CACHE_KEY) {
+        //     (Some(cache), _) => {
+        //         debug!(
+        //             "using existing header cache: {}",
+        //             String::from_utf8(cache.clone()).unwrap()
+        //         );
+        //         let mystr = String::from_utf8(cache.clone()).unwrap();
+        //         self.set_http_response_header("X-Load-Feedback",Some(&mystr));
+
+        //         Action::Continue
+        //     }
+        //     (None, _) => {
+        //         warn!("filter not initialized");
+
+        //         self.send_http_response(
+        //             500,
+        //             vec![("Powered-By", POWERED_BY)],
+        //             Some(b"Filter not initialized"),
+        //         );
+
+        //         Action::Pause
+        //     }
+        // }
     }
 }
 
