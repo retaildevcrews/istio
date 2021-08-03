@@ -74,15 +74,31 @@ delete:
 	@# this will fail harmlessly if the cluster does not exist
 	-kind delete cluster
 
-deploy :
-	# TODO deploy the app
+deploy : build
 
 	@kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
 	@kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
 
 	@kubectl wait pod --for condition=ready --all --timeout=60s
 
-	@kubectl apply -f deploy/loderunner/loderunner.yaml
+	# create HPA for ngsa deployment for testing
+	@kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=2
+	@kubectl wait pod --for condition=ready --all --timeout=60s
+
+	# Patching Istio ...
+	@./patch.sh
+
+	@# add config map
+	@kubectl create cm wasm-poc-filter --from-file=wasm_header_poc.wasm
+
+	@# patch any deployments
+	@# this will create a new deployment and terminate the old one
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+
+	@# turn the wasm filter on for each deployment
+	@kubectl apply -f deploy/ngsa-memory/filter.yaml
+
+	@kubectl wait pod --for condition=ready --all --timeout=60s
 
 check :
 	# get the metrics
@@ -93,7 +109,9 @@ check :
 	@http http://${K8s}/memory/healthz
 
 clean :
-	@# TODO - implement
+	@kubectl delete --ignore-not-found -f deploy/loderunner/loderunner.yaml
+
+	@kubectl delete --ignore-not-found hpa ngsa
 
 	# delete filter and config map
 	kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
@@ -104,7 +122,7 @@ clean :
 	kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-gw.yaml
 
 	# show running pods
-	@kubectl get po -A
+	@kubectl get po
 
 test :
 	# run a 90 second test
