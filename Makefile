@@ -1,4 +1,4 @@
-.PHONY: build build-metrics create delete check clean deploy test build-burstserver get-pod-metrics
+.PHONY: build build-metrics create delete check deploy test build-burstserver get-pod-metrics
 
 help :
 	@echo "Usage:"
@@ -7,7 +7,6 @@ help :
 	@echo "   make delete              - delete the kind cluster"
 	@echo "   make check               - check the endpoints with curl"
 	@echo "   make deploy              - deploy the apps to the cluster (not working)"
-	@echo "   make clean               - delete the apps from the cluster (not working)"
 	@echo "   make test                - run a LodeRunner test"
 	@echo "   make build-burstserver   - build the burst metrics server"
 	@echo "   get-pod-metrics          - get the raw pod metrics"
@@ -76,26 +75,21 @@ delete:
 
 deploy : build
 
-	@kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
-	@kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
-
-	@kubectl wait pod --for condition=ready --all --timeout=60s
-
-	# create HPA for ngsa deployment for testing
-	@kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=2
-	@kubectl wait pod --for condition=ready --all --timeout=60s
+	# delete filter and config map
+	kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
+	kubectl delete --ignore-not-found cm burst-wasm-filter
 
 	# Patching Istio ...
 	@./patch.sh
 
-	@# add config map
+	# add config map
 	@kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
 
-	@# patch any deployments
+	# patch any deployments
 	@# this will create a new deployment and terminate the old one
 	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
-	@# turn the wasm filter on for each deployment
+	# turn the wasm filter on for each deployment
 	@kubectl apply -f deploy/ngsa-memory/filter.yaml
 
 	@kubectl wait pod --for condition=ready --all --timeout=60s
@@ -108,22 +102,6 @@ check :
 	# check the healthz endpoint
 	# @http http://${K8s}/memory/healthz
 	@http http://${K8s}/memory/healthz
-
-clean :
-	@kubectl delete --ignore-not-found -f deploy/loderunner/loderunner.yaml
-
-	@kubectl delete --ignore-not-found hpa ngsa
-
-	# delete filter and config map
-	kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
-	kubectl delete --ignore-not-found cm burst-wasm-filter
-
-	# delete ngsa
-	kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-memory.yaml
-	kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-gw.yaml
-
-	# show running pods
-	@kubectl get po
 
 test :
 	# run a 90 second test
