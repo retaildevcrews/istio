@@ -66,7 +66,7 @@ pub fn _start() {
                 .insert(context_id, FilterConfig::default());
         });
 
-        Box::new(RootHandler { context_id })
+        Box::new(RootHandler { context_id, config: FilterConfig::default() })
     });
 
     // set http context for proxy
@@ -77,34 +77,36 @@ pub fn _start() {
 
 struct RootHandler {
     context_id: u32,
+    config: FilterConfig,
 }
 
 impl RootContext for RootHandler {
     fn on_configure(&mut self, _config_size: usize) -> bool {
 
-        // Check for the mandatory filter configuration
-        let configuration: Vec<u8> = match self.get_configuration() {
-            Some(c) => c,
-            None => {
-                warn!("configuration missing");
+        if self.config.service_cluster == "" {
+            // Check for the mandatory filter configuration
+            let configuration: Vec<u8> = match self.get_configuration() {
+                Some(c) => c,
+                None => {
+                    warn!("configuration missing");
 
-                return false;
-            }
-        };
+                    return false;
+                }
+            };
 
-        // Parse and store the configuration
-        match serde_json::from_slice::<FilterConfig>(configuration.as_ref()) {
-            Ok(config) => {
-                let agent = config.user_agent.clone();
+            // Parse and store the configuration
+            match serde_json::from_slice::<FilterConfig>(configuration.as_ref()) {
+                Ok(config) => {
+                    self.config = config;
 
-                let _ok = self.set_shared_data(USER_AGENT, Some(&agent.as_bytes()), None).is_ok();
+                    let agent = self.config.user_agent.clone();
+                    let _ok = self.set_shared_data(USER_AGENT, Some(&agent.as_bytes()), None).is_ok();
+                }
+                Err(e) => {
+                    warn!("failed to parse configuration: {:?}", e);
 
-                CONFIGS.with(|configs| configs.borrow_mut().insert(self.context_id, config));
-            }
-            Err(e) => {
-                warn!("failed to parse configuration: {:?}", e);
-
-                return false;
+                    return false;
+                }
             }
         }
 
@@ -117,39 +119,26 @@ impl RootContext for RootHandler {
 
     // refresh the cache on a timer
     fn on_tick(&mut self) {
-        // Log the action
-        match self.get_shared_data(CACHE_KEY) {
-            (None, _) => debug!("initializing cache"),
-            (Some(_), _) => debug!("refreshing cache"),
-        }
+        self.set_tick_period(Duration::from_secs(self.config.cache_seconds));
 
-        CONFIGS.with(|configs| {
-            configs.borrow().get(&self.context_id).map(|config| {
-                // We could be in the initialization tick here so update our
-                // tick period to the configured expiry before doing anything.
-                // This will be reset to an initialization tick upon failures.
-                self.set_tick_period(Duration::from_secs(config.cache_seconds));
+        // Dispatch an async HTTP call to the configured cluster
+        let _z = self.dispatch_http_call(
+            &self.config.service_cluster,
+            vec![
+                (":method", "GET"),
+                (":path", &format!("{}/{}/{}", self.config.service_path, self.config.namespace, self.config.deployment)),
+                (":authority", &self.config.service_authority),
+            ],
+            None,
+            vec![],
+            Duration::from_secs(5),
+        )
+        .map_err(|e| {
+            // Reset to an initialization tick for a quick retry.
+            self.set_tick_period(INITIALIZATION_TICK);
 
-                // Dispatch an async HTTP call to the configured cluster
-                self.dispatch_http_call(
-                    &config.service_cluster,
-                    vec![
-                        (":method", "GET"),
-                        (":path", &format!("{}/{}/{}", config.service_path, config.namespace, config.deployment)),
-                        (":authority", &config.service_authority),
-                    ],
-                    None,
-                    vec![],
-                    Duration::from_secs(5),
-                )
-                .map_err(|e| {
-                    // Reset to an initialization tick for a quick retry.
-                    self.set_tick_period(INITIALIZATION_TICK);
-
-                    warn!("failed calling header providing service: {:?}", e)
-                })
-            })
-        });
+            warn!("failed calling header providing service: {:?}", e)
+        }).is_ok();
     }
 }
 
