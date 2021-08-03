@@ -7,7 +7,7 @@ use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, time::Duration};
 
 const CACHE_KEY: &str = "burst_metrics";
-const USER_AGENT: &str = "HTTPie/1.0.3";
+const USER_AGENT: &str = "user-agent";
 const INITIALIZATION_TICK: Duration = Duration::from_secs(2);
 
 #[derive(Deserialize, Debug)]
@@ -95,6 +95,10 @@ impl RootContext for RootHandler {
         // Parse and store the configuration
         match serde_json::from_slice::<FilterConfig>(configuration.as_ref()) {
             Ok(config) => {
+                let agent = config.user_agent.clone();
+
+                let _ok = self.set_shared_data(USER_AGENT, Some(&agent.as_bytes()), None).is_ok();
+
                 CONFIGS.with(|configs| configs.borrow_mut().insert(self.context_id, config));
             }
             Err(e) => {
@@ -191,12 +195,15 @@ impl HttpContext for RequestContext {
 
     // check headers for user-agent match
     fn on_http_request_headers(&mut self, _: usize) -> Action {
-        let agent = self.get_http_request_header("user-agent").unwrap_or_default();
-
-        if agent == USER_AGENT {
-            // match
-            self.add_header = true;
+        match self.get_shared_data(USER_AGENT) {
+            (Some(agent), _) => {
+                if self.get_http_request_header(USER_AGENT).unwrap_or_default() == String::from_utf8(agent.clone()).unwrap_or_default() {
+                    self.add_header = true;
+                }
+            }
+            (None, _) => {}
         }
+
 
         Action::Continue
     }
