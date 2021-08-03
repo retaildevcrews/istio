@@ -1,13 +1,13 @@
 use log::{debug, warn};
 use proxy_wasm::{
-    traits::{Context, HttpContext, RootContext},
-    types::{Action, LogLevel},
+    traits::*,
+    types::*,
 };
 use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, time::Duration};
 
-const POWERED_BY: &str = "ngsa";
 const CACHE_KEY: &str = "burst_metrics";
+const USER_AGENT: &str = "HTTPie/1.0.3";
 const INITIALIZATION_TICK: Duration = Duration::from_secs(2);
 
 #[derive(Deserialize, Debug)]
@@ -71,7 +71,7 @@ pub fn _start() {
 
     // set http context for proxy
     proxy_wasm::set_http_context(|_context_id, _root_context_id| -> Box<dyn HttpContext> {
-        Box::new(HttpHandler {})
+        Box::new(RequestContext { add_header: false })
     })
 }
 
@@ -157,7 +157,7 @@ impl Context for RootHandler {
         body_size: usize,
         _num_trailers: usize,
     ) {
-        // Gather the response body of async HTTP call
+        // Gather the response body of metrics server call
         let body = match self.get_http_call_response_body(0, body_size) {
             Some(body) => body,
             None => {
@@ -183,56 +183,43 @@ impl Context for RootHandler {
     }
 }
 
-struct HttpHandler {}
+struct RequestContext {
+    add_header: bool,
+}
 
-impl HttpContext for HttpHandler {
-    fn on_http_response_headers(&mut self, _num_headers: usize) -> Action {
+impl HttpContext for RequestContext {
 
-        match self.get_http_request_header(":user-agent") {
-            Some(agent) if agent != "/hello" => {
-                self.send_http_response(
-                    200,
-                    vec![("Hello", "World"), ("Powered-By", "proxy-wasm")],
-                    Some(agent.as_bytes()),
-                );
-                Action::Pause
-            }
-            _ => Action::Continue
+    // check headers for user-agent match
+    fn on_http_request_headers(&mut self, _: usize) -> Action {
+        let agent = self.get_http_request_header("user-agent").unwrap_or_default();
+
+        if agent == USER_AGENT {
+            // match
+            self.add_header = true;
         }
 
-        // match self.get_shared_data(CACHE_KEY) {
-        //     (Some(cache), _) => {
-        //         debug!(
-        //             "using existing header cache: {}",
-        //             String::from_utf8(cache.clone()).unwrap()
-        //         );
-        //         let mystr = String::from_utf8(cache.clone()).unwrap();
-        //         self.set_http_response_header("X-Load-Feedback",Some(&mystr));
+        Action::Continue
+    }
+    
+    fn on_http_response_headers(&mut self, _num_headers: usize) -> Action {
 
-        //         Action::Continue
-        //     }
-        //     (None, _) => {
-        //         warn!("filter not initialized");
+        if self.add_header {
+            // get the header from shared data
+            match self.get_shared_data(CACHE_KEY) {
+                (Some(cache), _) => {
+                    debug!("using existing header cache: {}", String::from_utf8(cache.clone()).unwrap());
 
-        //         self.send_http_response(
-        //             500,
-        //             vec![("Powered-By", POWERED_BY)],
-        //             Some(b"Filter not initialized"),
-        //         );
+                    let mystr = String::from_utf8(cache.clone()).unwrap();
+                    self.set_http_response_header("X-Load-Feedback",Some(&mystr));
+                }
+                (None, _) => {
+                    warn!("filter not initialized");
+                }
+            }
+        }
 
-        //         Action::Pause
-        //     }
-        // }
+        Action::Continue
     }
 }
 
-impl Context for HttpHandler {}
-
-impl HttpHandler {
-    // fn parse_headers(&self, res: &[u8]) -> Result<Map<String, Value>, Box<dyn Error>> {
-    //     Ok(serde_json::from_slice::<Value>(&res)?
-    //         .as_object()
-    //         .unwrap()
-    //         .clone())
-    // }
-}
+impl Context for RequestContext {}
