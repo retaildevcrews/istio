@@ -40,7 +40,7 @@ spec:
             "service_cluster": "healthcluster",
             "service_authority": "172.18.0.3",
             "service_path": "/burstmetrics",
-            "user_agent": "HTTPie/1.0.3",
+            "user_agent": "HTTPie/",
             "cache_seconds": 3,
             "namespace": "default",
             "deployment": "mem1"

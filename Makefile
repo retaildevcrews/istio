@@ -107,7 +107,7 @@ check :
 
 	# check the healthz endpoint
 	# @http http://${K8s}/memory/healthz
-	@http http://${K8s}/memory/healthz User-Agent:HTTPie/1.0.3
+	@http http://${K8s}/memory/healthz
 
 clean :
 	@kubectl delete --ignore-not-found -f deploy/loderunner/loderunner.yaml

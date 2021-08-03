@@ -175,7 +175,7 @@ impl HttpContext for RequestContext {
 
     // check headers for user-agent match
     fn on_http_request_headers(&mut self, _: usize) -> Action {
-        if self.get_http_request_header(USER_AGENT).unwrap_or_default() == self.user_agent {
+        if self.get_http_request_header(USER_AGENT).unwrap_or_default().starts_with(self.user_agent.as_str()) {
             self.add_header = true;
         }
         Action::Continue
