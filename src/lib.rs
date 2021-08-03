@@ -5,6 +5,7 @@ use serde::*;
 use std::time::*;
 
 const USER_AGENT: &str = "user-agent";
+const HEADER_NAME: &str = "X-Load-Feedback";
 const INITIALIZATION_TICK: Duration = Duration::from_secs(2);
 
 // root handler holds config map
@@ -52,14 +53,14 @@ struct FilterConfig {
 impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
-            burst_header: "".to_owned(),
+            burst_header: String::new(),
             cache_seconds: 60 * 60 * 24,
-            deployment: "".to_owned(),
-            namespace: "".to_owned(),
-            service_authority: "".to_owned(),
-            service_cluster: "".to_owned(),
-            service_path: "".to_owned(),
-            user_agent: "".to_owned(),
+            deployment: String::new(),
+            namespace: String::new(),
+            service_authority: String::new(),
+            service_cluster: String::new(),
+            service_path: String::new(),
+            user_agent: String::new(),
         }
     }
 }
@@ -184,7 +185,7 @@ impl HttpContext for RequestContext {
     // add the header if user-agent matched
     fn on_http_response_headers(&mut self, _num_headers: usize) -> Action {
         if self.add_header {
-            self.set_http_response_header("X-Load-Feedback",Some(&self.burst_header));
+            self.set_http_response_header(HEADER_NAME,Some(&self.burst_header));
         }
         Action::Continue
     }
