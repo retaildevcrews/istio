@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: reviews-wasm
+  name: burst-wasm
   namespace: default
 spec:
   workloadSelector:
@@ -21,18 +21,18 @@ spec:
     patch:
      operation: INSERT_BEFORE 
      value:
-      name: my-wasm-extension
+      name: burst-wasm-extension
       typed_config:
        "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
        config:
-        root_id: my-wasm-root-id
+        root_id: burst-wasm-root-id
         vm_config:
-         vm_id: my-wasm-vm-id
+         vm_id: burst-wasm-vm-id
          runtime: envoy.wasm.runtime.v8
          allow_precompiled: true
          code:
           local:
-           filename: /var/local/lib/wasm-filters/wasm_header_poc.wasm
+           filename: /var/local/lib/wasm-filters/burst_header.wasm
         configuration:
          "@type": "type.googleapis.com/google.protobuf.StringValue"
          value: |
@@ -40,10 +40,13 @@ spec:
             "service_cluster": "healthcluster",
             "service_authority": "172.18.0.3",
             "service_path": "/burstmetrics",
+            "user_agent": "HTTPie/",
             "cache_seconds": 3,
             "namespace": "default",
             "deployment": "ngsa"
           }               
+  # "user_agent": "EF-Strati-HealthCheck-Client/1.0",
+
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added
   - applyTo: CLUSTER
@@ -66,4 +69,4 @@ spec:
                   socket_address:
                     protocol: TCP
                     address: 172.18.0.3
-                    port_value: 31106
+                    port_value: 30298

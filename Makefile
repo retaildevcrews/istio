@@ -47,12 +47,12 @@ create : delete build build-burstserver
 	@./patch.sh
 
 	@# add config map
-	@kubectl create cm wasm-poc-filter --from-file=wasm_header_poc.wasm
+	@kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
 
 	@# patch any deployments
 	@# this will create a new deployment and terminate the old one
 	@# TODO - integrate into ngsa-memory.yaml?
-	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	@# turn the wasm filter on for each deployment
 	@kubectl apply -f deploy/ngsa-memory/filter.yaml
@@ -65,24 +65,31 @@ create : delete build build-burstserver
 
 build :
 	# build the WebAssembly
-	@rm -f wasm_header_poc.wasm
+	@rm -f burst_header.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
-	@cp target/wasm32-unknown-unknown/release/wasm_header_poc.wasm .
+	@cp target/wasm32-unknown-unknown/release/burst_header.wasm .
 
 delete:
 	# delete the cluster (if exists)
 	@# this will fail harmlessly if the cluster does not exist
 	-kind delete cluster
 
-deploy :
-	# TODO deploy the app
+deploy : clean build
 
-	@kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
-	@kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
+	# Patching Istio ...
+	@./patch.sh
+
+	# add config map
+	@kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
+
+	# patch any deployments
+	@# this will create a new deployment and terminate the old one
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+
+	# turn the wasm filter on for each deployment
+	@kubectl apply -f deploy/ngsa-memory/filter.yaml
 
 	@kubectl wait pod --for condition=ready --all --timeout=60s
-
-	@kubectl apply -f deploy/loderunner/loderunner.yaml
 
 check :
 	# get the metrics
@@ -90,21 +97,14 @@ check :
 	@echo ""
 
 	# check the healthz endpoint
+	# @http http://${K8s}/memory/healthz
 	@http http://${K8s}/memory/healthz
 
 clean :
-	@# TODO - implement
-
 	# delete filter and config map
-	kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
-	kubectl delete --ignore-not-found cm wasm-poc-filter
-
-	# delete ngsa
-	kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-memory.yaml
-	kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-gw.yaml
-
-	# show running pods
-	@kubectl get po -A
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[]","sidecar.istio.io/userVolumeMount":"[]"}}}}}'
+	@kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
+	@kubectl delete --ignore-not-found cm burst-wasm-filter
 
 test :
 	# run a 90 second test
@@ -125,7 +125,7 @@ get-pod-metrics :
 mem1 :
 	@kubectl apply -f deploy/mem1/app.yaml
 	@kubectl apply -f deploy/mem1/gw.yaml
-	@kubectl patch deployment mem1 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment mem1 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 	@kubectl apply -f deploy/mem1/filter.yaml
 
 mem1-check :
@@ -134,7 +134,7 @@ mem1-check :
 mem2 :
 	@kubectl apply -f deploy/mem2/app.yaml
 	@kubectl apply -f deploy/mem2/gw.yaml
-	@kubectl patch deployment mem2 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment mem2 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 	@kubectl apply -f deploy/mem2/filter.yaml
 
 mem2-check :
@@ -143,7 +143,7 @@ mem2-check :
 mem3 :
 	@kubectl apply -f deploy/mem3/app.yaml
 	@kubectl apply -f deploy/mem3/gw.yaml
-	@kubectl patch deployment mem3 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment mem3 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 	@kubectl apply -f deploy/mem3/filter.yaml
 
 mem3-check :

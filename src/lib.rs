@@ -1,151 +1,82 @@
-use log::{debug, warn};
-use proxy_wasm::{
-    traits::{Context, HttpContext, RootContext},
-    types::{Action, LogLevel},
-};
-use serde::Deserialize;
-use std::{cell::RefCell, collections::HashMap, time::Duration};
+use log::*;
+use proxy_wasm::traits::*;
+use proxy_wasm::types::*;
+use serde::*;
+use std::time::*;
 
-const POWERED_BY: &str = "ngsa";
-const CACHE_KEY: &str = "burst_metrics";
+const USER_AGENT: &str = "user-agent";
+const HEADER_NAME: &str = "X-Load-Feedback";
 const INITIALIZATION_TICK: Duration = Duration::from_secs(2);
 
+// root handler holds config map
+struct RootHandler {
+    config: FilterConfig,
+}
+
+// each request gets burst_header and user_agent from root
+struct RequestContext {
+    add_header: bool,
+    burst_header: String,
+    user_agent: String,
+}
+
+// config map structure
 #[derive(Deserialize, Debug)]
 #[serde(default)]
 struct FilterConfig {
+    /// current burst header - gets updated on time
+    burst_header: String,
+
+    /// Cache duration in seconds
+    cache_seconds: u64,
+
+    /// Name of this deployment
+    deployment: String,
+
+    /// Namespace of this app
+    namespace: String,
+
+    /// The authority to set when calling the HTTP service providing headers.
+    service_authority: String,
+
     /// The Envoy cluster name
     service_cluster: String,
 
     /// The path to call on the HTTP service providing headers.
     service_path: String,
 
-    /// The authority to set when calling the HTTP service providing headers.
-    service_authority: String,
-
-    /// Cache duration in seconds
-    cache_seconds: u64,
-
-    /// Namespace of this app
-    namespace: String,
-
-    /// Name of this deployment
-    deployment: String
+    /// user agent
+    user_agent: String,
 }
 
-// the plug-in will fail if no config
+// default values for config
 impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
-            service_cluster: "".to_owned(),
-            service_path: "".to_owned(),
-            service_authority: "".to_owned(),
+            burst_header: String::new(),
             cache_seconds: 60 * 60 * 24,
-            namespace: "".to_owned(),
-            deployment: "".to_owned()
+            deployment: String::new(),
+            namespace: String::new(),
+            service_authority: String::new(),
+            service_cluster: String::new(),
+            service_path: String::new(),
+            user_agent: String::new(),
         }
     }
-}
-
-thread_local! {
-    static CONFIGS: RefCell<HashMap<u32, FilterConfig>> = RefCell::new(HashMap::new())
 }
 
 #[no_mangle]
 pub fn _start() {
-    proxy_wasm::set_log_level(LogLevel::Trace);
+    proxy_wasm::set_log_level(LogLevel::Warn);
 
-    // load config into root context
-    proxy_wasm::set_root_context(|context_id| -> Box<dyn RootContext> {
-        CONFIGS.with(|configs| {
-            configs
-                .borrow_mut()
-                .insert(context_id, FilterConfig::default());
-        });
-
-        Box::new(RootHandler { context_id })
+    // load config map into root context
+    proxy_wasm::set_root_context(|_context_id| -> Box<dyn RootContext> {
+        Box::new(RootHandler { config: FilterConfig::default() })
     });
-
-    // set http context for proxy
-    proxy_wasm::set_http_context(|_context_id, _root_context_id| -> Box<dyn HttpContext> {
-        Box::new(HttpHandler {})
-    })
-}
-
-struct RootHandler {
-    context_id: u32,
-}
-
-impl RootContext for RootHandler {
-    fn on_configure(&mut self, _config_size: usize) -> bool {
-
-        // Check for the mandatory filter configuration
-        let configuration: Vec<u8> = match self.get_configuration() {
-            Some(c) => c,
-            None => {
-                warn!("configuration missing");
-
-                return false;
-            }
-        };
-
-        // Parse and store the configuration
-        match serde_json::from_slice::<FilterConfig>(configuration.as_ref()) {
-            Ok(config) => {
-                CONFIGS.with(|configs| configs.borrow_mut().insert(self.context_id, config));
-            }
-            Err(e) => {
-                warn!("failed to parse configuration: {:?}", e);
-
-                return false;
-            }
-        }
-
-        // Configure an initialization tick
-        self.set_tick_period(INITIALIZATION_TICK);
-
-        // configure the cache
-        self.set_shared_data(CACHE_KEY, None, None).is_ok()
-    }
-
-    // refresh the cache on a timer
-    fn on_tick(&mut self) {
-        // Log the action
-        match self.get_shared_data(CACHE_KEY) {
-            (None, _) => debug!("initializing cache"),
-            (Some(_), _) => debug!("refreshing cache"),
-        }
-
-        CONFIGS.with(|configs| {
-            configs.borrow().get(&self.context_id).map(|config| {
-                // We could be in the initialization tick here so update our
-                // tick period to the configured expiry before doing anything.
-                // This will be reset to an initialization tick upon failures.
-                self.set_tick_period(Duration::from_secs(config.cache_seconds));
-
-                // Dispatch an async HTTP call to the configured cluster
-                self.dispatch_http_call(
-                    &config.service_cluster,
-                    vec![
-                        (":method", "GET"),
-                        (":path", &format!("{}/{}/{}", config.service_path, config.namespace, config.deployment)),
-                        (":authority", &config.service_authority),
-                    ],
-                    None,
-                    vec![],
-                    Duration::from_secs(5),
-                )
-                .map_err(|e| {
-                    // Reset to an initialization tick for a quick retry.
-                    self.set_tick_period(INITIALIZATION_TICK);
-
-                    warn!("failed calling header providing service: {:?}", e)
-                })
-            })
-        });
-    }
 }
 
 impl Context for RootHandler {
+    // async http request callback
     fn on_http_call_response(
         &mut self,
         _token_id: u32,
@@ -153,69 +84,109 @@ impl Context for RootHandler {
         body_size: usize,
         _num_trailers: usize,
     ) {
-        // Gather the response body of async HTTP call
-        let body = match self.get_http_call_response_body(0, body_size) {
-            Some(body) => body,
+        // get the response body of metrics server call
+        match self.get_http_call_response_body(0, body_size) {
+            Some(body) => {
+                // Store the header in self.config
+                self.config.burst_header = String::from_utf8(body.clone()).unwrap();
+            },
             None => {
                 warn!("header providing service returned empty body");
-                return;
             }
         };
-
-        // Store the body in the shared cache
-        match self.set_shared_data(CACHE_KEY, Some(&body), None) {
-            Ok(()) => debug!(
-                "refreshed header cache with: {}",
-                String::from_utf8(body.clone()).unwrap()
-            ),
-
-            Err(e) => {
-                warn!("failed storing header cache: {:?}", e);
-
-                // Reset to an initialisation tick for a quick retry.
-                self.set_tick_period(INITIALIZATION_TICK)
-            }
-        }
     }
 }
 
-struct HttpHandler {}
+impl RootContext for RootHandler {
+    // create http context for each request
+    fn create_http_context(&self, _context_id: u32) -> Option<Box<dyn HttpContext>> {
+        Some(Box::new(RequestContext {
+            add_header: false,
+            // copy the values from config map
+            user_agent: self.config.user_agent.clone(),
+            burst_header: self.config.burst_header.clone(),
+        }))
+    }
 
-impl HttpContext for HttpHandler {
+    // required!
+    fn get_type(&self) -> Option<ContextType> {
+        Some(ContextType::HttpContext)
+    }
+
+    // read the config map and store in self.config
+    fn on_configure(&mut self, _config_size: usize) -> bool {
+
+        if self.config.service_cluster == "" {
+            // Check for the mandatory filter configuration
+            let configuration: Vec<u8> = match self.get_configuration() {
+                Some(c) => c,
+                None => {
+                    warn!("configuration missing");
+
+                    return false;
+                }
+            };
+
+            // Parse and store the configuration
+            match serde_json::from_slice::<FilterConfig>(configuration.as_ref()) {
+                Ok(config) => {
+                    self.config = config;
+                }
+                Err(e) => {
+                    warn!("failed to parse configuration: {:?}", e);
+
+                    return false;
+                }
+            }
+        }
+
+        // Configure an initialization tick
+        self.set_tick_period(INITIALIZATION_TICK);
+
+        return true;
+    }
+
+    // refresh the cache on a timer
+    fn on_tick(&mut self) {
+        self.set_tick_period(Duration::from_secs(self.config.cache_seconds));
+
+        // Dispatch an async HTTP call to the configured cluster
+        let _z = self.dispatch_http_call(
+            &self.config.service_cluster,
+            vec![
+                (":method", "GET"),
+                (":path", &format!("{}/{}/{}", self.config.service_path, self.config.namespace, self.config.deployment)),
+                (":authority", &self.config.service_authority),
+            ],
+            None,
+            vec![],
+            Duration::from_secs(5),
+        ).map_err(|e| {
+            // Reset to an initialization tick for a quick retry.
+            self.set_tick_period(INITIALIZATION_TICK);
+
+            warn!("failed calling header providing service: {:?}", e)
+        }).is_ok();
+    }
+}
+
+impl Context for RequestContext {}
+
+impl HttpContext for RequestContext {
+
+    // check headers for user-agent match
+    fn on_http_request_headers(&mut self, _: usize) -> Action {
+        if self.get_http_request_header(USER_AGENT).unwrap_or_default().starts_with(self.user_agent.as_str()) {
+            self.add_header = true;
+        }
+        Action::Continue
+    }
+    
+    // add the header if user-agent matched
     fn on_http_response_headers(&mut self, _num_headers: usize) -> Action {
-        match self.get_shared_data(CACHE_KEY) {
-            (Some(cache), _) => {
-                debug!(
-                    "using existing header cache: {}",
-                    String::from_utf8(cache.clone()).unwrap()
-                );
-                let mystr = String::from_utf8(cache.clone()).unwrap();
-                self.set_http_response_header("X-Load-Feedback",Some(&mystr));
-
-                Action::Continue
-            }
-            (None, _) => {
-                warn!("filter not initialized");
-
-                self.send_http_response(
-                    500,
-                    vec![("Powered-By", POWERED_BY)],
-                    Some(b"Filter not initialised"),
-                );
-
-                Action::Pause
-            }
+        if self.add_header {
+            self.set_http_response_header(HEADER_NAME,Some(&self.burst_header));
         }
+        Action::Continue
     }
-}
-
-impl Context for HttpHandler {}
-
-impl HttpHandler {
-    // fn parse_headers(&self, res: &[u8]) -> Result<Map<String, Value>, Box<dyn Error>> {
-    //     Ok(serde_json::from_slice::<Value>(&res)?
-    //         .as_object()
-    //         .unwrap()
-    //         .clone())
-    // }
 }
