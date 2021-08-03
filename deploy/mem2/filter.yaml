@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: mem2-wasm
+  name: burst-wasm
   namespace: default
 spec:
   workloadSelector:
@@ -21,13 +21,13 @@ spec:
     patch:
      operation: INSERT_BEFORE 
      value:
-      name: my-wasm-extension
+      name: filter-wasm-extension
       typed_config:
        "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
        config:
-        root_id: my-wasm-root-id
+        root_id: filter-wasm-root-id
         vm_config:
-         vm_id: my-wasm-vm-id
+         vm_id: filter-wasm-vm-id
          runtime: envoy.wasm.runtime.v8
          allow_precompiled: true
          code:
