@@ -1,4 +1,4 @@
-.PHONY: build build-metrics create delete check deploy test build-burstserver get-pod-metrics
+.PHONY: build build-metrics create delete check clean deploy test build-burstserver get-pod-metrics
 
 help :
 	@echo "Usage:"
@@ -7,6 +7,7 @@ help :
 	@echo "   make delete              - delete the kind cluster"
 	@echo "   make check               - check the endpoints with curl"
 	@echo "   make deploy              - deploy the apps to the cluster (not working)"
+	@echo "   make clean               - delete the apps from the cluster (not working)"
 	@echo "   make test                - run a LodeRunner test"
 	@echo "   make build-burstserver   - build the burst metrics server"
 	@echo "   get-pod-metrics          - get the raw pod metrics"
@@ -73,11 +74,7 @@ delete:
 	@# this will fail harmlessly if the cluster does not exist
 	-kind delete cluster
 
-deploy : build
-
-	# delete filter and config map
-	kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
-	kubectl delete --ignore-not-found cm burst-wasm-filter
+deploy : clean build
 
 	# Patching Istio ...
 	@./patch.sh
@@ -102,6 +99,12 @@ check :
 	# check the healthz endpoint
 	# @http http://${K8s}/memory/healthz
 	@http http://${K8s}/memory/healthz
+
+clean :
+	# delete filter and config map
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[]","sidecar.istio.io/userVolumeMount":"[]"}}}}}'
+	@kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
+	@kubectl delete --ignore-not-found cm burst-wasm-filter
 
 test :
 	# run a 90 second test
