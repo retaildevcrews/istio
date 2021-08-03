@@ -32,7 +32,7 @@ spec:
          allow_precompiled: true
          code:
           local:
-           filename: /var/local/lib/wasm-filters/wasm_header_poc.wasm
+           filename: /var/local/lib/wasm-filters/burst_header.wasm
         configuration:
          "@type": "type.googleapis.com/google.protobuf.StringValue"
          value: |
