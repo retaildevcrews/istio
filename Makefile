@@ -47,12 +47,12 @@ create : delete build build-burstserver
 	@./patch.sh
 
 	@# add config map
-	@kubectl create cm wasm-poc-filter --from-file=burst_header.wasm
+	@kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
 
 	@# patch any deployments
 	@# this will create a new deployment and terminate the old one
 	@# TODO - integrate into ngsa-memory.yaml?
-	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	@# turn the wasm filter on for each deployment
 	@kubectl apply -f deploy/ngsa-memory/filter.yaml
@@ -89,11 +89,11 @@ deploy : build
 	@./patch.sh
 
 	@# add config map
-	@kubectl create cm wasm-poc-filter --from-file=burst_header.wasm
+	@kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
 
 	@# patch any deployments
 	@# this will create a new deployment and terminate the old one
-	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	@# turn the wasm filter on for each deployment
 	@kubectl apply -f deploy/ngsa-memory/filter.yaml
@@ -115,7 +115,7 @@ clean :
 
 	# delete filter and config map
 	kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
-	kubectl delete --ignore-not-found cm wasm-poc-filter
+	kubectl delete --ignore-not-found cm burst-wasm-filter
 
 	# delete ngsa
 	kubectl delete --ignore-not-found -f  deploy/ngsa-memory/ngsa-memory.yaml
@@ -143,7 +143,7 @@ get-pod-metrics :
 mem1 :
 	@kubectl apply -f deploy/mem1/app.yaml
 	@kubectl apply -f deploy/mem1/gw.yaml
-	@kubectl patch deployment mem1 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment mem1 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 	@kubectl apply -f deploy/mem1/filter.yaml
 
 mem1-check :
@@ -152,7 +152,7 @@ mem1-check :
 mem2 :
 	@kubectl apply -f deploy/mem2/app.yaml
 	@kubectl apply -f deploy/mem2/gw.yaml
-	@kubectl patch deployment mem2 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment mem2 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 	@kubectl apply -f deploy/mem2/filter.yaml
 
 mem2-check :
@@ -161,7 +161,7 @@ mem2-check :
 mem3 :
 	@kubectl apply -f deploy/mem3/app.yaml
 	@kubectl apply -f deploy/mem3/gw.yaml
-	@kubectl patch deployment mem3 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"wasm-poc-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
+	@kubectl patch deployment mem3 -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 	@kubectl apply -f deploy/mem3/filter.yaml
 
 mem3-check :
