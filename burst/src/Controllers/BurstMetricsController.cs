@@ -46,7 +46,7 @@ namespace Ngsa.BurstService.Controllers
             logger.LogDebug("Target: {}, Cur CPU: {}", cpuTarget, cpuCurrent);
 
             // Console.WriteLine($"{DateTime.Now:s}  {Request.Path.ToString()}");
-            return Ok($"service: {ns}/{deployment}, current-load: {cpuCurrent}, target-load: {cpuTarget}, max-load: 85");
+            return Ok($"service={ns}/{deployment}, current-load={cpuCurrent}, target-load={cpuTarget}, max-load=85");
         }
     }
 }
