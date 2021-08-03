@@ -47,7 +47,7 @@ create : delete build build-burstserver
 	@./patch.sh
 
 	@# add config map
-	@kubectl create cm wasm-poc-filter --from-file=wasm_header_poc.wasm
+	@kubectl create cm wasm-poc-filter --from-file=burst_header.wasm
 
 	@# patch any deployments
 	@# this will create a new deployment and terminate the old one
@@ -65,9 +65,9 @@ create : delete build build-burstserver
 
 build :
 	# build the WebAssembly
-	@rm -f wasm_header_poc.wasm
+	@rm -f burst_header.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
-	@cp target/wasm32-unknown-unknown/release/wasm_header_poc.wasm .
+	@cp target/wasm32-unknown-unknown/release/burst_header.wasm .
 
 delete:
 	# delete the cluster (if exists)
@@ -89,7 +89,7 @@ deploy : build
 	@./patch.sh
 
 	@# add config map
-	@kubectl create cm wasm-poc-filter --from-file=wasm_header_poc.wasm
+	@kubectl create cm wasm-poc-filter --from-file=burst_header.wasm
 
 	@# patch any deployments
 	@# this will create a new deployment and terminate the old one
