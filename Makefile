@@ -1,14 +1,15 @@
-.PHONY: build build-metrics create delete check clean deploy test build-burstserver get-pod-metrics
+.PHONY: build build-metrics create delete check clean deploy test build-burstserver get-pod-metrics istio-check
 
 help :
 	@echo "Usage:"
 	@echo "   make build               - build the plug-in"
+	@echo "   make istio-check         - check istio status and logs"
+	@echo "   make check               - check the endpoints with curl"
+	@echo "   make test                - run a LodeRunner test"
+	@echo "   make clean               - delete the istio plugin from ngsa"
+	@echo "   make deploy              - deploy the istio plugin to ngsa"
 	@echo "   make create              - create a kind cluster"
 	@echo "   make delete              - delete the kind cluster"
-	@echo "   make check               - check the endpoints with curl"
-	@echo "   make deploy              - deploy the apps to the cluster (not working)"
-	@echo "   make clean               - delete the apps from the cluster (not working)"
-	@echo "   make test                - run a LodeRunner test"
 	@echo "   make build-burstserver   - build the burst metrics server"
 	@echo "   get-pod-metrics          - get the raw pod metrics"
 create : delete build build-burstserver
@@ -148,3 +149,8 @@ mem3 :
 
 mem3-check :
 	@http http://${K8s}/mem3/healthz
+
+istio-check :
+	@istioctl proxy-status
+	@echo ""
+	@kubectl logs -l=app=ngsa -c istio-proxy

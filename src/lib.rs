@@ -6,9 +6,8 @@ use std::time::*;
 
 const USER_AGENT: &str = "user-agent";
 const HEADER_NAME: &str = "X-Load-Feedback";
-const INITIALIZATION_TICK: Duration = Duration::from_secs(2);
 
-// root handler holds config map
+// root handler holds config
 struct RootHandler {
     config: FilterConfig,
 }
@@ -20,7 +19,7 @@ struct RequestContext {
     user_agent: String,
 }
 
-// config map structure
+// config structure
 #[derive(Deserialize, Debug)]
 #[serde(default)]
 struct FilterConfig {
@@ -69,14 +68,18 @@ impl Default for FilterConfig {
 pub fn _start() {
     proxy_wasm::set_log_level(LogLevel::Warn);
 
-    // load config map into root context
+    info!("starting bursting wasm");
+
+    // create root context and load config
     proxy_wasm::set_root_context(|_context_id| -> Box<dyn RootContext> {
         Box::new(RootHandler { config: FilterConfig::default() })
     });
 }
 
+// Root Context implementation
+
 impl Context for RootHandler {
-    // async http request callback
+    // async http request callback from metrics service
     fn on_http_call_response(
         &mut self,
         _token_id: u32,
@@ -91,57 +94,55 @@ impl Context for RootHandler {
                 self.config.burst_header = String::from_utf8(body.clone()).unwrap();
             },
             None => {
-                warn!("header providing service returned empty body");
+                // log an error
+                error!("header providing service returned empty body");
             }
         };
     }
 }
 
 impl RootContext for RootHandler {
-    // create http context for each request
+    // create http context for new requests
     fn create_http_context(&self, _context_id: u32) -> Option<Box<dyn HttpContext>> {
         Some(Box::new(RequestContext {
             add_header: false,
-            // copy the values from config map
+            // copy the values from root config to request
             user_agent: self.config.user_agent.clone(),
             burst_header: self.config.burst_header.clone(),
         }))
     }
 
-    // required!
+    // required for create_http_context to work
     fn get_type(&self) -> Option<ContextType> {
         Some(ContextType::HttpContext)
     }
 
-    // read the config map and store in self.config
+    // read the config and store in self.config
     fn on_configure(&mut self, _config_size: usize) -> bool {
-
-        if self.config.service_cluster == "" {
-            // Check for the mandatory filter configuration
-            let configuration: Vec<u8> = match self.get_configuration() {
-                Some(c) => c,
-                None => {
-                    warn!("configuration missing");
-
-                    return false;
-                }
-            };
-
-            // Parse and store the configuration
-            match serde_json::from_slice::<FilterConfig>(configuration.as_ref()) {
-                Ok(config) => {
-                    self.config = config;
-                }
-                Err(e) => {
-                    warn!("failed to parse configuration: {:?}", e);
-
-                    return false;
+        match self.get_configuration() {
+            Some(c) => {
+                // Parse and store the configuration
+                match serde_json::from_slice::<FilterConfig>(c.as_ref()) {
+                    Ok(config) => {
+                        // TODO - add validation
+                        self.config = config;
+                    }
+                    Err(e) => {
+                        // fail on invalid config
+                        error!("failed to parse configuration: {:?}", e);
+                        return false;
+                    }
                 }
             }
-        }
+            None => {
+                // fail on missing config
+                error!("configuration missing");
+                return false;
+            }
+        };
 
-        // Configure an initialization tick
-        self.set_tick_period(INITIALIZATION_TICK);
+        // set a short duration to cause the timer to fire quickly
+        self.set_tick_period(Duration::from_secs(1));
 
         return true;
     }
@@ -150,7 +151,8 @@ impl RootContext for RootHandler {
     fn on_tick(&mut self) {
         self.set_tick_period(Duration::from_secs(self.config.cache_seconds));
 
-        // Dispatch an async HTTP call to the configured cluster
+        // dispatch an async HTTP call to the configured cluster
+        // response is handled in Context::on_http_call_response
         let _z = self.dispatch_http_call(
             &self.config.service_cluster,
             vec![
@@ -162,19 +164,22 @@ impl RootContext for RootHandler {
             vec![],
             Duration::from_secs(5),
         ).map_err(|e| {
-            // Reset to an initialization tick for a quick retry.
-            self.set_tick_period(INITIALIZATION_TICK);
+            warn!("metrics service request failed: {:?}", e);
 
-            warn!("failed calling header providing service: {:?}", e)
+            // retry quickly
+            self.set_tick_period(Duration::from_secs(2));
         }).is_ok();
     }
 }
 
+// http request implemenetation
+
+// nothing implemented
 impl Context for RequestContext {}
 
 impl HttpContext for RequestContext {
 
-    // check headers for user-agent match
+    // check headers for user-agent match and store in self
     fn on_http_request_headers(&mut self, _: usize) -> Action {
         if self.get_http_request_header(USER_AGENT).unwrap_or_default().starts_with(self.user_agent.as_str()) {
             self.add_header = true;
