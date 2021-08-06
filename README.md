@@ -2,14 +2,10 @@
 
 > Sample Istio filter with Rust and Web Assembly
 
-## TODO
+## Errors
 
-- Not working yet
-  - Prometheus
-  - Grafana
-  - need to figure out what has to be deployed vs make create
-    - make clean
-    - make deploy
+- `cargo test --target wasm32-unknown-unknown` is currently failing
+  - upstream bug in proxy_wasm::*
 
 ## Run Istio Web Assembly
 
