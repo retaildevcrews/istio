@@ -22,9 +22,9 @@ sed -i -r "s/\"service_authority\": .+/\"service_authority\": \"$IP\",/g" deploy
 
 
 # remove existing exports
-sed -i -r "/export INGRESS_HOST=.+/d" ~/.bashrc
-sed -i -r "/export INGRESS_PORT=.+/d" ~/.bashrc
-sed -i -r "/export SECURE_INGRESS_PORT=.+/d" ~/.bashrc
+#sed -i -r "/export INGRESS_HOST=.+/d" ~/.bashrc
+#sed -i -r "/export INGRESS_PORT=.+/d" ~/.bashrc
+#sed -i -r "/export SECURE_INGRESS_PORT=.+/d" ~/.bashrc
 sed -i -r "/export K8s=.+/d" ~/.bashrc
 
 # add exports to .bashrc
@@ -35,4 +35,4 @@ sed -i -r "/export K8s=.+/d" ~/.bashrc
 
 export K8s=$IP:$PORT
 
-echo 'if kubectl get po > /dev/null 2>&1; then export K8s=$(kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='"'{.items[0].status.hostIP}'"'):$(kubectl get service istio-ingressgateway -n istio-system -o jsonpath='"'{.spec.ports[?(@.name==\"http2\")].nodePort}'"'); fi' >> ~/.bashrc
+echo "export K8s=$IP:$PORT" >> ~/.bashrc
