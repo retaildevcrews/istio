@@ -153,7 +153,7 @@ impl RootContext for RootHandler {
 
         // dispatch an async HTTP call to the configured cluster
         // response is handled in Context::on_http_call_response
-        let _z = self.dispatch_http_call(
+        let res = self.dispatch_http_call(
             &self.config.service_cluster,
             vec![
                 (":method", "GET"),
@@ -163,12 +163,17 @@ impl RootContext for RootHandler {
             None,
             vec![],
             Duration::from_secs(5),
-        ).map_err(|e| {
-            warn!("metrics service request failed: {:?}", e);
+        );
 
-            // retry quickly
-            self.set_tick_period(Duration::from_secs(2));
-        }).is_ok();
+        match res {
+            Err(e) =>{
+                warn!("metrics service request failed: {:?}", e);
+
+                // retry quickly
+                self.set_tick_period(Duration::from_secs(2));
+                }
+            Ok(_)  => {}
+        }        
     }
 }
 
@@ -193,5 +198,13 @@ impl HttpContext for RequestContext {
             self.set_http_response_header(HEADER_NAME,Some(&self.burst_header));
         }
         Action::Continue
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn todo() {
+        assert_eq!(2 + 2, 4);
     }
 }
