@@ -1,8 +1,9 @@
-use log::*;
-use proxy_wasm::traits::*;
-use proxy_wasm::types::*;
-use serde::*;
-use std::time::*;
+use log::{error,info,warn};
+use proxy_wasm::{
+    traits::{Context,HttpContext,RootContext},
+    types::{Action,ContextType,LogLevel}};
+use serde::Deserialize;
+use std::time::Duration;
 
 const USER_AGENT: &str = "user-agent";
 const HEADER_NAME: &str = "X-Load-Feedback";
@@ -22,7 +23,7 @@ pub struct RequestContext {
 // config structure
 #[derive(Deserialize, Debug)]
 #[serde(default)]
-struct FilterConfig {
+pub struct FilterConfig {
     /// current burst header - gets updated on time
     burst_header: String,
 
