@@ -13,7 +13,7 @@ struct RootHandler {
 }
 
 // each request gets burst_header and user_agent from root
-struct RequestContext {
+pub struct RequestContext {
     add_header: bool,
     burst_header: String,
     user_agent: String,
