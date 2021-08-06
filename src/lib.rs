@@ -200,11 +200,3 @@ impl HttpContext for RequestContext {
         Action::Continue
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn todo() {
-        assert_eq!(2 + 2, 4);
-    }
-}
