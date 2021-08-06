@@ -28,9 +28,11 @@ sed -i -r "/export SECURE_INGRESS_PORT=.+/d" ~/.bashrc
 sed -i -r "/export K8s=.+/d" ~/.bashrc
 
 # add exports to .bashrc
-echo "export INGRESS_HOST=$IP" >> ~/.bashrc
-echo "export INGRESS_PORT=$PORT" >> ~/.bashrc
-echo "export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')" >> ~/.bashrc
-echo 'export K8s=$INGRESS_HOST:$INGRESS_PORT' >> ~/.bashrc
+#echo "export INGRESS_HOST=$IP" >> ~/.bashrc
+#echo "export INGRESS_PORT=$PORT" >> ~/.bashrc
+#echo "export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')" >> ~/.bashrc
+#echo 'export K8s=$INGRESS_HOST:$INGRESS_PORT' >> ~/.bashrc
 
 export K8s=$IP:$PORT
+
+echo 'if kubectl get po > /dev/null 2>&1; then export K8s=$(kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='"'{.items[0].status.hostIP}'"'):$(kubectl get service istio-ingressgateway -n istio-system -o jsonpath='"'{.spec.ports[?(@.name==\"http2\")].nodePort}'"'); fi' >> ~/.bashrc
