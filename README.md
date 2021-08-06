@@ -2,14 +2,10 @@
 
 > Sample Istio filter with Rust and Web Assembly
 
-## TODO
+## Errors
 
-- Not working yet
-  - Prometheus
-  - Grafana
-  - need to figure out what has to be deployed vs make create
-    - make clean
-    - make deploy
+- `cargo test --target wasm32-unknown-unknown` is currently failing
+  - upstream bug in proxy_wasm::*
 
 ## Run Istio Web Assembly
 
@@ -68,3 +64,4 @@ make check
 
 - Building Envoy filters with Rust and WebAssembly - <https://github.com/proxy-wasm/proxy-wasm-rust-sdk>
 - OIDC Sample <https://docs.eupraxia.io/docs/how-to-guides/deploy-rust-based-envoy-filter/#building-of-the-http-filter>
+- Unit testing with `wasm-bindgen-test` - <https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html>
