@@ -1,8 +1,7 @@
 {
 	"name": "akdc-rust",
 	"remoteUser": "vscode",
-	//"build": {"dockerfile": "Dockerfile"},
-	"image": "ghcr.io/retaildevcrews/kind-wasm:latest",
+	"build": {"dockerfile": "Dockerfile"},
 	"runArgs": [
 		"--init",
 		"--privileged"
