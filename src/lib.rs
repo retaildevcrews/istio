@@ -1,8 +1,9 @@
-use log::*;
-use proxy_wasm::traits::*;
-use proxy_wasm::types::*;
-use serde::*;
-use std::time::*;
+use log::{error,info,warn};
+use proxy_wasm::{
+    traits::{Context,HttpContext,RootContext},
+    types::{Action,ContextType,LogLevel}};
+use serde::Deserialize;
+use std::time::Duration;
 
 const USER_AGENT: &str = "user-agent";
 const HEADER_NAME: &str = "X-Load-Feedback";
@@ -13,7 +14,7 @@ struct RootHandler {
 }
 
 // each request gets burst_header and user_agent from root
-struct RequestContext {
+pub struct RequestContext {
     add_header: bool,
     burst_header: String,
     user_agent: String,
@@ -22,7 +23,7 @@ struct RequestContext {
 // config structure
 #[derive(Deserialize, Debug)]
 #[serde(default)]
-struct FilterConfig {
+pub struct FilterConfig {
     /// current burst header - gets updated on time
     burst_header: String,
 
@@ -153,7 +154,7 @@ impl RootContext for RootHandler {
 
         // dispatch an async HTTP call to the configured cluster
         // response is handled in Context::on_http_call_response
-        let _z = self.dispatch_http_call(
+        let res = self.dispatch_http_call(
             &self.config.service_cluster,
             vec![
                 (":method", "GET"),
@@ -163,12 +164,17 @@ impl RootContext for RootHandler {
             None,
             vec![],
             Duration::from_secs(5),
-        ).map_err(|e| {
-            warn!("metrics service request failed: {:?}", e);
+        );
 
-            // retry quickly
-            self.set_tick_period(Duration::from_secs(2));
-        }).is_ok();
+        match res {
+            Err(e) =>{
+                warn!("metrics service request failed: {:?}", e);
+
+                // retry quickly
+                self.set_tick_period(Duration::from_secs(2));
+                }
+            Ok(_)  => {}
+        }        
     }
 }
 

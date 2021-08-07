@@ -1,8 +1,7 @@
 {
 	"name": "akdc-rust",
 	"remoteUser": "vscode",
-	//"build": {"dockerfile": "Dockerfile"},
-	"image": "ghcr.io/retaildevcrews/kind-rust:latest",
+	"build": {"dockerfile": "Dockerfile"},
 	"runArgs": [
 		"--init",
 		"--privileged"
@@ -26,6 +25,7 @@
 		"humao.rest-client",
 		"serayuzgur.crates"
 	],
-	// Run Bash script in .devcontainer directory
-	"postCreateCommand": "/bin/bash ./.devcontainer/post-install.sh"
+	// Run Bash scripts
+	"onCreateCommand": "/bin/bash ./.devcontainer/on-create.sh",
+	"postCreateCommand": "/bin/bash ./.devcontainer/post-create.sh"
 }
