@@ -167,6 +167,7 @@ namespace Ngsa.BurstService.K8sApi
         private int GetMaxLoad(V2beta2HorizontalPodAutoscaler hpa)
         {
             int maxReplicas;
+
             // Check if we created HPA but didn't set any CPU Target
             if (hpa?.Spec != null)
             {
