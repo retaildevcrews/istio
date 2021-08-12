@@ -13,6 +13,7 @@ namespace Ngsa.BurstService.K8sApi
 {
     public class K8sHPAMetricsService : IHostedService, IDisposable, IK8sHPAMetricsService
     {
+        private const double TargetPercent = 0.8;
         private readonly ILogger<K8sHPAMetricsService> logger;
         private readonly IKubernetes client;
         private Timer timer;
@@ -61,11 +62,25 @@ namespace Ngsa.BurstService.K8sApi
                 {
                     if (hpa.Namespace().Equals(ns) && hpa.Name().Equals(deployment))
                     {
-                        // Get the Target CPU load
-                        hpaMetrics.TargetCPULoad = GetTargetCpuLoad(hpa);
+                        try
+                        {
+                            // Get the Target CPU load
+                            hpaMetrics.MaxLoad = GetMaxLoad(hpa);
 
-                        // Get the current CPU load
-                        hpaMetrics.CurrentCPULoad = GetCurrentCpuLoad(hpa);
+                            // Get the current CPU load
+                            hpaMetrics.CurrentLoad = GetCurrentLoad(hpa);
+                            hpaMetrics.TargetLoad = (int?)Math.Floor(hpaMetrics.MaxLoad.GetValueOrDefault() * TargetPercent);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogWarning(ex.Message);
+                        }
+
+                        if (hpaMetrics.TargetLoad == 0)
+                        {
+                            hpaMetrics.TargetLoad = hpaMetrics.MaxLoad;
+                        }
+
                         return hpaMetrics;
                     }
                 }
@@ -133,43 +148,36 @@ namespace Ngsa.BurstService.K8sApi
             }
         }
 
-        private int? GetCurrentCpuLoad(V2beta2HorizontalPodAutoscaler hpa)
+        private int GetCurrentLoad(V2beta2HorizontalPodAutoscaler hpa)
         {
             // Check if we created HPA but but don't have a metrics server
-            if (hpa?.Status?.CurrentMetrics != null)
+            int currReplicas;
+            if (hpa?.Status != null)
             {
-                foreach (V2beta2MetricStatus m in hpa.Status.CurrentMetrics)
-                {
-                    // We're interested in CPU metrics
-                    if (m.Resource.Name == "cpu")
-                    {
-                        return m.Resource.Current.AverageUtilization;
-                    }
-                }
+                currReplicas = hpa.Status.CurrentReplicas;
+            }
+            else
+            {
+                throw new Exception("Cannot get HPA metrics because hpa is null");
             }
 
-            logger.LogWarning("Cannot get HPA metrics (probable cause: no metrics server)");
-
-            return null;
+            return currReplicas;
         }
 
-        private int? GetTargetCpuLoad(V2beta2HorizontalPodAutoscaler hpa)
+        private int GetMaxLoad(V2beta2HorizontalPodAutoscaler hpa)
         {
+            int maxReplicas;
             // Check if we created HPA but didn't set any CPU Target
-            if (hpa?.Spec?.Metrics != null)
+            if (hpa?.Spec != null)
             {
-                foreach (V2beta2MetricSpec m in hpa.Spec.Metrics)
-                {
-                    // We're interested in CPU metrics
-                    if (m.Resource.Name == "cpu")
-                    {
-                        return m.Resource.Target.AverageUtilization;
-                    }
-                }
+                maxReplicas = hpa.Spec.MaxReplicas;
+            }
+            else
+            {
+                throw new Exception("Cannot get HPA Spec because hpa is null");
             }
 
-            logger.LogWarning("HPA Spec is not set");
-            return null;
+            return maxReplicas;
         }
     }
 }

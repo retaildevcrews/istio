@@ -39,14 +39,15 @@ namespace Ngsa.BurstService.Controllers
             // But we can control what to output if we do null
             // TODO: Set the default value from appsettings.json
 
-            string cpuTarget = hpaMetrics?.TargetCPULoad?.ToString() ?? "-1";
-            string cpuCurrent = hpaMetrics?.CurrentCPULoad?.ToString() ?? "-1";
+            string targetLoad = hpaMetrics?.TargetLoad?.ToString() ?? "-1";
+            string currentLoad = hpaMetrics?.CurrentLoad?.ToString() ?? "-1";
+            string maxLoad = hpaMetrics?.MaxLoad?.ToString() ?? "-1";
 
             // Get the CPU Target
-            logger.LogDebug("Target: {}, Cur CPU: {}", cpuTarget, cpuCurrent);
+            logger.LogDebug("Max: {}, Target: {}, Cur: {},", maxLoad, targetLoad, currentLoad);
 
             // Console.WriteLine($"{DateTime.Now:s}  {Request.Path.ToString()}");
-            return Ok($"service={ns}/{deployment}, current-load={cpuCurrent}, target-load={cpuTarget}, max-load=85");
+            return Ok($"service={ns}/{deployment}, current-load={currentLoad}, target-load={targetLoad}, max-load={maxLoad}");
         }
     }
 }
