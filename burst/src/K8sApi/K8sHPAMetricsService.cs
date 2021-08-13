@@ -49,8 +49,6 @@ namespace Ngsa.BurstService.K8sApi
                 return null;
             }
 
-            K8sHPAMetrics hpaMetrics = new ();
-
             // If _hpaList is not null, we don't have any HPA
             if (hpaList.Items.Count == 0)
             {
@@ -58,6 +56,7 @@ namespace Ngsa.BurstService.K8sApi
             }
             else
             {
+                K8sHPAMetrics hpaMetrics = new ();
                 foreach (V2beta2HorizontalPodAutoscaler hpa in hpaList.Items)
                 {
                     if (hpa.Namespace().Equals(ns) && hpa.Name().Equals(deployment))
@@ -74,8 +73,13 @@ namespace Ngsa.BurstService.K8sApi
                         catch (Exception ex)
                         {
                             logger.LogWarning(ex.Message);
+
+                            // Should have all values available
+                            // Otherwise return null
+                            return null;
                         }
 
+                        // If calculated target load is zero (it can be since we are flooring MaxLoad)
                         if (hpaMetrics.TargetLoad == 0)
                         {
                             hpaMetrics.TargetLoad = hpaMetrics.MaxLoad;
@@ -86,8 +90,11 @@ namespace Ngsa.BurstService.K8sApi
                 }
             }
 
-            // At the very least return empty metrics
-            return hpaMetrics;
+            // TODO: What happens if we can't find hpa in this NS?
+            // Since we are using exceptions to catch errors
+            // A better approach might be to propagate/throw custom
+            // exceptions which the function caller needs to handle
+            return null;
         }
 
         public Task StartAsync(CancellationToken stoppingToken)
