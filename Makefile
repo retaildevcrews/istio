@@ -22,15 +22,6 @@ create : delete build build-burstserver
 
 	kubectl wait node --for condition=ready --all --timeout=60s
 
-	@# Install prometheus
-	@#@kubectl apply -f ${ISTIO_HOME}/samples/addons/prometheus.yaml
-
-	@# Install kiali
-	@#@kubectl apply -f deploy/kiali
-	
-	@#sleep 5
-	@#@kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
-
 	@kubectl apply -f deploy/burst/burst.yaml
 	@kubectl apply -f deploy/burst/gw-burst.yaml
 	@kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
@@ -97,8 +88,10 @@ check :
 	@curl -q http://${K8s}/burstmetrics/default/ngsa
 	@echo ""
 
+	# curl the healthz endpoint
+	@curl -i http://${K8s}/memory/healthz
+
 	# check the healthz endpoint
-	# @http http://${K8s}/memory/healthz
 	@http http://${K8s}/memory/healthz
 
 clean :
