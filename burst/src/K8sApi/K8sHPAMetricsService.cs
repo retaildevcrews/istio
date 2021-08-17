@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Hosting;
@@ -16,7 +17,7 @@ namespace Ngsa.BurstService.K8sApi
         private const double TargetPercent = 0.8;
         private readonly ILogger<K8sHPAMetricsService> logger;
         private readonly IKubernetes client;
-        private Timer timer;
+        private System.Timers.Timer timer;
         private V2beta2HorizontalPodAutoscalerList hpaList;
 
         public K8sHPAMetricsService(ILogger<K8sHPAMetricsService> logger)
@@ -43,16 +44,10 @@ namespace Ngsa.BurstService.K8sApi
 
         public K8sHPAMetrics GetK8SHPAMetrics(string ns, string deployment)
         {
-            if (hpaList == null)
+            // If hpaList is null or the count is zero, we don't have any HPA
+            if (hpaList == null || hpaList.Items.Count == 0)
             {
-                logger.LogWarning("HPA List is not populated");
-                return null;
-            }
-
-            // If _hpaList is not null, we don't have any HPA
-            if (hpaList.Items.Count == 0)
-            {
-                logger.LogWarning("No HPA object found in any namespace");
+                logger.LogError("No HPA found in any namespace. Check RBAC if an HPA already exist");
             }
             else
             {
@@ -88,18 +83,26 @@ namespace Ngsa.BurstService.K8sApi
                         return hpaMetrics;
                     }
                 }
+
+                // At this point didn't find any HPA in our hpaList object
+                logger.LogWarning("No HPA found with matching name ({}) in namspace '{}'", deployment, ns);
             }
 
-            // TODO: What happens if we can't find hpa in this NS?
-            // Since we are using exceptions to catch errors
-            // A better approach might be to propagate/throw custom
-            // exceptions which the function caller needs to handle
             return null;
         }
 
         public Task StartAsync(CancellationToken stoppingToken)
         {
-            timer = new Timer(TimerWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(App.Config.Frequency));
+            timer = new System.Timers.Timer();
+            timer.Elapsed += TimerWork;
+            timer.Interval = App.Config.Frequency * 1000;
+
+            // Run once before the timer
+            Task.Run(() => TimerWork(this, null), stoppingToken);
+
+            // Start the timer, it will be called after Interval
+            timer.Start();
+
             logger.LogInformation("Running timed k8s HPA-API Service...");
 
             return Task.CompletedTask;
@@ -108,7 +111,7 @@ namespace Ngsa.BurstService.K8sApi
         public Task StopAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Stopping k8s HPA-API Service...");
-            timer?.Change(Timeout.Infinite, 0);
+            timer?.Stop();
 
             return Task.CompletedTask;
         }
@@ -126,14 +129,17 @@ namespace Ngsa.BurstService.K8sApi
                 if (timer != null)
                 {
                     timer.Dispose();
+
+                    // 'timer' is nullable-accessed at StopAsync
+                    timer = null;
                 }
             }
         }
 
-        private void TimerWork(object state)
+        private void TimerWork(object state, ElapsedEventArgs e)
         {
             // Call the K8s API
-            // TODO: Try out differt version of API
+            // TODO: Try out different version of K8s API
             try
             {
                 V2beta2HorizontalPodAutoscalerList hpaList = client.ListHorizontalPodAutoscalerForAllNamespaces2(timeoutSeconds: 1);
