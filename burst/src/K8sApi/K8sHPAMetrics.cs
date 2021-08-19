@@ -5,7 +5,8 @@ namespace Ngsa.BurstService.K8sApi
 {
     public class K8sHPAMetrics
     {
-        public int? CurrentCPULoad { get; internal set; } = null;
-        public int? TargetCPULoad { get; internal set; } = null;
+        public int? CurrentLoad { get; internal set; } = null;
+        public int? TargetLoad { get; internal set; } = null;
+        public int? MaxLoad { get; internal set; } = null;
     }
 }
