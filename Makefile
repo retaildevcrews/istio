@@ -18,9 +18,6 @@ build :
 
 deploy : clean build
 
-	# Patching Istio ...
-	@clusteradm/patch.sh
-
 	# add config map
 	@kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
 
