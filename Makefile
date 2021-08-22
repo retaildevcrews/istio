@@ -1,4 +1,4 @@
-.PHONY: build deploy check check-metrics check-istio test clean create delete
+.PHONY: build deploy check check-metrics check-istio test clean
 
 help :
 	@echo "Usage:"
@@ -9,18 +9,12 @@ help :
 	@echo "   make check-metrics       - check the raw pod metrics"
 	@echo "   make test                - run a LodeRunner test"
 	@echo "   make clean               - remove the istio plugin from ngsa"
-	@echo "   make create              - delete and create a new kind cluster"
 
 build :
 	# build the WebAssembly
 	@rm -f burst_header.wasm
 	@cargo build --release --target=wasm32-unknown-unknown
 	@cp target/wasm32-unknown-unknown/release/burst_header.wasm .
-
-delete:
-	# delete the cluster (if exists)
-	@# this will fail harmlessly if the cluster does not exist
-	-kind delete cluster
 
 deploy : clean build
 
@@ -30,14 +24,12 @@ deploy : clean build
 	# add config map
 	@kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
 
-	# patch any deployments
+	# patch ngsa-memory
 	@# this will create a new deployment and terminate the old one
 	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	# turn the wasm filter on
 	@kubectl apply -f deploy/ngsa-memory/filter.yaml
-
-	@#kubectl wait pod --for condition=ready --all --timeout=60s
 
 check :
 	# curl the healthz endpoint
