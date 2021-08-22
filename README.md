@@ -19,7 +19,7 @@
 
 ### Set env vars
 
-> Do not forget this step!
+> During setup, we add and update some environment variables that must be set correctly
 
 - `exit` and restart shell (ctl `)
 
