@@ -21,7 +21,12 @@ docker build burst -t localhost:5000/burst:local >> ~/burst.log
 docker push localhost:5000/burst:local >> ~/burst.log
 
 # wait for kind node to be ready
-#kubectl wait node --for condition=ready --all --timeout=60s >> ~/wait.log
+kubectl wait node --for condition=ready --all --timeout=60s >> ~/wait.log
+
+# install istio
+/usr/local/istio/bin/istioctl install --set profile=demo -y
+kubectl label namespace default istio-injection=enabled --overwrite
+kubectl get ns > ~/istio.log
 
 # deploy metrics server
 kubectl apply -f deploy/metrics >> ~/metrics.log
@@ -29,9 +34,17 @@ kubectl apply -f deploy/metrics >> ~/metrics.log
 # add config map
 kubectl create cm burst-wasm-filter --from-file=burst_header.wasm >> ~/app.log
 
-# install istio
-istioctl install --set profile=demo -y
-kubectl label namespace default istio-injection=enabled --overwrite
-k get ns > ~/istio.log
+# deploy apps
+kubectl apply -f deploy/burst
+kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
+kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
+
+# create HPA for ngsa deployment for testing
+kubectl autoscale deployment ngsa --cpu-percent=50 --min=1 --max=2
+
+#kubectl wait pod --for condition=ready --all --timeout=60s
+
+# Patching Istio ...
+./patch.sh >> ~/app.log
 
 echo "on-create completed" > $HOME/status
