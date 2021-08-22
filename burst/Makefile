@@ -10,11 +10,11 @@ help :
 deploy : clean build
 
 	# deploy burst service
-	@kubectl apply -f deploy/burst
+	@kubectl apply -f ../deploy/burst
 
 clean :
 	# delete burst service
-	@-kubectl delete -f deploy/burst
+	@-kubectl delete -f ../deploy/burst
 
 build :
 	# build burst metrics server
