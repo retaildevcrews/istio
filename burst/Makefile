@@ -1,4 +1,4 @@
-.PHONY: build build-metrics build check clean deploy
+.PHONY: build check clean deploy
 
 help :
 	@echo "Usage:"
