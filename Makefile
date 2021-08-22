@@ -55,7 +55,7 @@ clean :
 
 test :
 	# run a 60 second test
-	@cd deploy/loderunner && webv -s http://${K8s} -f benchmark.json -r -l 20 --duration 60
+	@cd deploy/loderunner && webv -s http://${K8s} -f benchmark.json -r -l 5 --duration 60
 
 check-metrics :
 	# retrieve current values from metrics server
