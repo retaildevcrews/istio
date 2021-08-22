@@ -1,16 +1,15 @@
-.PHONY: build build-metrics create delete check clean deploy test build-burstserver get-pod-metrics istio-check
+.PHONY: build deploy check check-metrics check-istio test clean create delete
 
 help :
 	@echo "Usage:"
 	@echo "   make build               - build the plug-in"
-	@echo "   make istio-check         - check istio status and logs"
-	@echo "   make check               - check the endpoints with curl"
-	@echo "   make test                - run a LodeRunner test"
-	@echo "   make clean               - delete the istio plugin from ngsa"
 	@echo "   make deploy              - deploy the istio plugin to ngsa"
-	@echo "   make create              - create a kind cluster"
-	@echo "   make delete              - delete the kind cluster"
-	@echo "   get-pod-metrics          - get the raw pod metrics"
+	@echo "   make check               - check the endpoints with curl"
+	@echo "   make check-istio         - check istio status and logs"
+	@echo "   make check-metrics       - check the raw pod metrics"
+	@echo "   make test                - run a LodeRunner test"
+	@echo "   make clean               - remove the istio plugin from ngsa"
+	@echo "   make create              - delete and create a new kind cluster"
 
 build :
 	# build the WebAssembly
@@ -35,20 +34,17 @@ deploy : clean build
 	@# this will create a new deployment and terminate the old one
 	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
-	# turn the wasm filter on for each deployment
+	# turn the wasm filter on
 	@kubectl apply -f deploy/ngsa-memory/filter.yaml
 
-	@kubectl wait pod --for condition=ready --all --timeout=60s
+	@#kubectl wait pod --for condition=ready --all --timeout=60s
 
 check :
-	# get the metrics
-	@curl -q http://${K8s}/burstmetrics/default/ngsa
-	@echo ""
-
 	# curl the healthz endpoint
 	@curl -i http://${K8s}/memory/healthz
 
-	# check the healthz endpoint
+	# check the healthz endpoint with http
+	# this will show the burst header if enabled
 	@http http://${K8s}/memory/healthz
 
 clean :
@@ -58,14 +54,14 @@ clean :
 	@kubectl delete --ignore-not-found cm burst-wasm-filter
 
 test :
-	# run a 90 second test
-	@cd deploy/loderunner && webv -s http://${K8s} -f benchmark.json -r -l 20 --duration 90
+	# run a 60 second test
+	@cd deploy/loderunner && webv -s http://${K8s} -f benchmark.json -r -l 20 --duration 60
 
-get-pod-metrics :
+check-metrics :
 	# retrieve current values from metrics server
 	kubectl get --raw https://localhost:5443/apis/metrics.k8s.io/v1beta1/pods
 
-istio-check :
+check-istio :
 	@istioctl proxy-status
 	@echo ""
 	@kubectl logs -l=app=ngsa -c istio-proxy
