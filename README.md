@@ -59,7 +59,7 @@ kubectl get pods
 
 ```
 
-- The `HPA` will scale back to one pod in ~2 minutes
+- The `HPA` will scale back to one pod in a few minutes
 
 ## Request Flow
 
