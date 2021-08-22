@@ -25,16 +25,17 @@ rm -f burst_header.wasm
 cargo build --release --target=wasm32-unknown-unknown
 cp target/wasm32-unknown-unknown/release/burst_header.wasm .
 
+# wait for kind node to be ready
+kubectl wait node --for condition=ready --all --timeout=60s
+
 # install istio
 istioctl install --set profile=demo -y
 kubectl label namespace default istio-injection=enabled
 
-# wait for kind node to be ready
-kubectl wait node --for condition=ready --all --timeout=60s
-
 # deploy apps
 kubectl apply -f deploy/burst
-kubectl apply -f deploy/ngsa-memory
+kubectl apply -f deploy/ngsa-memory/ngsa-memory.yaml
+kubectl apply -f deploy/ngsa-memory/ngsa-gw.yaml
 
 # deploy metrics server
 kubectl apply -f deploy/metrics
@@ -49,9 +50,5 @@ kubectl wait pod --for condition=ready --all --timeout=60s
 
 # add config map
 kubectl create cm burst-wasm-filter --from-file=burst_header.wasm
-
-# patch ngsa
-# this will create a new deployment and terminate the old one
-kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 echo "on-create completed" > $HOME/status
