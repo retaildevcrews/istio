@@ -38,7 +38,7 @@ recreate : delete
 	@kubectl create cm burst-wasm-filter --from-file=../burst_header.wasm
 
 	# deploy apps
-	@kubectl apply -f ../deploy/burst
+	@kubectl apply -f ../burst/deploy
 	@kubectl apply -f ../deploy/ngsa-memory/ngsa-memory.yaml
 	@kubectl apply -f ../deploy/ngsa-memory/ngsa-gw.yaml
 
