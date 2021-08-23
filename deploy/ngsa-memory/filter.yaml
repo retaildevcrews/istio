@@ -68,5 +68,5 @@ spec:
                 address:
                   socket_address:
                     protocol: TCP
-                    address: 172.18.0.3
-                    port_value: 32474
+                    address: 
+                    port_value: 
