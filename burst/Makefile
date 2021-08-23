@@ -10,11 +10,11 @@ help :
 deploy : clean build
 
 	# deploy burst service
-	@kubectl apply -f ../deploy/burst
+	@kubectl apply -f deploy
 
 clean :
 	# delete burst service
-	@-kubectl delete -f ../deploy/burst
+	@-kubectl delete -f deploy
 
 build :
 	# build burst metrics server
@@ -25,4 +25,3 @@ check :
 	# get the metrics
 	@curl -q http://${K8s}/burstmetrics/default/ngsa
 	@echo ""
-
