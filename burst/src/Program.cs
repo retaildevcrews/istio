@@ -39,12 +39,6 @@ namespace Ngsa.BurstService
             return root.Invoke(args);
         }
 
-        // load secrets from volume
-        private static void LoadSecrets()
-        {
-            Config.Secrets = new () { Volume = Config.SecretsVolume };
-        }
-
         // display Ascii Art
         private static void DisplayAsciiArt(string[] args)
         {

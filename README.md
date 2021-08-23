@@ -1,60 +1,65 @@
 # Istio Filter
 
-> Sample Istio filter with Rust and Web Assembly
+> Burst Header Istio filter with Rust and Web Assembly
 
 ## Errors
 
 - `cargo test --target wasm32-unknown-unknown` is currently failing
   - upstream bug in proxy_wasm::*
 
-## Run Istio Web Assembly
+## Wait for installation to complete
 
-- Create the kind cluster
+- Check the installation status
 
    ```bash
 
-   make create
+   cat ~/status
 
    ```
 
 ### Set env vars
 
-> Do not forget this step!
+> During setup, we add and update some environment variables that must be set correctly
 
-```bash
-
-# load new env vars
-# exit and start new shell will also work
-source ~/.bashrc
-
-```
+- `exit` and restart shell (ctl `)
 
 ### Verify the setup
 
+- You will see the burst header in the http request
+- You will not see the burst header in the curl request
+- The filter uses the `UserAgent header` to determine if it should add the header
+
 ```bash
 
-# may have to retry a couple of times
+# may have to retry a couple of times as the cluster warms up
 make check
 
 ```
 
 ### Add load
 
-- Start a new terminal window
+- Run a load test in the background
 
 ```bash
 
-make test
+make test &
+
+# press enter a few times to clear background output
 
 ```
 
-- Go back to previous terminal
+- Check the burst header
+  - After 20-30 seconds, you will see the second pod created
 
 ```bash
 
 make check
 
+kubectl get pods
+
 ```
+
+- The `HPA` will scale back to one pod in a few minutes
 
 ## Request Flow
 

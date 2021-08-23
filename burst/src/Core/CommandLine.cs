@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -94,7 +92,6 @@ namespace Ngsa.BurstService
             root.AddOption(EnvVarOption(new string[] { "--frequency", "-f" }, "Metrics refresh frequency (seconds)", 5, 5));
             root.AddOption(EnvVarOption(new string[] { "--prometheus", "-p" }, "Send metrics to Prometheus", false));
             root.AddOption(EnvVarOption(new string[] { "--port" }, "Listen Port", 8080, 1, (64 * 1024) - 1));
-            root.AddOption(EnvVarOption(new string[] { "--secrets-volume", "-v" }, "Secrets Volume Path", "secrets"));
             root.AddOption(EnvVarOption(new string[] { "--zone", "-z" }, "Zone for log", "dev"));
             root.AddOption(EnvVarOption(new string[] { "--region", "-r" }, "Region for log", "dev"));
             root.AddOption(EnvVarOption(new string[] { "--log-level", "-l" }, "Log Level", LogLevel.Error));
@@ -114,37 +111,6 @@ namespace Ngsa.BurstService
             if (EnvVarErrors.Count > 0)
             {
                 msg += string.Join('\n', EnvVarErrors) + '\n';
-            }
-
-            try
-            {
-                // get the values to validate
-                string secrets = result.Children.FirstOrDefault(c => c.Symbol.Name == "secrets-volume") is OptionResult secretsRes ? secretsRes.GetValueOrDefault<string>() : string.Empty;
-
-                // validate secrets volume
-                if (string.IsNullOrWhiteSpace(secrets))
-                {
-                    msg += "--secrets-volume cannot be empty\n";
-                }
-                else
-                {
-                    try
-                    {
-                        // validate secrets-volume exists
-                        if (!Directory.Exists(secrets))
-                        {
-                            msg += $"--secrets-volume ({secrets}) does not exist\n";
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        msg += $"--secrets-volume exception: {ex.Message}\n";
-                    }
-                }
-            }
-            catch
-            {
-                // system.commandline will catch and display parse exceptions
             }
 
             // return error message(s) or string.empty
@@ -297,8 +263,6 @@ namespace Ngsa.BurstService
             // copy command line values
             Config.SetConfig(config);
 
-            LoadSecrets();
-
             SetLoggerConfig();
         }
 
@@ -322,7 +286,6 @@ namespace Ngsa.BurstService
             Console.WriteLine($"Version            {VersionExtension.Version}");
             Console.WriteLine($"Metrics Frequency  {Config.Frequency}");
             Console.WriteLine($"Use Prometheus     {Config.Prometheus}");
-            Console.WriteLine($"Secrets Volume     {Config.Secrets.Volume}");
             Console.WriteLine($"Region             {Config.Region}");
             Console.WriteLine($"Zone               {Config.Zone}");
             Console.WriteLine($"Log Level          {Config.LogLevel}");
