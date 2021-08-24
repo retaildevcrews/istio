@@ -48,7 +48,7 @@ x-envoy-upstream-service-time: 16
 
 ### RBAC requirements
 
-In-cluster configuration (as well as default kube-config) for this service requires permissions to call the `autoscaling` API.
+In-cluster configuration (as well as default kube-config) for this service requires additional permission to call the `autoscaling` API.
 
 For a complete RBAC example, see [burst.yaml](./../deploy/burst/burst.yaml).
 
@@ -56,10 +56,10 @@ For a complete RBAC example, see [burst.yaml](./../deploy/burst/burst.yaml).
 
 A fixed-period timer is implemented in a ASP.NET service (as singleton, see `ConfigureServices` function in [Startup.cs](./src/Core/Startup.cs)), where it gets HPA information from the K8s API. It uses the in-cluster or default configuration to access the k8s API.
 
-- The in-cluster configuration enables burst metrics service to run as a pod and still access the k8s API from within.
+- The in-cluster configuration enables burst metrics service to run inside a pod and still access the k8s API from within.
 
-- Default configuration is the same which is used by `kubectl` to get the context and k8s API.
+- Default configuration is the same as the configuration used by `kubectl` to get the context and k8s API.
 
-The timer calls the K8s api periodically and saves all HPA data (which it has access to) and simply serves them when the endpoints are called with specific namespace and HPA name.
+The timer calls K8s api periodically and saves all HPA data (which it has access to) and simply serves them when the burst metrics API endpoint is called with specific namespace and HPA name.
 
 > Service source code [src/K8sApi/K8sHPAMetricsService.cs](./src/K8sApi/K8sHPAMetricsService.cs)
