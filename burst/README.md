@@ -2,11 +2,11 @@
 
 Burst metrics service is responsible for reading HPA metrics from a Kubernetes(k8s) API and return a formatted burst metrics header. It is implemented as a REST service.
 
-Currently it will capture current pod count and target pod count from an HPA.
+The service captures current pod count and target pod count from an HPA.
 
 ## Deployment/usage
 
-TODO: add recently pushed `make` usage
+TODO: add `make` usage
 
 ## API Endpoints
 
@@ -50,7 +50,7 @@ x-envoy-upstream-service-time: 16
 
 In-cluster configuration (as well as default kube-config) for this service requires permissions to call the `autoscaling` API.
 
-For a complete example see [burst.yaml](./deploy/burst/burst.yaml).
+For a complete RBAC example, see [burst.yaml](./../deploy/burst/burst.yaml).
 
 ## Implementation details
 
