@@ -56,9 +56,9 @@ For a complete RBAC example, see [burst.yaml](./../deploy/burst/burst.yaml).
 
 A fixed-period timer is implemented in a ASP.NET service (as singleton, see `ConfigureServices` function in [Startup.cs](./src/Core/Startup.cs)), where it gets HPA information from the K8s API. It uses the in-cluster or default configuration to access the k8s API.
 
-- The in-cluster configuration enables burst metrics service to be run as a pod and still access the k8s API from within.
+- The in-cluster configuration enables burst metrics service to run as a pod and still access the k8s API from within.
 
-- Default configuration is the same which is used by `kubectl` to get the context and API.
+- Default configuration is the same which is used by `kubectl` to get the context and k8s API.
 
 The timer calls the K8s api periodically and saves all HPA data (which it has access to) and simply serves them when the endpoints are called with specific namespace and HPA name.
 
