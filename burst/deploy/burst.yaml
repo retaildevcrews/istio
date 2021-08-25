@@ -1,10 +1,16 @@
 ##################################################################################################
 # Details service
 ##################################################################################################
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: burstmetrics
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: burst
+  namespace: burstmetrics
   labels:
     app: burst
     service: burst
@@ -19,14 +25,15 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: burst
+  namespace: burstmetrics
   labels:
     account: burst
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  namespace: default
   name: burst-role
+  namespace: burstmetrics
 rules:
 - apiGroups: [""]
   resources: ["*"]
@@ -45,7 +52,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  namespace: default
+  namespace: burstmetrics
   name: burst-rolebind
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -54,12 +61,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: burst
-  namespace: default
+  namespace: burstmetrics
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: burst
+  namespace: burstmetrics
   labels:
     app: burst
     version: v1
