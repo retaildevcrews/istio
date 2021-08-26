@@ -4,13 +4,13 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: burstmetrics
+  name: burstservice
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: burst
-  namespace: burstmetrics
+  namespace: burstservice
   labels:
     app: burst
     service: burst
@@ -25,7 +25,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: burst
-  namespace: burstmetrics
+  namespace: burstservice
   labels:
     account: burst
 ---
@@ -33,7 +33,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: burst-role
-  namespace: burstmetrics
+  namespace: burstservice
 rules:
 - apiGroups: [""]
   resources: ["*"]
@@ -52,7 +52,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  namespace: burstmetrics
+  namespace: burstservice
   name: burst-rolebind
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -61,13 +61,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: burst
-  namespace: burstmetrics
+  namespace: burstservice
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: burst
-  namespace: burstmetrics
+  namespace: burstservice
   labels:
     app: burst
     version: v1
