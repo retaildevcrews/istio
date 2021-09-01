@@ -136,6 +136,39 @@ namespace Ngsa.BurstService.K8sApi
             }
         }
 
+        private static int GetCurrentLoad(V2beta2HorizontalPodAutoscaler hpa)
+        {
+            // Check if we created HPA but but don't have a metrics server
+            int currReplicas;
+            if (hpa?.Status != null)
+            {
+                currReplicas = hpa.Status.CurrentReplicas;
+            }
+            else
+            {
+                throw new Exception("Cannot get HPA metrics because hpa is null");
+            }
+
+            return currReplicas;
+        }
+
+        private static int GetMaxLoad(V2beta2HorizontalPodAutoscaler hpa)
+        {
+            int maxReplicas;
+
+            // Check if we created HPA but didn't set any CPU Target
+            if (hpa?.Spec != null)
+            {
+                maxReplicas = hpa.Spec.MaxReplicas;
+            }
+            else
+            {
+                throw new Exception("Cannot get HPA Spec because hpa is null");
+            }
+
+            return maxReplicas;
+        }
+
         private void TimerWork(object state, ElapsedEventArgs e)
         {
             // Call the K8s API
@@ -159,39 +192,6 @@ namespace Ngsa.BurstService.K8sApi
                 // Don't have any HPA API Enabled!!
                 logger.LogError(ex, "Failed to get HPA objects. Check ClusterRole or HPA objects");
             }
-        }
-
-        private int GetCurrentLoad(V2beta2HorizontalPodAutoscaler hpa)
-        {
-            // Check if we created HPA but but don't have a metrics server
-            int currReplicas;
-            if (hpa?.Status != null)
-            {
-                currReplicas = hpa.Status.CurrentReplicas;
-            }
-            else
-            {
-                throw new Exception("Cannot get HPA metrics because hpa is null");
-            }
-
-            return currReplicas;
-        }
-
-        private int GetMaxLoad(V2beta2HorizontalPodAutoscaler hpa)
-        {
-            int maxReplicas;
-
-            // Check if we created HPA but didn't set any CPU Target
-            if (hpa?.Spec != null)
-            {
-                maxReplicas = hpa.Spec.MaxReplicas;
-            }
-            else
-            {
-                throw new Exception("Cannot get HPA Spec because hpa is null");
-            }
-
-            return maxReplicas;
         }
     }
 }
