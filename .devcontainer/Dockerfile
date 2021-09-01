@@ -1,4 +1,4 @@
-FROM ghcr.io/retaildevcrews/kind-wasm:latest
+FROM ghcr.io/cse-labs/k3d-wasm:latest
 
 ARG USERNAME=vscode
 
