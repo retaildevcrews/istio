@@ -10,8 +10,10 @@ metadata:
     service: ngsa
 spec:
   ports:
-  - port: 8080 
+  - port: 8080
     name: http
+    nodePort: 30080
+  type: NodePort # For external access (k3d, kind)
   selector:
     app: ngsa
 ---

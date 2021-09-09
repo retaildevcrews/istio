@@ -30,11 +30,11 @@ deploy : clean build
 
 check :
 	# curl the healthz endpoint
-	@curl -i http://${K8s}/memory/healthz
+	@curl -i http://localhost:30080/healthz
 
 	# check the healthz endpoint with http
 	# this will show the burst header if enabled
-	@http http://${K8s}/memory/healthz
+	@http http://localhost:30080/healthz
 
 clean :
 	# delete filter and config map
@@ -44,7 +44,8 @@ clean :
 
 test :
 	# run a 60 second test
-	@cd deploy/loderunner && webv -s http://${K8s} -f benchmark.json -r -l 5 --duration 60
+	@# TODO: Remove '/memory' from benchmark.json and baseline.json in deploy/loderunner
+	@cd deploy/loderunner && webv -s http://localhost:30080/ -f benchmark.json -r -l 5 --duration 60
 
 check-metrics :
 	# retrieve current values from metrics server

@@ -38,7 +38,7 @@ spec:
          value: |
           { 
             "service_cluster": "healthcluster",
-            "service_authority": "172.18.0.3",
+            "service_authority": "burst.burstservice",
             "service_path": "/burstmetrics",
             "user_agent": "HTTPie/",
             "cache_seconds": 3,
@@ -68,5 +68,5 @@ spec:
                 address:
                   socket_address:
                     protocol: TCP
-                    address: 
-                    port_value: 
+                    address: burst.burstservice
+                    port_value: 8080
