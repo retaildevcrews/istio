@@ -8,13 +8,7 @@ The service captures current pod count and target pod count from an HPA.
 
 Deploying in a local cluster is easy and straightforward.
 
-Just apply the burst.yaml file:
-
-`kubectl apply -f ./deploy/burst.yaml`
-
-Or
-
-`make deploy`
+`make deploy` to build and deploy burst service.
 
 Couple of caveats to note:
 
