@@ -44,7 +44,6 @@ clean :
 
 test :
 	# run a 60 second test
-	@# TODO: Remove '/memory' from benchmark.json and baseline.json in deploy/loderunner
 	@cd deploy/loderunner && webv -s http://localhost:30080/ -f benchmark.json -r -l 5 --duration 60
 
 check-metrics :
