@@ -6,7 +6,21 @@ The service captures current pod count and target pod count from an HPA.
 
 ## Deployment/usage
 
-TODO: add `make` usage
+Deploying in a local cluster is easy and straightforward.
+
+Just apply the burst.yaml file:
+
+`kubectl apply -f ./deploy/burst.yaml`
+
+Or
+
+`make deploy`
+
+Couple of caveats to note:
+
+- Burst service is a NodePort type service and uses 30081 port to expose the service externally (e.g. k3d, kind).
+- If used in a local cluster the port needs to be opened/exposed when configuring (k3d, kind, minicube etc) the cluster.
+- For a standard service, delete `nodePort: 30081` and `type: NodePort` lines in `burst.yaml`
 
 ## API Endpoints
 
@@ -51,6 +65,15 @@ x-envoy-upstream-service-time: 16
 In-cluster configuration (as well as default kube-config) for this service requires additional permission to call the `autoscaling` API.
 
 For a complete RBAC example, see [burst.yaml](./../deploy/burst/burst.yaml).
+
+### HPA Requirements
+
+Autoscaling is an approach to automatically scale up or down workloads based on the resource usage.
+The Horizontal Pod Autoscaler (HPA) controller retrieves metrics from a series of APIs and adapters (see [this](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-metrics-apis)).
+
+These metrics can be provided by [K8s metrics server](https://github.com/kubernetes-sigs/metrics-server) or other custom metrics adapter (e.g. [prometheus adapter](https://github.com/kubernetes-sigs/prometheus-adapter)).
+
+It is assumed that the HPA is properly setup with at least one metrics server.
 
 ## Implementation details
 

@@ -44,8 +44,3 @@ recreate : delete
 
 	# create HPA for ngsa deployment for testing
 	@kubectl autoscale deployment ngsa --cpu-percent=40 --min=1 --max=2
-
-	# Patching Istio ...
-	@./patch.sh
-
-	# exit this shell and start a new bash shell
