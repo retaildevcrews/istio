@@ -22,7 +22,7 @@ deploy : clean build
 	@kubectl create cm burst-wasm-filter -n istio-system --from-file=burst_header.wasm
 
 	# Patch istio-ingressgateway, will create a new deployment terminating the old one
-	@kubectl patch deployment istio-ingressgateway -n istio-system -p '{"spec":{"template":{"spec":{"containers":[{"name":"istio-proxy","volumeMounts":[{"mountPath":"/var/local/lib/wasm-filters","name":"wasmfilters-dir"}]}],"volumes":[{"configMap":{"name":"burst-wasm-filter"},"name":"wasmfilters-dir"}]}}}}'
+	@kubectl patch deployment istio-ingressgateway -n istio-system -p "$(cat deploy/istio-ingress/ingress-patch.yaml)"
 
 	# apply wasm filter to istio-ingress
 	@kubectl apply -f deploy/istio-ingress/ingress-filter.yaml
@@ -37,9 +37,9 @@ check :
 
 clean :
 	# Remove patches from istio-ingressgateway
-	@kubectl get deploy -n istio-system istio-ingressgateway -o json | jq '.spec.template.spec.containers[0].volumeMounts | map(.name == "wasmfilters-dir") | index(true)' | xargs -I % kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p "[{'op': 'remove', 'path': '/spec/template/spec/containers/0/volumeMounts/%'}]"
+	-@kubectl get deploy -n istio-system istio-ingressgateway -o json | jq '.spec.template.spec.containers[0].volumeMounts | map(.name == "wasmfilters-dir") | index(true)' | xargs -I % kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p "[{'op': 'remove', 'path': '/spec/template/spec/containers/0/volumeMounts/%'}]"
 
-	@kubectl get deploy -n istio-system istio-ingressgateway -o json | jq '.spec.template.spec.volumes | map(.name == "wasmfilters-dir") | index(true)' | xargs -I % kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p "[{'op': 'remove', 'path': '/spec/template/spec/volumes/%'}]"
+	-@kubectl get deploy -n istio-system istio-ingressgateway -o json | jq '.spec.template.spec.volumes | map(.name == "wasmfilters-dir") | index(true)' | xargs -I % kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p "[{'op': 'remove', 'path': '/spec/template/spec/volumes/%'}]"
 
 	# delete filter and config map
 	@kubectl delete --ignore-not-found -f deploy/istio-ingress/ingress-filter.yaml
