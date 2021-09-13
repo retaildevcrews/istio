@@ -1,19 +1,18 @@
-.PHONY: delete recreate
+.PHONY: delete recreate help from-scratch cleanall network-delete network-recreate
 
 help :
 	@echo "Usage:"
-	@echo "   make recreate      - delete and recreate a new kind cluster"
-	@echo "   make delete        - delete the kind cluster"
+	@echo "   make recreate      - delete and recreate a new k3d cluster"
+	@echo "   make delete        - delete the k3d cluster"
 
 delete :
 	# delete the cluster (if exists)
 	@# this will fail harmlessly if the cluster does not exist
-	-kind delete cluster
+	-k3d cluster delete
 
 recreate : delete
-	# create kind cluster
-	@kind create cluster --config ../deploy/kind/kind.yaml
-	@kubectl apply -f ../deploy/kind/config.yaml
+# build k3d cluster
+	@k3d cluster create --registry-use k3d-registry.localhost:5000 --config ../deploy/k3d/k3d.yaml --k3s-server-arg "--no-deploy=traefik" --k3s-server-arg "--no-deploy=servicelb"
 
 	# build the WebAssembly
 	rm -f ../burst_header.wasm
@@ -24,8 +23,10 @@ recreate : delete
 	docker build ../burst -t localhost:5000/burst:local
 	docker push localhost:5000/burst:local
 
-	# wait for kind node to be ready
+	# wait for cluster to be ready
 	@kubectl wait node --for condition=ready --all --timeout=60s
+	@sleep 5
+	@kubectl wait pod -A --all --for condition=ready --timeout=60s
 
 	# install istio
 	@/usr/local/istio/bin/istioctl install --set profile=demo -y
@@ -46,6 +47,27 @@ recreate : delete
 	@kubectl autoscale deployment ngsa --cpu-percent=40 --min=1 --max=2
 
 	# Patching Istio ...
-	@./patch.sh
+	@#./patch.sh
 
 	# exit this shell and start a new bash shell
+
+network-recreate: network-delete
+	# Check if k3d network exists and create if doesn't exist
+	docker network inspect k3d > /dev/null 2>&1 || docker network create k3d
+
+	# Create k3d docker registry if doesn't exist
+	k3d reg list | grep k3d-registry.localhost > /dev/null 2>&1 || k3d registry create registry.localhost --port 5000
+
+	# Connect k3d registry to docker
+	docker network connect k3d k3d-registry.localhost
+
+network-delete:
+	# Disconnect from k3d registry network
+	docker network disconnect k3d k3d-registry.localhost
+
+	# Delete k3d registry
+	k3d reg delete k3d-registry.localhost
+
+deleteall: delete network-delete
+
+from-scratch: deleteall network-recreate recreate

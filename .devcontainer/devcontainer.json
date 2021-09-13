@@ -4,8 +4,13 @@
 	"build": {"dockerfile": "Dockerfile"},
 	"runArgs": [ "--init", "--privileged" ],
 	"overrideCommand": false,
-	"settings": { },
+	"settings": {
+		"terminal.integrated.defaultProfile.linux": "zsh",
+		"omnisharp.enableRoslynAnalyzers": true,
+	    "omnisharp.enableEditorConfigSupport": true
+	},
 	"forwardPorts": [],
+	// Set container specific settings
 
 	"hostRequirements": {
 		"cpus": 4
@@ -20,11 +25,12 @@
 		"rust-lang.rust",
 		"vadimcn.vscode-lldb",
 		"humao.rest-client",
-		"serayuzgur.crates"
+		"serayuzgur.crates",
+		"visualstudioexptteam.vscodeintellicode",
+		"ms-dotnettools.csharp" // TODO: Remove when burst svc is separated
 	],
 
 	// Run Bash scripts
 	"onCreateCommand": "/bin/bash ./.devcontainer/on-create.sh",
-	"postCreateCommand": "/bin/bash ./.devcontainer/post-create.sh",
-	"postStartCommand": "/bin/bash ./.devcontainer/post-start.sh"
+	"postCreateCommand": "/bin/bash ./.devcontainer/post-create.sh"
 }
