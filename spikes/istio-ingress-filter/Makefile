@@ -4,7 +4,8 @@ help :
 	@echo "Usage:"
 	@echo "  make build               - build the plug-in"
 	@echo "  make deploy              - apply wasm filter to istio ingress"
-	@echo "  make check               - check the endpoints with curl"
+	@echo "  make check-ingress       - check the ingress endpoints with http"
+	@echo "  make check-direct        - check the ngsa svc endpoints with http"
 	@echo "  make clean               - remove the istio plugin from ngsa"
 
 build:
@@ -40,4 +41,4 @@ check-direct :
 
 check-ingress :
 	# But calling istio ingress endpoint will show the burst header
-	http $(shell kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].status.hostIP}'):$(shell kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')/memory/healthz
+	http $(shell kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].status.hostIP}'):\$(shell kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')/memory/healthz
