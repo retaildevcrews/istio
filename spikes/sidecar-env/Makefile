@@ -50,5 +50,5 @@ clean-old :
 	# Remove existing ngsa deployment
 	@cd ../../ && make clean
 	@kubectl delete --ignore-not-found cm burst-wasm-filter
-	@kubectl delete --ignore-not-found -f ../../deploy/ngsa-memory.yaml
-	@kubectl delete --ignore-not-found -f ../../deploy/filter.yaml
+	@kubectl delete --ignore-not-found -f ../../deploy/ngsa-memory/ngsa-memory.yaml
+	@kubectl delete --ignore-not-found -f ../../deploy/ngsa-memory/filter.yaml
