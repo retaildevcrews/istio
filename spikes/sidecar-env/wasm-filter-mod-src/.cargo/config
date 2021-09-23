@@ -1,0 +1,5 @@
+[target.wasm32-unknown-unknown]
+runner = 'wasm-bindgen-test-runner'
+
+[targer.wasm32-wasi]
+runner = 'wasm-bindgen-test-runner'

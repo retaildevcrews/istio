@@ -1,0 +1,75 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: burst-wasm
+  namespace: default
+spec:
+  workloadSelector:
+    labels:
+      app: ngsa
+  configPatches:
+    # The first patch adds the lua filter to the listener/http connection manager
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+            subFilter:
+              name: "envoy.filters.http.router"
+    patch:
+     operation: INSERT_BEFORE 
+     value:
+      name: burst-wasm-extension
+      typed_config:
+       "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+       config:
+        root_id: burst-wasm-root-id
+        vm_config:
+         vm_id: burst-wasm-vm-id
+         runtime: envoy.wasm.runtime.v8
+         allow_precompiled: true
+         # Note: Doc https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/wasm/v3/wasm.proto#extensions-wasm-v3-environmentvariables
+         environment_variables:
+          host_env_keys:
+          - NGSA_HPA_NAME
+          - NGSA_NAMESPACE
+         code:
+          local:
+           filename: /var/local/lib/wasm-filters/burst_header.wasm
+        configuration:
+         "@type": "type.googleapis.com/google.protobuf.StringValue"
+         value: |
+          { 
+            "service_cluster": "healthcluster",
+            "service_authority": "burst.burstservice",
+            "service_path": "/burstmetrics",
+            "user_agent": "HTTPie/",
+            "cache_seconds": 3
+          }               
+  # "user_agent": "EF-Strati-HealthCheck-Client/1.0",
+
+  # The second patch adds the cluster that is referenced by the lua code
+  # cds match is omitted as a new cluster is being added
+  - applyTo: CLUSTER
+    match:
+      context: SIDECAR_OUTBOUND
+    patch:
+      operation: ADD
+      value: # cluster specification
+        name: "healthcluster"
+        type: LOGICAL_DNS
+        dns_lookup_family: V4_ONLY
+        connect_timeout: 0.5s
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: healthcluster
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    protocol: TCP
+                    address: burst.burstservice
+                    port_value: 8080

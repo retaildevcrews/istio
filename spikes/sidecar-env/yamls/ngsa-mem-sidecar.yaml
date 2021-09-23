@@ -1,0 +1,95 @@
+##################################################################################################
+# Details service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ngsa
+  labels:
+    app: ngsa
+    service: ngsa
+spec:
+  ports:
+  - port: 8080
+    name: http
+    nodePort: 30080
+  type: NodePort # For external access (k3d, kind)
+  selector:
+    app: ngsa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ngsa
+  labels:
+    account: ngsa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngsa
+  labels:
+    app: ngsa
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngsa
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ngsa
+        version: v1
+    spec:
+      serviceAccountName: ngsa
+      containers:
+      - name: ngsa
+        image: ghcr.io/retaildevcrews/ngsa-app:beta
+        resources:
+          limits:
+            cpu: "500m"
+        args:
+          - --in-memory
+          - --prometheus
+          - --url-prefix
+          - /memory
+          - --log-level
+          - Warning
+          - --request-log-level
+          - Information
+          - --zone
+          - dev
+          - --region
+          - dev
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080 
+        securityContext:
+          runAsUser: 1000
+      # NOTE: We are modifying istio sidecar configuration
+      # See https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/
+      # Also see env var lists: https://istio.io/latest/zh/docs/reference/commands/sidecar-injector/
+      # We can also use ISTIO_META_WORKLOAD_NAME for deployment name and POD_NAMESPACE for the namespace
+      # Or use ISTIO_META_OWNER (example value kubernetes://apis/apps/v1/namespaces/default/deployments/ngsa) for both data
+      - name: istio-proxy
+        image: auto
+        env:
+        - name: NGSA_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace # Note: From k8s downward API
+        - name: NGSA_HPA_NAME
+          valueFrom:
+            fieldRef:
+              # Note: Convention: the label `app` is the same as the deployment name
+              # Also another convention: HPA name is the same as the deployment name
+              fieldPath: metadata.labels['app']
+        volumeMounts:
+        - mountPath: /var/local/lib/wasm-filters
+          name: wasmfilters-dir
+      volumes:
+      - name: wasmfilters-dir
+        configMap:
+          name: burst-wasm-filter-spiked
