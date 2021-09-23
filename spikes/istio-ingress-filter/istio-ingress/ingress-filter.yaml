@@ -2,16 +2,17 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: burst-wasm
-  namespace: default
+  namespace: istio-system
 spec:
   workloadSelector:
     labels:
-      app: ngsa
+      app: istio-ingressgateway
+      istio: ingressgateway
   configPatches:
     # The first patch adds the lua filter to the listener/http connection manager
   - applyTo: HTTP_FILTER
     match:
-      context: SIDECAR_INBOUND
+      context: GATEWAY
       listener:
         filterChain:
           filter:
@@ -19,39 +20,39 @@ spec:
             subFilter:
               name: "envoy.filters.http.router"
     patch:
-     operation: INSERT_BEFORE 
-     value:
-      name: burst-wasm-extension
-      typed_config:
-       "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
-       config:
-        root_id: burst-wasm-root-id
-        vm_config:
-         vm_id: burst-wasm-vm-id
-         runtime: envoy.wasm.runtime.v8
-         allow_precompiled: true
-         code:
-          local:
-           filename: /var/local/lib/wasm-filters/burst_header.wasm
-        configuration:
-         "@type": "type.googleapis.com/google.protobuf.StringValue"
-         value: |
-          { 
-            "service_cluster": "healthcluster",
-            "service_authority": "burst.burstservice",
-            "service_path": "/burstmetrics",
-            "user_agent": "HTTPie/",
-            "cache_seconds": 3,
-            "namespace": "default",
-            "deployment": "ngsa"
-          }               
+      operation: INSERT_BEFORE 
+      value:
+        name: burst-wasm-extension
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+          config:
+            root_id: burst-wasm-root-id
+            vm_config:
+              vm_id: burst-wasm-vm-id
+              runtime: envoy.wasm.runtime.v8
+              allow_precompiled: true
+              code:
+                local:
+                  filename: /var/local/lib/wasm-filters/burst_header.wasm
+            configuration:
+              "@type": "type.googleapis.com/google.protobuf.StringValue"
+              value: |
+                { 
+                  "service_cluster": "healthcluster",
+                  "service_authority": "burst.burstservice",
+                  "service_path": "/burstmetrics",
+                  "user_agent": "HTTPie/",
+                  "cache_seconds": 3,
+                  "namespace": "default",
+                  "deployment": "ngsa"
+                }               
   # "user_agent": "EF-Strati-HealthCheck-Client/1.0",
 
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added
   - applyTo: CLUSTER
     match:
-      context: SIDECAR_OUTBOUND
+      context: GATEWAY
     patch:
       operation: ADD
       value: # cluster specification

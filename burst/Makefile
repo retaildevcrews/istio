@@ -23,5 +23,5 @@ build :
 
 check :
 	# get the metrics
-	@curl -q http://${K8s}/burstmetrics/default/ngsa
+	@curl -q http://localhost:30081/burstmetrics/default/ngsa
 	@echo ""
