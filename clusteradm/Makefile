@@ -53,20 +53,20 @@ recreate : delete
 
 network-recreate: network-delete
 	# Check if k3d network exists and create if doesn't exist
-	docker network inspect k3d > /dev/null 2>&1 || docker network create k3d
+	@docker network inspect k3d > /dev/null 2>&1 || docker network create k3d
 
 	# Create k3d docker registry if doesn't exist
-	k3d reg list | grep k3d-registry.localhost > /dev/null 2>&1 || k3d registry create registry.localhost --port 5000
+	@k3d reg list | grep k3d-registry.localhost > /dev/null 2>&1 || k3d registry create registry.localhost --port 5000
 
 	# Connect k3d registry to docker
-	docker network connect k3d k3d-registry.localhost
+	@docker network connect k3d k3d-registry.localhost
 
 network-delete:
 	# Disconnect from k3d registry network
-	docker network disconnect k3d k3d-registry.localhost
+	-@docker network disconnect k3d k3d-registry.localhost
 
 	# Delete k3d registry
-	k3d reg delete k3d-registry.localhost
+	-@k3d reg delete k3d-registry.localhost
 
 deleteall: delete network-delete
 
