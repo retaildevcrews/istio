@@ -11,7 +11,7 @@ delete :
 	-k3d cluster delete
 
 recreate : delete
-# build k3d cluster
+	# build k3d cluster
 	@k3d cluster create --registry-use k3d-registry.localhost:5000 --config ../deploy/k3d/k3d.yaml --k3s-server-arg "--no-deploy=traefik" --k3s-server-arg "--no-deploy=servicelb"
 
 	# build the WebAssembly
