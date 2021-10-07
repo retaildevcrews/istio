@@ -17,12 +17,6 @@
 
    ```
 
-### Set env vars
-
-> During setup, we add and update some environment variables that must be set correctly
-
-- `exit` and restart shell (ctl `)
-
 ### Verify the setup
 
 - You will see the burst header in the http request
