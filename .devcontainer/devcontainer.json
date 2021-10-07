@@ -6,8 +6,9 @@
 	"overrideCommand": false,
 	"settings": {
 		"terminal.integrated.defaultProfile.linux": "zsh",
+		// Remove omnisharp when burst svc is separated
 		"omnisharp.enableRoslynAnalyzers": true,
-	    "omnisharp.enableEditorConfigSupport": true
+		"omnisharp.enableEditorConfigSupport": true
 	},
 	"forwardPorts": [],
 	// Set container specific settings
@@ -27,7 +28,7 @@
 		"humao.rest-client",
 		"serayuzgur.crates",
 		"visualstudioexptteam.vscodeintellicode",
-		"ms-dotnettools.csharp" // TODO: Remove when burst svc is separated
+		"ms-dotnettools.csharp" // Remove when burst svc is separated
 	],
 
 	// Run Bash scripts
