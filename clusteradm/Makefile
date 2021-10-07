@@ -1,9 +1,12 @@
-.PHONY: delete recreate help from-scratch cleanall network-delete network-recreate
+.PHONY: delete recreate help from-scratch deleteall network-delete network-recreate
 
 help :
 	@echo "Usage:"
+	@echo "   make help          - prints this msg"
 	@echo "   make recreate      - delete and recreate a new k3d cluster"
-	@echo "   make delete        - delete the k3d cluster"
+	@echo "   make delete        - delete k3d cluster"
+	@echo "   make deleteall     - delete k3d cluster, registry and networking"
+	@echo "   make from-scratch  - delete all, then create networking and k3d cluster"
 
 delete :
 	# delete the cluster (if exists)
