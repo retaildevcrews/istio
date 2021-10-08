@@ -33,5 +33,7 @@
 
 	// Run Bash scripts
 	"onCreateCommand": "/bin/bash ./.devcontainer/on-create.sh",
-	"postCreateCommand": "/bin/bash ./.devcontainer/post-create.sh"
+	"postCreateCommand": "/bin/bash ./.devcontainer/post-create.sh",
+	"postStartCommand": "/bin/bash ./.devcontainer/post-start.sh",
+	"waitFor": "updateContentCommand" // Deafult value
 }
