@@ -11,11 +11,12 @@ help :
 delete :
 	# delete the cluster (if exists)
 	@# this will fail harmlessly if the cluster does not exist
-	-k3d cluster delete
+	-k3d cluster delete ngsa-k3d-cluster
 
 recreate : delete
 	# build k3d cluster
-	@k3d cluster create --registry-use k3d-registry.localhost:5000 --config ../deploy/k3d/k3d.yaml --k3s-server-arg "--no-deploy=traefik" --k3s-server-arg "--no-deploy=servicelb"
+	@k3d cluster create ngsa-k3d-cluster --registry-use k3d-registry.localhost:5000 --config ../k3d.yaml --k3s-arg "--no-deploy=traefik@server:0" --k3s-arg "--no-deploy=servicelb@server:0"
+	 																							                                             
 
 	# build the WebAssembly
 	rm -f ../burst_header.wasm
