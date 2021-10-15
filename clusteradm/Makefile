@@ -15,7 +15,7 @@ delete :
 
 recreate : delete
 	# build k3d cluster
-	@k3d cluster create ngsa-k3d-cluster --registry-use k3d-registry.localhost:5000 --config ../k3d.yaml --k3s-arg "--no-deploy=traefik@server:0" --k3s-arg "--no-deploy=servicelb@server:0"
+	@k3d cluster create ngsa-k3d-cluster --registry-use k3d-registry.localhost:5000 --config ../deploy/k3d/k3d.yaml --k3s-arg "--no-deploy=traefik@server:0" --k3s-arg "--no-deploy=servicelb@server:0"
 	 																							                                             
 
 	# build the WebAssembly
