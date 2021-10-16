@@ -37,14 +37,8 @@ metadata:
   name: burst-role
   namespace: burstservice
 rules:
-- apiGroups: [""]
-  resources: ["*"]
-  verbs:
-  - list
-  - get
 - apiGroups:
   - autoscaling
-  - "*"
   resources:
   - "*"
   verbs:
