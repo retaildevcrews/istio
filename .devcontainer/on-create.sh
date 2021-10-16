@@ -22,7 +22,7 @@ k3d registry create registry.localhost --port 5000
 docker network connect k3d k3d-registry.localhost
 
 cd clusteradm
-make recreate
+make all
 
 cd ..
 make deploy
