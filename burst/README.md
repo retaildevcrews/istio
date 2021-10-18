@@ -58,7 +58,7 @@ x-envoy-upstream-service-time: 16
 
 In-cluster configuration (as well as default kube-config) for this service requires additional permission to call the `autoscaling` API.
 
-For a complete RBAC example, see [burst.yaml](./../deploy/burst/burst.yaml).
+For a complete RBAC example, see [burst-dev.yaml](./deploy/burst-dev.yaml).
 
 ### HPA Requirements
 
