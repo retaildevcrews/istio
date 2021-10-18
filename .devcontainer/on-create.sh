@@ -8,8 +8,7 @@ if [ $? -ne 0 ]; then
     # Means we don't have proper k3d version
     # Install v5.0.1
     echo "Installing k3d v5.0.1"
-    sudo wget https://github.com/rancher/k3d/releases/download/v5.0.1/k3d-linux-amd64 -O /usr/local/bin/k3d
-    sudo chmod +x /usr/local/bin/k3d
+    wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | sudo bash
 fi
 
 # Create Docker Network for k3d
