@@ -82,7 +82,7 @@ spec:
       serviceAccountName: burst
       containers:
       - name: burst
-        image: localhost:5000/burst:local
+        image: k3d-registry.localhost:5000/burst:local
         imagePullPolicy: Always
         ports:
         - containerPort: 8080 

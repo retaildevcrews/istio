@@ -10,7 +10,7 @@
 cd clusteradm
 
 ## This will delete and recreate your cluster
-make recreate
+make all
 
 # Step 1. Clean any exising wasm deployment
 ## cd into the repo root
