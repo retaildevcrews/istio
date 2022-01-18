@@ -13,10 +13,10 @@ ports:
 - port: 30081:30081 # Mock
   nodeFilters:
   - server:0
-- port: 30082:30082 # Grafana
+- port: 30082:30082 # Istio Ingress
   nodeFilters:
   - server:0
-- port: 30083:30083 # Istio Ingress
+- port: 30083:30083 # Grafana
   nodeFilters:
   - server:0
 options:

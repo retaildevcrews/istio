@@ -17,17 +17,17 @@ create:
 	@sleep 5
 	@kubectl wait pod -A --all --for condition=ready --timeout=60s
 
-	@kubectl label namespace default istio-injection=enabled --overwrite
-	@kubectl apply -f ngsa-memory
 
 istio-tempo: 
-	@istioctl install -y --set profile=demo -f istio-tempo/istio-operator.yaml
+	@istioctl install -y --set profile=demo -f istio/istio-operator.yaml
 	# kubectl apply -f istio-operator.yaml
+	@kubectl label namespace default istio-injection=enabled --overwrite
+	@kubectl apply -f istio/ngsa-memory
 
 	@kubectl create ns tracing
 
-	@helm upgrade --install tempo grafana/tempo -n tracing --set tempo.receivers.zipkin.endpoint=0.0.0.0:9999
-	@helm upgrade -f grafana-single-values.yaml --install grafana grafana/grafana -n tracing
+	@helm upgrade --install tempo grafana/tempo -n tracing --set tempo.receivers.zipkin.endpoint=0.0.0.0:9411
+	@helm upgrade -f istio/grafana-single-values.yaml --install grafana grafana/grafana -n tracing
 
 build-apps: build-ngsa build-mock-rest
 
