@@ -4,57 +4,55 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ngsa
+  name: ngsa-mem
   labels:
-    app: ngsa
-    service: ngsa
+    app: ngsa-mem
+    service: ngsa-mem
 spec:
   ports:
   - port: 8080
     name: http
-    nodePort: 30080
-  type: NodePort # For external access (k3d, kind)
+  type: ClusterIP
   selector:
-    app: ngsa
+    app: ngsa-mem
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ngsa
+  name: ngsa-mem
   labels:
-    account: ngsa
+    account: ngsa-mem
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ngsa
+  name: ngsa-mem
   labels:
-    app: ngsa
+    app: ngsa-mem
     version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ngsa
+      app: ngsa-mem
       version: v1
   template:
     metadata:
       labels:
-        app: ngsa
+        app: ngsa-mem
         version: v1
     spec:
-      serviceAccountName: ngsa
+      serviceAccountName: ngsa-mem
       containers:
-      - name: ngsa
+      - name: ngsa-mem
         image: k3d-registry.localhost:5000/ngsa-app:local
         resources:
           limits:
             cpu: "500m"
         args:
           - --in-memory
-          - --prometheus
           - --url-prefix
-          - /memory
+          - /only-mem/
           - --log-level
           - Warning
           - --request-log-level
@@ -63,9 +61,44 @@ spec:
           - dev
           - --region
           - dev
-          - --use-istio-trace-id
         imagePullPolicy: Always
         ports:
         - containerPort: 8080 
         securityContext:
           runAsUser: 1000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: ngsa-mem-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ngsa-mem-vs
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - ngsa-mem-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /only-mem/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: ngsa-mem
+        port:
+          number: 8080

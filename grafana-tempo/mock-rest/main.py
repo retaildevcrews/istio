@@ -14,7 +14,7 @@ def arg_parser():
     version = "%(prog)s 0.1.0"
     parser.add_argument("--version", action="version", version=version)
     parser.add_argument("--port", type=int, default=8421)
-    parser.add_argument("api_links", type=str, nargs='*',)    
+    parser.add_argument("api_links", type=str, nargs='*',)
 
     return parser
 
@@ -22,7 +22,7 @@ args = arg_parser().parse_args()
 # print(f"Args: {args}")
 
 @app.get("/{rest_of_path:path}")
-def serve_my_app(request: Request, rest_of_path: str,  status_code=200):
+async def serve_my_app(request: Request, rest_of_path: str,  status_code=200):
     # print(request.headers)
     output={"path":f"/{rest_of_path}","req_headers" : f"{request.headers}","api":{}}
     for l in args.api_links:
