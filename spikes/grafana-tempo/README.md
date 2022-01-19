@@ -135,9 +135,8 @@ It is already configured when we deployed Grafana.
 Checkout  [this yaml file](./istio/grafana-single-values.yaml) for configuration details.
 
 To see the logs, from Grafana Explore, change the data source to Loki.
-![Change Source to Loki](imgs/tempo_to_loki.png)
 
-Now, fluent bit properly labled, so click on "Log Browser" and select "job" and "fluentbit".
+FluentBit should be properly labled (see [fluentbit configmap file](./istio/fluentbit/configmap.yaml)), so click on "Log Browser" and select "job" and "fluentbit".
 ![Select fluentbit label](imgs/tempo_loki_fb.png)
 
 From there you can click on any logs and if that log has traceID, it will
