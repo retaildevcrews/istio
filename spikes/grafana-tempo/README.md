@@ -7,7 +7,16 @@ This spike was to demonstrate Distributed Tracing using the Grafana stack (Grafa
 Once the components are in place and running in the system the primary changes needed in the app code is that it must propogate the headers used for tracing.  Ngsa app was modified to help showcase multiple service req with Istio Header propagation and trace logging.
 
 The headers that must be propogated are:
-`[replace this with headers list]` 
+
+- `x-request-id`
+- `x-b3-traceid`
+- `x-b3-spanid`
+- `x-b3-parentspanid`
+- `x-b3-sampled`
+- `x-b3-flags`
+- `x-ot-span-context`
+
+> For more information on Istio's trace context propagation, see [this link](https://istio.io/latest/docs/tasks/observability/distributed-tracing/)
 
 ## Why Grafana Tempo
 
