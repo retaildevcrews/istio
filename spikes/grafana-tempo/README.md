@@ -1,8 +1,13 @@
 # Grafana Tempo Demo
 
-> Showcasing grafana with Istio and Ngsa application.
-> Ngsa app was modified to help showcase multiple service req and
-> with Istio Header propagation and trace logging
+This spike was to demonstrate Distributed Tracing using the Grafana stack (Grafana, Tempo, Loki) with Istio and Ngsa application and discover the changes needed to the app to enable the capability.  This is done to understand how much the addition of distributed tracing could be automated and injected as part of the deployment yaml and system components and the requirements that would be placed on an application team in order to ensure that the tracing was enabled through all incoming and outgoing calls.
+
+## Net Findings
+
+Once the components are in place and running in the system the primary changes needed in the app code is that it must propogate the headers used for tracing.  Ngsa app was modified to help showcase multiple service req with Istio Header propagation and trace logging.
+
+The headers that must be propogated are:
+`[replace this with headers list]` 
 
 ## Why Grafana Tempo
 
