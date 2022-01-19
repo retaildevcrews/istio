@@ -45,7 +45,7 @@ spec:
       serviceAccountName: ngsa-mem
       containers:
       - name: ngsa-mem
-        image: k3d-registry.localhost:5000/ngsa-app:local
+        image: ghcr.io/retaildevcrews/ngsa-app:beta
         resources:
           limits:
             cpu: "500m"

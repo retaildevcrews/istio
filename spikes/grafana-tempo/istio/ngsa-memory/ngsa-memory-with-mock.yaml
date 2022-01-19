@@ -65,7 +65,7 @@ spec:
           - dev
           - --use-istio-trace-id
           - --propagate-apis
-          - http://mock-a.mockery
+          - http://ngsa-mod-a.ngsa-mods
         imagePullPolicy: Always
         ports:
         - containerPort: 8080 

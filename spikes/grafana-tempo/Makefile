@@ -1,8 +1,8 @@
 SHELL=/bin/bash
-.PHONY: build-apps create istio-tempo build-ngsa build-mock-rest basic delete
+.PHONY: build-apps create istio-tempo build-ngsa basic delete
 
 all: create
-build-apps : build-ngsa build-mock-rest
+build-apps : build-ngsa
 
 delete:
 	@k3d cluster delete tempo
@@ -40,8 +40,7 @@ istio-tempo:
 	@kubectl label namespace default istio-injection=enabled --overwrite
     # Install a basic ngsa-app
 	@kubectl apply -f istio/ngsa-memory/ngsa-mem-only.yaml
-    # Install Ngsa-app with mock and tracing
-	@kubectl apply -f istio/ngsa-memory/ngsa-memory-with-mock.yaml
+
     # Install Grafna
 	@helm upgrade -f istio/grafana-single-values.yaml --install grafana grafana/grafana -n tracing
 
@@ -50,23 +49,16 @@ install-mocks:
     # Chain:    [ngsa-mock]-->[mock-a]-->[mock-b]--┐
     #                    └--->[mock-c]<---┘        |
     #                              └--->[mock-d]<--┘
-	@./istio/mock-rest/gen-mock.bash mock-a mockery mock-b | kubectl apply -f -
-	@./istio/mock-rest/gen-mock.bash mock-b mockery mock-c mock-d | kubectl apply -f -
-	@./istio/mock-rest/gen-mock.bash mock-c mockery mock-d | kubectl apply -f -
-	@./istio/mock-rest/gen-mock.bash mock-d mockery | kubectl apply -f -
-	
-test:
-	# @helm install mock-a --set args={http://mock-b.mockery} ./istio/mock-helm -n mockery --create-namespace
-	# @helm install mock-b --set fullnameOverride="mock-b" --set nameOverride="mock-b" --set args='{http://mock-d.mockery,http://mock-c.mockery}' ./istio/mock-helm -n mockery
-	# @helm install mock-c --set fullnameOverride="mock-c" --set nameOverride="mock-c" --set args='{http://mock-d.mockery}' ./istio/mock-helm -n mockery
-	# @helm install mock-d --set fullnameOverride="mock-d" --set nameOverride="mock-d" ./istio/mock-helm -n mockery
+	# Install root ngsa-app with mock and tracing
+	@kubectl apply -f istio/ngsa-memory/ngsa-memory-with-mock.yaml
+
+	# Install Other mock services
+	@./istio/mock-rest/gen-mock.bash ngsa-mod-a ngsa-mods ngsa-mod-b | kubectl apply -f -
+	@./istio/mock-rest/gen-mock.bash ngsa-mod-b ngsa-mods ngsa-mod-c ngsa-mod-d | kubectl apply -f -
+	@./istio/mock-rest/gen-mock.bash ngsa-mod-c ngsa-mods ngsa-mod-d | kubectl apply -f -
+	@./istio/mock-rest/gen-mock.bash ngsa-mod-d ngsa-mods | kubectl apply -f -
 
 build-ngsa:
 	# Build and push modified ngsa-app
 	@docker build -t localhost:5000/ngsa-app:local -f ngsa-app/Dockerfile ./ngsa-app
 	@docker push localhost:5000/ngsa-app:local
-
-build-mock-rest:
-	# Build and push mock-rest
-	@docker build -t localhost:5000/mock-rest:local -f mock-rest/Dockerfile ./mock-rest
-	@docker push localhost:5000/mock-rest:local
