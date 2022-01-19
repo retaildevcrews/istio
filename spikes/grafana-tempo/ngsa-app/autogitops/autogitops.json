@@ -1,0 +1,7 @@
+{
+    "name": "ngsa",
+    "namespace": "ngsa",
+    "imageName": "ghcr.io/retaildevcrews/ngsa-app",
+    "imageTag": "beta",
+    "targets": ["ngsadev","ngsaprec"]
+}

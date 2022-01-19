@@ -1,0 +1,104 @@
+##################################################################################################
+# Details service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ngsa-mem
+  labels:
+    app: ngsa-mem
+    service: ngsa-mem
+spec:
+  ports:
+  - port: 8080
+    name: http
+  type: ClusterIP
+  selector:
+    app: ngsa-mem
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ngsa-mem
+  labels:
+    account: ngsa-mem
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngsa-mem
+  labels:
+    app: ngsa-mem
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngsa-mem
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ngsa-mem
+        version: v1
+    spec:
+      serviceAccountName: ngsa-mem
+      containers:
+      - name: ngsa-mem
+        image: ghcr.io/retaildevcrews/ngsa-app:beta
+        resources:
+          limits:
+            cpu: "500m"
+        args:
+          - --in-memory
+          - --url-prefix
+          - /only-mem/
+          - --log-level
+          - Warning
+          - --request-log-level
+          - Information
+          - --zone
+          - dev
+          - --region
+          - dev
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080 
+        securityContext:
+          runAsUser: 1000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: ngsa-mem-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ngsa-mem-vs
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - ngsa-mem-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /only-mem/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: ngsa-mem
+        port:
+          number: 8080

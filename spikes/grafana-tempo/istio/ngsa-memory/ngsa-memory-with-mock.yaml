@@ -1,0 +1,109 @@
+##################################################################################################
+# Details service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ngsa-mock
+  labels:
+    app: ngsa-mock
+    service: ngsa-mock
+spec:
+  ports:
+  - port: 8080
+    name: http
+    nodePort: 30080
+  type: NodePort # For external access (k3d, kind)
+  selector:
+    app: ngsa-mock
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ngsa-mock
+  labels:
+    account: ngsa-mock
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngsa-mock
+  labels:
+    app: ngsa-mock
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngsa-mock
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ngsa-mock
+        version: v1
+    spec:
+      serviceAccountName: ngsa-mock
+      containers:
+      - name: ngsa-mock
+        image: k3d-registry.localhost:5000/ngsa-app:local
+        resources:
+          limits:
+            cpu: "500m"
+        args:
+          - --in-memory
+          - --prometheus
+          - --url-prefix
+          - /memory
+          - --log-level
+          - Warning
+          - --request-log-level
+          - Information
+          - --zone
+          - dev
+          - --region
+          - dev
+          - --use-istio-trace-id
+          - --propagate-apis
+          - http://ngsa-mod-a.ngsa-mods
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080 
+        securityContext:
+          runAsUser: 1000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: ngsa-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ngsa-vs
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - ngsa-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /memory/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: ngsa-mock
+        port:
+          number: 8080
