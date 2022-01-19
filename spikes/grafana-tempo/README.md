@@ -28,23 +28,12 @@ From Grafana Tempo site:
 ## From your REPO root dir
 cd spikes/grafana-tempo
 
-# Step 1: Clone modified ngsa-app
-git clone https://github.com/kforeverisback/ngsa-app.git
-git checkout spike/grafana-tempo
-
-# Step 2: Build ngsa app
-## Here we're tagging the ngsa-app with localhost:5000
-## This is a k3d registry which will be created in a later step
-cd ngsa-app
-docker build -t localhost:5000/ngsa-app:local -f ngsa-app/Dockerfile ./ngsa-app
-cd .. ## At this point we're at spikes/grafana-tempo
-
-# Step 3: Create the cluster
+# Step 1: Create the cluster
 make delete create
 ## Check pods
 kubectl get po -A
 
-# Step 4: Deploy istio, grafana, tempo and loki
+# Step 2: Deploy istio, grafana, tempo and loki
 make istio-tempo
 
 ## Check Grafana stack
@@ -53,7 +42,10 @@ kubectl get all -n tracing
 ## Which for the purpose of this spike is not required
 kubectl get all # one ngsa-app deployed in default namespace
 
-# Step 5: Install mock ngsa-applications
+# Step 3: Build and push modified ngsa-app
+make build-ngsa
+
+# Step 4: Install mock ngsa-applications
 ## At this point we only have one application ngsa-app
 ## We would like to have couple more ngsa with interdepencies to other ngsa apps
 ## to demonstrace tracing capabilities which span multiple services
@@ -121,3 +113,19 @@ You'll see ngsa call other ngsa services.
 ![Tempo multi service tracing](imgs/tempo_multi_service.png)
 
 ## Tracing with Loki
+
+Now good thing about using Grafana and Loki is that we can connect our traceIDs
+right in our logs to Tempo using Loki's derived fields.
+
+It is already configured when we deployed Grafana.
+Checkout  [this yaml file](./istio/grafana-single-values.yaml) for configuration details.
+
+To see the logs, from Grafana Explore, change the data source to Loki.
+![Change Source to Loki](imgs/tempo_to_loki.png)
+
+Now, fluent bit properly labled, so click on "Log Browser" and select "job" and "fluentbit".
+![Select fluentbit label](imgs/tempo_loki_fb.png)
+
+From there you can click on any logs and if that log has traceID, it will
+automatically link to Tempo.
+![Loki TraceID Tempo Link](imgs/tempo_loki_tempo.png)
