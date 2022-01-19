@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{gitops.name}}-memory
+  namespace: {{gitops.namespace}}
+  labels:
+    app.kubernetes.io/name: {{gitops.name}}-memory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{gitops.name}}-memory
+  template:
+    metadata:
+      labels:
+        app: {{gitops.name}}-memory
+        version: beta-{{gitops.version}}
+        deploy: {{gitops.deploy}}
+    spec:
+      containers:
+        - name: app
+          image: {{gitops.imageName}}:{{gitops.imageTag}}
+          imagePullPolicy: Always
+          args: 
+          - --in-memory
+          - --prometheus
+          - --url-prefix
+          - /memory
+          - --zone
+          - {{gitops.config.zone}}
+          - --region
+          - {{gitops.config.region}}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+      nodeSelector:
+        agentpool: npuser01
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{gitops.name}}-memory
+  namespace: {{gitops.namespace}}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{gitops.name}}-memory
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{gitops.name}}-memory-vs
+  namespace: {{gitops.namespace}}
+spec:
+  gateways:
+  - istio-system/istio-gateway
+  hosts:
+  - {{gitops.config.domain}}
+  http:
+  - match:
+    - uri:
+        prefix: /memory/
+    - uri:
+        exact: /memory
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 8080
+        host: {{gitops.name}}-memory

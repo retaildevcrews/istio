@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{gitops.name}}-cosmos
+  namespace: {{gitops.namespace}}
+  labels:
+    app.kubernetes.io/name: {{gitops.name}}-cosmos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{gitops.name}}-cosmos
+  template:
+    metadata:
+      labels:
+        aadpodidbinding: {{gitops.config.mi.name}}
+        app: {{gitops.name}}-cosmos
+        deploy: {{gitops.deploy}}
+        version: beta-{{gitops.version}}
+    spec:
+      containers:
+        - name: app
+          image: {{gitops.imageName}}:{{gitops.imageTag}}
+          imagePullPolicy: Always
+          args:
+          - --prometheus
+          - --no-cache
+          - --url-prefix
+          - /cosmos
+          - --zone
+          - {{gitops.config.zone}}
+          - --region
+          - {{gitops.config.region}}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: secrets
+              mountPath: "/app/secrets"
+      volumes:
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: ngsa-secrets
+      nodeSelector:
+        agentpool: npuser01
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{gitops.name}}-cosmos
+  namespace: {{gitops.namespace}}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{gitops.name}}-cosmos
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{gitops.name}}-cosmos-vs
+  namespace: {{gitops.namespace}}
+spec:
+  gateways:
+  - istio-system/istio-gateway
+  hosts:
+  - {{gitops.config.domain}}
+  http:
+  - match:
+    - uri:
+        prefix: /cosmos/
+    - uri:
+        exact: /cosmos
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 8080
+        host: {{gitops.name}}-cosmos

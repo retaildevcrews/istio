@@ -1,0 +1,33 @@
+#should return 200
+PUT http://localhost:8080/api/movies/zz1272878 HTTP/1.1
+
+###
+
+# should return 200
+GET http://localhost:8080/api/movies/zz1272878 HTTP/1.1
+
+###
+
+# should return 204
+DELETE http://localhost:8080/api/movies/zz1272878 HTTP/1.1
+
+###
+
+# should return 404
+GET http://localhost:8080/api/movies/zz1272878 HTTP/1.1
+
+###
+
+# should return 404
+PUT http://localhost:8080/api/movies/zz127287800 HTTP/1.1
+
+###
+
+# should return 400
+# must use 'zz' + valid numeric ID
+PUT http://localhost:8080/api/movies/tt127287800 HTTP/1.1
+
+###
+
+# should return 400
+DELETE http://localhost:8080/api/movies/tt1272878 HTTP/1.1
