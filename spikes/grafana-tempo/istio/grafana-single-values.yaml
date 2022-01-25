@@ -30,7 +30,8 @@ datasources:
         jsonData:
           derivedFields:
             - datasourceName: Tempo
-              matcherRegex: "traceID=(\\w+)"
+              # Added regex to capture traceid json from ngsa
+              matcherRegex: "trace[Ii][Dd]\"?[=:]\"?(\\w+)"
               name: TraceID
               url: "$${__value.raw}"
               datasourceUid: tempo

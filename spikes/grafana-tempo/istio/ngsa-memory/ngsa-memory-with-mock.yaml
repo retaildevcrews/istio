@@ -1,9 +1,17 @@
 ##################################################################################################
 # Details service
 ##################################################################################################
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: ngsa
+  labels:
+    istio-injection: enabled
+---
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: ngsa
   name: ngsa-mock
   labels:
     app: ngsa-mock
@@ -21,6 +29,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ngsa-mock
+  namespace: ngsa
   labels:
     account: ngsa-mock
 ---
@@ -28,6 +37,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ngsa-mock
+  namespace: ngsa
   labels:
     app: ngsa-mock
     version: v1
@@ -65,7 +75,7 @@ spec:
           - dev
           - --use-istio-trace-id
           - --propagate-apis
-          - http://ngsa-mod-a.ngsa-mods
+          - http://ngsa-a.ngsa-mods
         imagePullPolicy: Always
         ports:
         - containerPort: 8080 
@@ -75,6 +85,7 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
+  namespace: ngsa
   name: ngsa-gateway
 spec:
   selector:
@@ -90,6 +101,7 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
+  namespace: ngsa
   name: ngsa-vs
 spec:
   hosts:

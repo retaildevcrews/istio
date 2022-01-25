@@ -34,6 +34,8 @@ istio-tempo:
 
     # Install Loki
 	@helm upgrade -f istio/loki-values.yaml --install loki grafana/loki-stack -n tracing
+    # Wait for Loki to spawn up, sometimes fluentbit is deployed faster, and doesn't send logs to Loki
+	-kubectl wait pod -n tracing --all --for condition=ready --timeout=60s
     # Install fluentbit
 	@kubectl apply -f istio/fluentbit
 
@@ -53,10 +55,10 @@ install-mocks:
 	@kubectl apply -f istio/ngsa-memory/ngsa-memory-with-mock.yaml
 
 	# Install Other mock services
-	@./istio/mock-rest/gen-mock.bash ngsa-mod-a ngsa-mods ngsa-mod-b | kubectl apply -f -
-	@./istio/mock-rest/gen-mock.bash ngsa-mod-b ngsa-mods ngsa-mod-c ngsa-mod-d | kubectl apply -f -
-	@./istio/mock-rest/gen-mock.bash ngsa-mod-c ngsa-mods ngsa-mod-d | kubectl apply -f -
-	@./istio/mock-rest/gen-mock.bash ngsa-mod-d ngsa-mods | kubectl apply -f -
+	@./istio/mock-rest/gen-mock.bash ngsa-a ngsa-mods ngsa-b | kubectl apply -f -
+	@./istio/mock-rest/gen-mock.bash ngsa-b ngsa-mods ngsa-c ngsa-d | kubectl apply -f -
+	@./istio/mock-rest/gen-mock.bash ngsa-c ngsa-mods ngsa-d | kubectl apply -f -
+	@./istio/mock-rest/gen-mock.bash ngsa-d ngsa-mods | kubectl apply -f -
 
 build-ngsa:
 	# Build and push modified ngsa-app
