@@ -33,7 +33,7 @@ istio-tempo:
 	@helm upgrade --install tempo grafana/tempo -n tracing --set tempo.receivers.zipkin.endpoint=0.0.0.0:9411
 
 	# Install Loki
-	@helm upgrade -f istio/loki-values.yaml --install loki grafana/loki-stack -n tracing
+	@helm upgrade -f istio/loki-values.yaml --install --wait loki grafana/loki-stack -n tracing
     
     # Wait for Loki to spawn up, sometimes fluentbit is deployed faster, and doesn't send logs to Loki
 	-kubectl wait pod -n tracing --all --for condition=ready --timeout=60s
