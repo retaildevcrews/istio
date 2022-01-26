@@ -24,33 +24,36 @@ grafana-simple-demo:
 	@kubectl create -f basic/single-binary-extras.yaml
 
 istio-tempo: 
+	# Install Istio using istioctl
 	@istioctl install -y --set profile=demo -f istio/istio-operator.yaml
-	# kubectl apply -f istio-operator.yaml
 
 	@kubectl create ns tracing
 
-    # Install Tempo
+	# Install Tempo
 	@helm upgrade --install tempo grafana/tempo -n tracing --set tempo.receivers.zipkin.endpoint=0.0.0.0:9411
 
-    # Install Loki
+	# Install Loki
 	@helm upgrade -f istio/loki-values.yaml --install loki grafana/loki-stack -n tracing
+    
     # Wait for Loki to spawn up, sometimes fluentbit is deployed faster, and doesn't send logs to Loki
 	-kubectl wait pod -n tracing --all --for condition=ready --timeout=60s
-    # Install fluentbit
+	# Install fluentbit
 	@kubectl apply -f istio/fluentbit
 
+	# Install a basic ngsa-app
 	@kubectl label namespace default istio-injection=enabled --overwrite
-    # Install a basic ngsa-app
 	@kubectl apply -f istio/ngsa-memory/ngsa-mem-only.yaml
 
-    # Install Grafna
+	# Install Grafna
 	@helm upgrade -f istio/grafana-single-values.yaml --install grafana grafana/grafana -n tracing
 
 install-mocks:
     # Install mock application chain for ngsa-app
-    # Chain:    [ngsa-mock]-->[mock-a]-->[mock-b]--┐
-    #                    └--->[mock-c]<---┘        |
-    #                              └--->[mock-d]<--┘
+    #*-->{ingress}-->[ngsa-mock]-->[ngsa-a]-->[ngsa-b]
+    #*                     |                     |
+    #*                     └---->[ngsa-c]<-------┤
+    #*                             |             |
+    #*                             └-->[ngsa-d]<-┘
 	# Install root ngsa-app with mock and tracing
 	@kubectl apply -f istio/ngsa-memory/ngsa-memory-with-mock.yaml
 
@@ -61,6 +64,6 @@ install-mocks:
 	@./istio/mock-rest/gen-mock.bash ngsa-d ngsa-mods | kubectl apply -f -
 
 build-ngsa:
-	# Build and push modified ngsa-app
+    # Build and push modified ngsa-app
 	@docker build -t localhost:5000/ngsa-app:local -f ngsa-app/Dockerfile ./ngsa-app
 	@docker push localhost:5000/ngsa-app:local

@@ -76,6 +76,7 @@ spec:
           - --use-istio-trace-id
           - --propagate-apis
           - http://ngsa-a.ngsa-mods
+          - http://ngsa-c.ngsa-mods
         imagePullPolicy: Always
         ports:
         - containerPort: 8080 

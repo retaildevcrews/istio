@@ -3,7 +3,7 @@ fluent-bit:
 promtail:
  enabled: false
 prometheus:
- enabled: true
+ enabled: false
  alertmanager:
    persistentVolume:
      enabled: false
