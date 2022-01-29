@@ -17,29 +17,68 @@ data:
        storage.sync  normal
        storage.backlog.mem_limit 32MB
     @INCLUDE input.conf
+    @INCLUDE filter-kubernetes.conf
     @INCLUDE output.conf
   input.conf: |
     [INPUT]
        Name tail
-       Path /var/log/containers/*istio-proxy*.log
+       Path /var/log/containers/*ngsa*.log
+       DB /var/log/flb_kube.db
+       Skip_Long_Lines Off
+       storage.type filesystem
        Parser cri
        Tag kube.*
        Mem_Buf_Limit 5MB
   output.conf: |
     [OUTPUT]
        name loki
-       match *
+       match kube.var.log.containers.ngsa*_ngsa*_ngsa*
        host loki.tracing.svc
        port 3100
        tenant_id ""
-       labels job=fluentbit
+       labels job=fb_ngsa
        label_keys $trace_id
        auto_kubernetes_labels on
+    [OUTPUT]
+       name loki
+       match kube.var.log.containers.ngsa*_ngsa*_istio-proxy*
+       host loki.tracing.svc
+       port 3100
+       tenant_id ""
+       labels job=fb_istio_proxy
+       label_keys $trace_id
+       auto_kubernetes_labels on
+  filter-kubernetes.conf: |
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     kube.var.log.containers.
+        Merge_Log           On
+        Merge_Log_Trim      On
+        Keep_Log            Off
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude Off
+        Annotations         Off
+        Labels              On
+    [FILTER]
+        Name                nest
+        Match               kube.*
+        Operation           lift
+        Nested_under        kubernetes
+        Add_prefix          kubernetes_
+    [FILTER]
+        Name                nest
+        Match               kube.*
+        Operation           lift
+        Nested_under        kubernetes_labels
+        Add_prefix          kubernetes_labels_
   parsers.conf: |
     [PARSER]
-       Name cri
-       Format regex
-       Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
-       Time_Key    time
-       Time_Format %Y-%m-%dT%H:%M:%S.%L%z
-
+        Name cri
+        Format regex
+        Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
