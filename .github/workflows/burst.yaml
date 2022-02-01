@@ -22,7 +22,7 @@ jobs:
 
     runs-on: ubuntu-20.04
     env:
-      DOCKER_REPO: ghcr.io/retaildevcrews/burst-service
+      DOCKER_REPO: ghcr.io/retaildevcrews/burst-metrics-service
 
     steps:
     - uses: actions/checkout@v2
