@@ -36,7 +36,7 @@ jobs:
 
     - name: Docker Build
       run: |
-        docker build . --progress auto -t image
+        docker build ./burst --progress auto -t image
 
     - name: Docker Tag and Push
       run: |
