@@ -55,6 +55,32 @@ kubectl get pods
 
 - The `HPA` will scale back to one pod in a few minutes
 
+## Test locally
+
+* Run istio proxy in docker
+```bash
+docker run -ti --rm -p 8888:8888 -p 8001:8001 \
+  -v $(pwd):/host \
+  --entrypoint /usr/local/bin/envoy \
+  istio/proxyv2:1.10.6 \
+  -c /host/policyenvoyfilter/envoy.yaml
+```
+
+* Run burst metrics service in docker
+```bash
+cd burst
+docker build . -t bms
+docker run -ti -p 8080:8080 bms
+```
+
+* Send request
+
+```bash
+curl localhost:8888/get -v -H"User-agent:HTTPie/" -H "Host: app0.customer.com"
+curl localhost:8888/get -v -H"User-agent:HTTPie/" -H "Host: app1.customer.com"
+curl localhost:8888/get -v -H"User-agent:HTTPie/"
+```
+
 ## Request Flow
 
 ![Request Flow](images/flow.png)

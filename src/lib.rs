@@ -1,8 +1,11 @@
-use log::{error,info,warn};
+use log::{error, info, warn};
+use proxy_wasm::hostcalls::get_property;
 use proxy_wasm::{
-    traits::{Context,HttpContext,RootContext},
-    types::{Action,ContextType,LogLevel}};
+    traits::{Context, HttpContext, RootContext},
+    types::{Action, ContextType, LogLevel},
+};
 use serde::Deserialize;
+use serde_json::{Map, Value};
 use std::time::Duration;
 
 const USER_AGENT: &str = "user-agent";
@@ -18,12 +21,15 @@ pub struct RequestContext {
     add_header: bool,
     burst_header: String,
     user_agent: String,
+    cluster_map: Map<String, Value>,
+    is_gw: bool,
 }
 
 // config structure
 #[derive(Deserialize, Debug)]
 #[serde(default)]
 pub struct FilterConfig {
+    is_gw: bool,
     /// current burst header - gets updated on time
     burst_header: String,
 
@@ -47,20 +53,24 @@ pub struct FilterConfig {
 
     /// user agent
     user_agent: String,
+
+    cluster_map: Map<String, Value>,
 }
 
 // default values for config
 impl Default for FilterConfig {
     fn default() -> Self {
         FilterConfig {
+            is_gw: true,
             burst_header: String::new(),
-            cache_seconds: 60 * 60 * 24,
+            cache_seconds: 60 * 60 * 30,
             deployment: String::new(),
             namespace: String::new(),
             service_authority: String::new(),
             service_cluster: String::new(),
             service_path: String::new(),
             user_agent: String::new(),
+            cluster_map: Map::new(),
         }
     }
 }
@@ -73,7 +83,9 @@ pub fn _start() {
 
     // create root context and load config
     proxy_wasm::set_root_context(|_context_id| -> Box<dyn RootContext> {
-        Box::new(RootHandler { config: FilterConfig::default() })
+        Box::new(RootHandler {
+            config: FilterConfig::default(),
+        })
     });
 }
 
@@ -92,8 +104,23 @@ impl Context for RootHandler {
         match self.get_http_call_response_body(0, body_size) {
             Some(body) => {
                 // Store the header in self.config
-                self.config.burst_header = String::from_utf8(body.clone()).unwrap();
-            },
+                if self.config.is_gw {
+                    let result = String::from_utf8(body).ok().and_then(|v| {
+                        let parsed: Option<Value> = serde_json::from_str(v.as_str()).ok();
+                        parsed
+                    });
+                    if let Some(v) = result {
+                        if let Some(obj) = v.as_object() {
+                            self.config.cluster_map = obj.clone();
+                        }
+                    }
+                } else {
+                    let result = String::from_utf8(body.clone()).ok();
+                    if let Some(v) = result {
+                        self.config.burst_header = v;
+                    }
+                }
+            }
             None => {
                 // log an error
                 error!("header providing service returned empty body");
@@ -110,6 +137,8 @@ impl RootContext for RootHandler {
             // copy the values from root config to request
             user_agent: self.config.user_agent.clone(),
             burst_header: self.config.burst_header.clone(),
+            cluster_map: self.config.cluster_map.clone(),
+            is_gw: self.config.is_gw,
         }))
     }
 
@@ -154,11 +183,19 @@ impl RootContext for RootHandler {
 
         // dispatch an async HTTP call to the configured cluster
         // response is handled in Context::on_http_call_response
+        let path = if self.config.is_gw {
+            format!("{}", self.config.service_path)
+        } else {
+            format!(
+                "{}/{}/{}",
+                self.config.service_path, self.config.namespace, self.config.deployment
+            )
+        };
         let res = self.dispatch_http_call(
             &self.config.service_cluster,
             vec![
                 (":method", "GET"),
-                (":path", &format!("{}/{}/{}", self.config.service_path, self.config.namespace, self.config.deployment)),
+                (":path", &path),
                 (":authority", &self.config.service_authority),
             ],
             None,
@@ -167,14 +204,14 @@ impl RootContext for RootHandler {
         );
 
         match res {
-            Err(e) =>{
+            Err(e) => {
                 warn!("metrics service request failed: {:?}", e);
 
                 // retry quickly
                 self.set_tick_period(Duration::from_secs(2));
-                }
-            Ok(_)  => {}
-        }        
+            }
+            Ok(_) => {}
+        }
     }
 }
 
@@ -184,19 +221,41 @@ impl RootContext for RootHandler {
 impl Context for RequestContext {}
 
 impl HttpContext for RequestContext {
-
     // check headers for user-agent match and store in self
     fn on_http_request_headers(&mut self, _: usize) -> Action {
-        if self.get_http_request_header(USER_AGENT).unwrap_or_default().starts_with(self.user_agent.as_str()) {
+        if self
+            .get_http_request_header(USER_AGENT)
+            .unwrap_or_default()
+            .starts_with(self.user_agent.as_str())
+        {
             self.add_header = true;
         }
         Action::Continue
     }
-    
+
     // add the header if user-agent matched
     fn on_http_response_headers(&mut self, _num_headers: usize) -> Action {
         if self.add_header {
-            self.set_http_response_header(HEADER_NAME,Some(&self.burst_header));
+            if self.is_gw {
+                let header_value = match get_property(vec![
+                    "cluster_metadata",
+                    "filter_metadata",
+                    "istio",
+                    "services",
+                    "0",
+                    "host",
+                ]) {
+                    Ok(data) => data.and_then(|d| String::from_utf8(d).ok()),
+                    Err(_) => None,
+                }
+                .and_then(|name| self.cluster_map.get(name.as_str()))
+                .and_then(|v| v.as_str());
+
+                self.set_http_response_header(HEADER_NAME, header_value)
+            } else {
+                let header_value = Some(self.burst_header.as_str());
+                self.set_http_response_header(HEADER_NAME, header_value);
+            };
         }
         Action::Continue
     }
