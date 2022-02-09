@@ -13,6 +13,9 @@ ports:
 - port: 30081:30081
   nodeFilters:
   - server:0
+- port: 30082:30082
+  nodeFilters:
+  - server:0
 options:
   k3d:
     wait: true
