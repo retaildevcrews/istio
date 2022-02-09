@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.CorrelationVector;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace Ngsa.Middleware
 
         private static readonly JsonSerializerOptions Options = new ()
         {
-            IgnoreNullValues = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
         public static LogLevel LogLevel { get; set; } = LogLevel.Information;

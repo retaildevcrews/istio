@@ -18,7 +18,7 @@ namespace Ngsa.BurstService.K8sApi
         private readonly ILogger<K8sHPAMetricsService> logger;
         private readonly IKubernetes client;
         private System.Timers.Timer timer;
-        private V2beta2HorizontalPodAutoscalerList hpaList;
+        private V2beta1HorizontalPodAutoscalerList hpaList;
 
         public K8sHPAMetricsService(ILogger<K8sHPAMetricsService> logger)
         {
@@ -175,7 +175,7 @@ namespace Ngsa.BurstService.K8sApi
             // TODO: Try out different version of K8s API
             try
             {
-                V2beta2HorizontalPodAutoscalerList hpaList = client.ListHorizontalPodAutoscalerForAllNamespaces2(timeoutSeconds: 1);
+                V2beta1HorizontalPodAutoscalerList hpaList = client.ListHorizontalPodAutoscalerForAllNamespaces2(timeoutSeconds: 1);
 
                 if (this.hpaList == null)
                 {
@@ -184,7 +184,7 @@ namespace Ngsa.BurstService.K8sApi
                 else
                 {
                     // TODO: Might be unncessary to use InterLocking
-                    Interlocked.Exchange<V2beta2HorizontalPodAutoscalerList>(ref this.hpaList, hpaList);
+                    Interlocked.Exchange<V2beta1HorizontalPodAutoscalerList>(ref this.hpaList, hpaList);
                 }
             }
             catch (Exception ex)
