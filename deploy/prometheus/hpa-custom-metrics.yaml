@@ -1,0 +1,16 @@
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ngsa
+spec:
+  maxReplicas: 2
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ngsa
+  metrics:
+  - type: Pods
+    pods:
+      metricName: NgsaRequestsPerSecond # Defined in prometheus adapter
+      targetAverageValue: 5 # 5 requests per second
