@@ -38,7 +38,6 @@
 		"humao.rest-client",
 		"serayuzgur.crates",
 		"visualstudioexptteam.vscodeintellicode",
-		"oderwat.indent-rainbow",
 		"eamodio.gitlens",
 		"ms-dotnettools.csharp" // Remove when burst svc is separated
 	],

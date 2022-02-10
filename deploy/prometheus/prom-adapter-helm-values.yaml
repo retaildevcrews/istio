@@ -17,5 +17,3 @@ rules:
       matches: "^(.*)AppDuration_count$" # 1st capture group is ${1} in 'as:' section
       as: "${1}RequestsPerSecond"
     metricsQuery: "(sum(rate(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>))"
-    # metricsQuery: 'NgsaAppDuration_count{code="OK",mode!=""}'
-    # metricsQuery: "sum(rate(<<.Series>>{<<.LabelMatchers>>}[30s])) by (<<.GroupBy>>)"
