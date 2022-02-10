@@ -175,7 +175,7 @@ namespace Ngsa.BurstService.K8sApi
             // TODO: Try out different version of K8s API
             try
             {
-                V2beta2HorizontalPodAutoscalerList hpaList = client.ListHorizontalPodAutoscalerForAllNamespaces2(timeoutSeconds: 1);
+                V2beta2HorizontalPodAutoscalerList hpaList = client.ListHorizontalPodAutoscalerForAllNamespaces3(timeoutSeconds: 1);
 
                 if (this.hpaList == null)
                 {
