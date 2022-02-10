@@ -101,10 +101,8 @@ metadata:
   namespace: kube-system
 spec:
   ports:
-  - name: https
-    port: 443
+  - port: 443
     protocol: TCP
-    targetPort: https
   selector:
     k8s-app: metrics-server
 ---
@@ -141,19 +139,18 @@ spec:
           failureThreshold: 3
           httpGet:
             path: /livez
-            port: https
+            port: 443
             scheme: HTTPS
           periodSeconds: 10
         name: metrics-server
         ports:
         - containerPort: 443
-          name: https
           protocol: TCP
         readinessProbe:
           failureThreshold: 3
           httpGet:
             path: /readyz
-            port: https
+            port: 443
             scheme: HTTPS
           initialDelaySeconds: 20
           periodSeconds: 10
