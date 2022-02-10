@@ -18,7 +18,8 @@
 	// Port Labels
 	"portsAttributes": {
 		"30080": { "label": "NGSA-Memory NodePort" },
-		"30081": { "label": "Burst Metric Serivce NodePort" }
+		"30081": { "label": "Burst Metric Serivce NodePort" },
+		"30082": { "label": "Prometheus UI NodePort" }
 	},
 	// Set container specific settings
 
@@ -37,6 +38,7 @@
 		"humao.rest-client",
 		"serayuzgur.crates",
 		"visualstudioexptteam.vscodeintellicode",
+		"eamodio.gitlens",
 		"ms-dotnettools.csharp" // Remove when burst svc is separated
 	],
 

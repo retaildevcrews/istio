@@ -1,0 +1,19 @@
+prometheus:
+    url: http://prometheus-service.monitoring
+    port: 9090
+rules:
+  default: false
+  custom:
+  - seriesQuery: 'NgsaAppDuration_count{kubernetes_namespace!="",kubernetes_pod_name!=""}'
+    resources:
+      overrides:
+        kubernetes_namespace:
+          resource: namespace
+        kubernetes_pod_name:
+          resource: pod
+        # deployment:
+        #   resource: "deployment"
+    name:
+      matches: "^(.*)AppDuration_count$" # 1st capture group is ${1} in 'as:' section
+      as: "${1}RequestsPerSecond"
+    metricsQuery: "(sum(rate(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>))"

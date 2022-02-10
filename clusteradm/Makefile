@@ -34,9 +34,6 @@ all : delete
 	@/usr/local/istio/bin/istioctl install --set profile=demo -y
 	@kubectl label namespace default istio-injection=enabled --overwrite
 
-	# deploy metrics server
-	@kubectl apply -f ../deploy/metrics
-
 	# add config map
 	@kubectl create cm burst-wasm-filter --from-file=../burst_header.wasm
 

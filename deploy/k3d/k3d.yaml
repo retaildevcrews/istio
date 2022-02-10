@@ -1,4 +1,4 @@
-apiVersion: k3d.io/v1alpha3
+apiVersion: k3d.io/v1alpha4
 kind: Simple
 servers: 1
 network: k3d
@@ -11,6 +11,9 @@ ports:
   nodeFilters:
   - server:0
 - port: 30081:30081
+  nodeFilters:
+  - server:0
+- port: 30082:30082
   nodeFilters:
   - server:0
 options:
