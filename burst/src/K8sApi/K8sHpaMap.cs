@@ -13,6 +13,9 @@ using K8sHPAObj = k8s.Models.V2beta2HorizontalPodAutoscaler;
 
 namespace Ngsa.BurstService.K8sApi
 {
+    /// <summary>
+    /// Handle all /burstmetrics requests.
+    /// </summary>
     public sealed class K8sHPAMap
     {
         private HPADictionary hpaMap;
