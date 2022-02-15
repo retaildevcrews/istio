@@ -1,0 +1,8 @@
+---
+spec:
+  ports:
+  - name: http2
+    nodePort: 30083
+    port: 80
+    protocol: TCP
+    targetPort: 8080

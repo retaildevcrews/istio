@@ -22,7 +22,10 @@ deploy-ingress-filter : clean-ingress-filter build
 	@kubectl create cm burst-wasm-filter -n istio-system --from-file=burst_header.wasm
 
 	# Patch istio-ingressgateway, will create a new deployment terminating the old one
-	@kubectl patch deployment istio-ingressgateway -n istio-system --patch-file deploy/istio-ingress/ingress-patch.yaml
+	@kubectl patch deployment istio-ingressgateway -n istio-system --patch-file deploy/istio-ingress/ingressgateway-patch.yaml
+
+	# Patch istio-ingressgateway service, will expose the service to nodeport 300083
+	@kubectl patch service istio-ingressgateway -n istio-system --patch-file deploy/istio-ingress/ingressservice-patch.yaml
 
 	# apply wasm filter to istio-ingress
 	@kubectl apply -f deploy/istio-ingress/ingress-filter.yaml
@@ -50,6 +53,14 @@ deploy : clean build
 	# turn the wasm filter on
 	@kubectl apply -f deploy/ngsa-memory/filter.yaml
 
+check-ingress:
+	# curl ngsa healthz endpoint directly via nodeport
+	# Should not return any burst header
+	@http http://localhost:30080/healthz
+
+	# Now do the same via ingressgateway
+	# this will show the burst header if enabled
+	@http http://localhost:30083/memory/healthz
 check :
 	# curl the healthz endpoint
 	@curl -i http://localhost:30080/healthz
