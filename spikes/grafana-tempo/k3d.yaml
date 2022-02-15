@@ -1,0 +1,37 @@
+apiVersion: k3d.io/v1alpha3
+kind: Simple
+servers: 1
+network: k3d
+
+kubeAPI:
+  hostIP: 0.0.0.0
+  hostPort: "6443"
+ports:
+- port: 30080:30080 # Ngsa
+  nodeFilters:
+  - server:0
+- port: 30081:30081 # Mock
+  nodeFilters:
+  - server:0
+- port: 30082:30082 # Istio Ingress
+  nodeFilters:
+  - server:0
+- port: 30083:30083 # Grafana
+  nodeFilters:
+  - server:0
+options:
+  k3d:
+    wait: true
+    timeout: 1m0s
+    disableLoadbalancer: false
+    disableImageVolume: false
+    disableRollback: false
+  k3s:
+    extraArgs:
+    - arg: --tls-san=127.0.0.1
+      nodeFilters:
+      - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
+  runtime: {}

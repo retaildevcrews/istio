@@ -1,0 +1,77 @@
+instances:
+  "01":
+    build:
+      artifact: ngsa-cosmos
+      skip: true
+    deploy:
+      skip: false
+      helm:
+        values:
+          container:
+            args:
+              - --region={{$.kittExec.currentCluster.site}}
+              - --zone={{$.kittExec.currentCluster.provider}}
+              - --prometheus
+              - --no-cache
+              - --burst-header
+              - --burst-service=ngsa-cosmos
+          secrets:
+            file_refresh: true
+            files:
+            - destination: CosmosCollection
+              content: ms-ngsa/dev#CosmosCollection
+            - destination: CosmosDatabase
+              content: ms-ngsa/dev#CosmosDatabase
+            - destination: CosmosKey
+              content: ms-ngsa/dev#CosmosKey
+            - destination: CosmosUrl
+              content: ms-ngsa/dev#CosmosUrl
+            config:
+              path: /app/secrets/
+  "02":
+    build:
+      artifact: ngsa-in-memory
+      skip: true
+    deploy:
+      skip: false
+      helm:
+        values:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                    - ngsa-cosmos
+                topologyKey: topology.kubernetes.io/zone
+          container:
+            args:
+              - --in-memory
+              - --region={{$.kittExec.currentCluster.site}}
+              - --zone={{$.kittExec.currentCluster.provider}}
+              - --prometheus
+              - --burst-header
+              - --burst-service=ngsa-in-memory
+build:
+  artifact: app
+deploy:
+  skip: true
+  helm:
+    values:
+      container:
+        image: strati-ms-ngsa/ngsa-app/app
+      scaling:
+        min: 1
+        max: 1
+      max:
+        cpu: 2
+        memory: 2Gi
+      min:
+        cpu: 1
+        memory: 1Gi
+      readinessProbe:
+        path: "/version" 
+      livenessProbe:
+        path: "/version"

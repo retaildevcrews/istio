@@ -1,0 +1,80 @@
+##################################################################################################
+# Details service
+##################################################################################################
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: ${ns}
+  labels:
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ${ns}
+  name: ${name}
+  labels:
+    app: ${name}
+    service: ${name}
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: ClusterIP
+  selector:
+    app: ${name}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: ${ns}
+  name: ${name}
+  labels:
+    account: ${name}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${name}
+  namespace: ${ns}
+  labels:
+    app: ${name}
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${name}
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ${name}
+        version: v1
+    spec:
+      serviceAccountName: ${name}
+      containers:
+      - name: ${name}
+        image: k3d-registry.localhost:5000/ngsa-app:local
+        resources:
+          limits:
+            cpu: "100m"
+        args:
+          - --in-memory
+          - --log-level
+          - Warning
+          - --request-log-level
+          - Information
+          - --zone
+          - dev
+          - --region
+          - dev
+          - --use-istio-trace-id
+          ${urls}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080 
+        securityContext:
+          runAsUser: 1000
+---

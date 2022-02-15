@@ -17,12 +17,6 @@
 
    ```
 
-### Set env vars
-
-> During setup, we add and update some environment variables that must be set correctly
-
-- `exit` and restart shell (ctl `)
-
 ### Verify the setup
 
 - You will see the burst header in the http request
@@ -42,7 +36,8 @@ make check
 
 ```bash
 
-make test &
+# Run a 120 seconds test in the background
+make test seconds=120 > /dev/null 2>&1 &
 
 # press enter a few times to clear background output
 
@@ -60,6 +55,30 @@ kubectl get pods
 ```
 
 - The `HPA` will scale back to one pod in a few minutes
+
+## Use custom metrics from prometheus
+
+NgsaRequestsPerSecond is exposed to the HPA as a custom metrics.
+
+NgsaRequestsPerSecond is used in addition to CPU metrics to scaled HPA.
+
+```bash
+
+# Deploy prometheus, prometheus adapter and recreate HPA with custom metrics
+# It will take a min or two
+make prom-adapter-hpa
+
+# Watch for the new custom metrics to be avaialbe
+kubectl get hpa ngsa --watch
+# Should output similar lines below (otherwise one or two would be Unknown)
+## NAME   REFERENCE         TARGETS           MINPODS   MAXPODS   REPLICAS   AGE
+## ngsa   Deployment/ngsa   499m/50, 2%/50%   1         2         2          14m
+
+# Press Ctrl+C to stop watch
+
+```
+
+Now follow [Add Load](#add-load) section to apply load to the ngsa app.
 
 ## Request Flow
 

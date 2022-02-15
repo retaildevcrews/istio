@@ -1,0 +1,41 @@
+profiles:
+  - aspnet5
+owner:
+  group: wcnp-ms-ngsa
+services:
+  - path: kitt-service.yml
+
+deploy:
+  namespace: ms-ngsa
+  useTempNamespace: false
+  stages:
+    - name: azure
+      refs: [master]
+      target:
+        - cluster_id: [eus2-dev-a2]
+    - name: gke
+      refs: [master]
+      target:
+        - cluster_id: [useast4-dev-gke01]
+  helm:
+    values:
+      global:
+        metrics:
+          enabled: true
+          endpoints:
+          - targetPort: 8080
+            path: "/metrics"
+          remoteWriteSampleLimit: 50
+          whitelist:
+            - NgsaAppDuration_bucket
+            - NgsaAppDuration_count
+            - NgsaAppDuration_sum
+            - NgsaAppSummary
+            - NgsaAppSummary_count
+            - NgsaAppSummary_sum
+notify:
+  slack:
+    channelName: "ms-ngsa-alerts"
+alerts:
+  slackChannel:
+    - ms-ngsa-alerts

@@ -4,8 +4,24 @@
 	"build": {"dockerfile": "Dockerfile"},
 	"runArgs": [ "--init", "--privileged" ],
 	"overrideCommand": false,
-	"settings": { },
-	"forwardPorts": [],
+	"settings": {
+		"terminal.integrated.defaultProfile.linux": "zsh",
+		// Remove omnisharp when burst svc is separated
+		"omnisharp.enableRoslynAnalyzers": true,
+		"omnisharp.enableEditorConfigSupport": true
+	},
+	// Forwarded ports
+	"forwardPorts": [
+		30080,
+		30081
+	],
+	// Port Labels
+	"portsAttributes": {
+		"30080": { "label": "NGSA-Memory NodePort" },
+		"30081": { "label": "Burst Metric Serivce NodePort" },
+		"30082": { "label": "Prometheus UI NodePort" }
+	},
+	// Set container specific settings
 
 	"hostRequirements": {
 		"cpus": 4
@@ -20,11 +36,15 @@
 		"rust-lang.rust",
 		"vadimcn.vscode-lldb",
 		"humao.rest-client",
-		"serayuzgur.crates"
+		"serayuzgur.crates",
+		"visualstudioexptteam.vscodeintellicode",
+		"eamodio.gitlens",
+		"ms-dotnettools.csharp" // Remove when burst svc is separated
 	],
 
 	// Run Bash scripts
 	"onCreateCommand": "/bin/bash ./.devcontainer/on-create.sh",
 	"postCreateCommand": "/bin/bash ./.devcontainer/post-create.sh",
-	"postStartCommand": "/bin/bash ./.devcontainer/post-start.sh"
+	"postStartCommand": "/bin/bash ./.devcontainer/post-start.sh",
+	"waitFor": "postCreateCommand"
 }

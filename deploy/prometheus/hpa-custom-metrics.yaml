@@ -1,0 +1,30 @@
+# This is an example HPA which depends on two metrics, one custom and one standard resource
+# See docs specific to v1.22
+# https://v1-22.docs.kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/ 
+# TODO: For k8s 1.23+, v2beta* would be deprecated, we should migrate to v2 once we update our k8s
+#######################################################
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ngsa
+spec:
+  maxReplicas: 2
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ngsa
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50 # Utilization/Percentage example
+  - type: Pods
+    pods:
+      metric:
+        name: NgsaRequestsPerSecond # Custom metrics defined in prometheus adapter
+      target:
+        type: AverageValue # Using a direct value example
+        averageValue: 50 # 50 requests per second

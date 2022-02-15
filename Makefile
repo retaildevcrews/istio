@@ -65,8 +65,25 @@ clean :
 	@kubectl delete --ignore-not-found cm burst-wasm-filter
 
 test :
-	# run a 60 second test
-	@cd deploy/loderunner && webv -s http://localhost:30080/ -f benchmark.json -r -l 5 --duration 60
+	# run a timed test ('$(seconds)' seconds)
+	@test "$(seconds)" \
+		&& cd deploy/loderunner \
+		&& webv -s http://localhost:30080/ -f benchmark.json -v -s -r -l 5 --duration $(seconds) \
+		|| echo "usage: make $@ seconds=number\ne.g.   make $@ seconds=60"
+
+prom-adapter-hpa :
+	# Add and update prometheus adapter helm
+	@helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	@helm repo update
+	# Deploy prometheus
+	@kubectl create ns monitoring
+	@kubectl apply -f deploy/prometheus/prometheus.yaml
+	# Deploy prometheus adapter, it'll take a min or two
+	@helm upgrade --install -n monitoring prom-metrics-adapter -f deploy/prometheus/prom-adapter-helm-values.yaml prometheus-community/prometheus-adapter --wait
+	# Recreate HPA with custom metrics
+	@kubectl apply -f deploy/prometheus/hpa-custom-metrics.yaml
+	# Deploy sample constant load
+	@kubectl apply -f deploy/loderunner/loderunner.yaml
 
 check-metrics :
 	# retrieve current values from metrics server
