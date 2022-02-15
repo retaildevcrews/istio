@@ -22,7 +22,7 @@ deploy-ingress-filter : clean-ingress-filter build
 	@kubectl create cm burst-wasm-filter -n istio-system --from-file=burst_header.wasm
 
 	# Patch istio-ingressgateway, will create a new deployment terminating the old one
-	@kubectl patch deployment istio-ingressgateway -n istio-system -p "$(cat deploy/istio-ingress/ingress-patch.yaml)"
+	@kubectl patch deployment istio-ingressgateway -n istio-system --patch-file deploy/istio-ingress/ingress-patch.yaml
 
 	# apply wasm filter to istio-ingress
 	@kubectl apply -f deploy/istio-ingress/ingress-filter.yaml
