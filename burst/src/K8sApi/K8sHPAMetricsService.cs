@@ -18,7 +18,8 @@ namespace Ngsa.BurstService.K8sApi
         private readonly ILogger<K8sHPAMetricsService> logger;
         private readonly IKubernetes client;
         private System.Timers.Timer timer;
-        private V2beta2HorizontalPodAutoscalerList hpaList;
+
+        private K8sHPAMap hpaMap = new ();
 
         public K8sHPAMetricsService(ILogger<K8sHPAMetricsService> logger)
         {
@@ -44,47 +45,45 @@ namespace Ngsa.BurstService.K8sApi
 
         public K8sHPAMetrics GetK8SHPAMetrics(string ns, string deployment)
         {
-            // If hpaList is null or the count is zero, we don't have any HPA
-            if (hpaList == null || hpaList.Items.Count == 0)
+            // If cluster has no hpa, then RBAC issue or didn't deploy
+            if (hpaMap.IsEmpty())
             {
                 logger.LogError("No HPA found in any namespace. Check RBAC if an HPA already exist");
             }
             else
             {
                 K8sHPAMetrics hpaMetrics = new ();
-                foreach (V2beta2HorizontalPodAutoscaler hpa in hpaList.Items)
+                var hpa = hpaMap[(ns, deployment)];
+                if (hpa != null)
                 {
-                    if (hpa.Namespace().Equals(ns) && hpa.Name().Equals(deployment))
+                    try
                     {
-                        try
-                        {
-                            // Get the Target CPU load
-                            hpaMetrics.MaxLoad = GetMaxLoad(hpa);
+                        // Get the Target CPU load
+                        hpaMetrics.MaxLoad = GetMaxLoad(hpa);
 
-                            // Get the current CPU load
-                            hpaMetrics.CurrentLoad = GetCurrentLoad(hpa);
-                            hpaMetrics.TargetLoad = (int?)Math.Floor(hpaMetrics.MaxLoad.GetValueOrDefault() * TargetPercent);
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogWarning(ex.Message);
-
-                            // Should have all values available
-                            // Otherwise return null
-                            return null;
-                        }
-
-                        // If calculated target load is zero (it can be since we are flooring MaxLoad)
-                        if (hpaMetrics.TargetLoad == 0)
-                        {
-                            hpaMetrics.TargetLoad = hpaMetrics.MaxLoad;
-                        }
-
-                        return hpaMetrics;
+                        // Get the current CPU load
+                        hpaMetrics.CurrentLoad = GetCurrentLoad(hpa);
+                        hpaMetrics.TargetLoad = (int?)Math.Floor(hpaMetrics.MaxLoad.GetValueOrDefault() * TargetPercent);
                     }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex.Message);
+
+                        // All values should be available
+                        // Otherwise return null
+                        return null;
+                    }
+
+                    // If calculated target load is zero (it can be since we are flooring MaxLoad)
+                    if (hpaMetrics.TargetLoad == 0)
+                    {
+                        hpaMetrics.TargetLoad = hpaMetrics.MaxLoad;
+                    }
+
+                    return hpaMetrics;
                 }
 
-                // At this point didn't find any HPA in our hpaList object
+                // Else, didn't find any HPA in our hpaList object
                 logger.LogWarning("No HPA found with matching name ({}) in namspace '{}'", deployment, ns);
             }
 
@@ -172,20 +171,10 @@ namespace Ngsa.BurstService.K8sApi
         private void TimerWork(object state, ElapsedEventArgs e)
         {
             // Call the K8s API
-            // TODO: Try out different version of K8s API
             try
             {
                 V2beta2HorizontalPodAutoscalerList hpaList = client.ListHorizontalPodAutoscalerForAllNamespaces3(timeoutSeconds: 1);
-
-                if (this.hpaList == null)
-                {
-                    this.hpaList = hpaList;
-                }
-                else
-                {
-                    // TODO: Might be unncessary to use InterLocking
-                    Interlocked.Exchange<V2beta2HorizontalPodAutoscalerList>(ref this.hpaList, hpaList);
-                }
+                hpaMap.ParseHPAList(hpaList);
             }
             catch (Exception ex)
             {

@@ -25,12 +25,28 @@ This endpoint will check the k8s `{namespace}` for the specified `{HPA}`.
 
 If the `{HPA}` is found and is accessible, it will return the metrics below in a formatted fashion:
 
-- service=namespace/HPA-name
+- service={namespace}/{HPA-name}
 - current-load=current pod count
 - max-load=target hpa pod count
 - target-load=80% of max-load
 
-If it can't find the `{HPA}` or is inaccessible, or any exception occurs during the API call, it will simply return `HTTP 204 No Content`.
+#### API Details
+
+- **Method** : `GET`
+- **Permissions/Auth** : None
+- **Success Response**
+  - **Code** : `200 OK`
+    > When the `{hpa}` deployment/HPA is found in `{ns}` namespace
+
+    **Content Type** : text/plain
+
+    **Content Format** :
+
+    `service={ns}/{name}, current-load=<int>, target-load=<int>, max-load=<int>`
+  - **Code** : `204 No Content`
+    > When an `{hpa}` deployment/HPA is not found in `{ns}` namespace but the API call itself is successful
+
+For any unhandled exception during the API call, it will return `HTTP 500 Internal Server Error`.
 
 #### Example 1: 200 OK
 
