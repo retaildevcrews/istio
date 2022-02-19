@@ -43,7 +43,7 @@ namespace Ngsa.BurstService.K8sApi
             client = new Kubernetes(config);
         }
 
-        public K8sHPAMetrics GetK8SHPAMetrics(string ns, string deployment)
+        public K8sHPAMetrics GetK8SHPAMetrics(K8sScaleTargetType target, string ns, string deployment)
         {
             // If cluster has no hpa, then RBAC issue or didn't deploy
             if (hpaMap.IsEmpty())
@@ -53,7 +53,7 @@ namespace Ngsa.BurstService.K8sApi
             else
             {
                 K8sHPAMetrics hpaMetrics = new ();
-                var hpa = hpaMap[(ns, deployment)];
+                var hpa = hpaMap[(target, ns, deployment)];
                 if (hpa != null)
                 {
                     try

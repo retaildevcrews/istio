@@ -28,10 +28,10 @@ namespace Ngsa.BurstService.Controllers
             }
         }
 
-        [HttpGet("{ns}/{deployment}")]
-        public IActionResult Get(string ns, string deployment)
+        [HttpGet("{target}/{ns}/{deployment}")]
+        public IActionResult Get(K8sScaleTargetType target, string ns, string deployment)
         {
-            K8sHPAMetrics hpaMetrics = service.GetK8SHPAMetrics(ns, deployment);
+            K8sHPAMetrics hpaMetrics = service.GetK8SHPAMetrics(target, ns, deployment);
 
             // Nullable interpolation will return "" for null objects
             // string cpuTarget = $"{hpaMetrics?.TargetCPULoad}";

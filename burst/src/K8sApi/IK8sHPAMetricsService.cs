@@ -5,6 +5,6 @@ namespace Ngsa.BurstService.K8sApi
 {
     public interface IK8sHPAMetricsService
     {
-        K8sHPAMetrics GetK8SHPAMetrics(string ns, string deployment);
+        K8sHPAMetrics GetK8SHPAMetrics(K8sScaleTargetType target, string ns, string deployment);
     }
 }

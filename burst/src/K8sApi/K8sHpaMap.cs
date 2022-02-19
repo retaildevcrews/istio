@@ -3,10 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using k8s.Models;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 using HPADictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, k8s.Models.V2beta2HorizontalPodAutoscaler>>;
 using K8sHPAObj = k8s.Models.V2beta2HorizontalPodAutoscaler;
@@ -18,7 +15,8 @@ namespace Ngsa.BurstService.K8sApi
     /// </summary>
     public sealed class K8sHPAMap
     {
-        private HPADictionary hpaMap;
+        private HPADictionary nsHPAMap;
+        private HPADictionary nsDeploymentMap;
         private V2beta2HorizontalPodAutoscalerList hpaList;
 
         /// <summary>
@@ -32,9 +30,9 @@ namespace Ngsa.BurstService.K8sApi
         /// <summary>
         /// Indexer returning K8s HPA Object
         /// </summary>
-        /// <param name="nsDeploy">Tuple: First Item namespace, second deployment name</param>
-        /// <returns>V2beta2HorizontalPodAutoscaler </returns>
-        public K8sHPAObj this[ValueTuple<string, string> nsDeploy] => GetHPA(nsDeploy.Item1, nsDeploy.Item2);
+        /// <param name="nsDeploy">Tuple: First Item target type, 2nd namespace, 3rd deployment name</param>
+        /// <returns>V2beta2HorizontalPodAutoscaler</returns>
+        public K8sHPAObj this[ValueTuple<K8sScaleTargetType, string, string> nsDeploy] => GetHPA(nsDeploy.Item1, nsDeploy.Item2, nsDeploy.Item3);
 
         /// <summary>
         /// Gets if Returns if HPA Map is empty.
@@ -42,31 +40,40 @@ namespace Ngsa.BurstService.K8sApi
         /// <returns>If no HPA exists</returns>
         public bool IsEmpty()
         {
-            return hpaMap == null || hpaMap.Count == 0;
+            return nsHPAMap == null || nsHPAMap.Count == 0;
         }
 
         /// <summary>
         /// Checks if HPA exists in a namespace.
         /// </summary>
+        /// <param name="target">HPA Target type</param>
         /// <param name="ns">Namespace</param>
         /// <param name="name">Name of deployment</param>
         /// <returns>Whether the HPA exists</returns>
-        public bool Exists(string ns, string name)
+        public bool Exists(K8sScaleTargetType target, string ns, string name)
         {
-            return GetHPA(ns, name) != null;
+            return GetHPA(target, ns, name) != null;
         }
 
         /// <summary>
         /// Gets HPA in a namespace.
         /// An indexer can also be used instead of this function.
         /// </summary>
+        /// <param name="target">HPA Target type</param>
         /// <param name="ns">Namespace</param>
-        /// <param name="name">Name of deployment</param>
+        /// <param name="targetName">Name of deployment</param>
         /// <returns>The HPA object</returns>
-        public K8sHPAObj GetHPA(string ns, string name)
+        public K8sHPAObj GetHPA(K8sScaleTargetType target, string ns, string targetName)
         {
-            if (hpaMap?.TryGetValue(ns, out Dictionary<string, K8sHPAObj> hpaDict) is true
-                && hpaDict?.TryGetValue(name, out K8sHPAObj targetHpa) is true)
+            var targetDict = target switch
+            {
+                K8sScaleTargetType.Deployment => nsDeploymentMap,
+                K8sScaleTargetType.HPA => nsHPAMap,
+                _ => null,
+
+            };
+            if (targetDict?.TryGetValue(ns, out Dictionary<string, K8sHPAObj> hpaDict) is true
+                && hpaDict?.TryGetValue(targetName, out K8sHPAObj targetHpa) is true)
             {
                 return targetHpa;
             }
@@ -82,16 +89,25 @@ namespace Ngsa.BurstService.K8sApi
         public void ParseHPAList(V2beta2HorizontalPodAutoscalerList v2HpaList)
         {
             var newHpaMap = new HPADictionary();
+            var newDeploymentMap = new HPADictionary();
+
             // Iterate through the list and map HPA
             foreach (K8sHPAObj hpa in v2HpaList.Items)
             {
-                newHpaMap[hpa.Namespace()] = new Dictionary<string, K8sHPAObj>() { { hpa.Name(), hpa } };
+                newHpaMap[hpa.Namespace()] = new () { { hpa.Name(), hpa } };
+                if (hpa.Spec.ScaleTargetRef.Kind == "Deployment")
+                {
+                    // TODO: move the const "Deployment" to appsettings.json
+                    // If the target is a Deployment then add it to deploymentMap
+                    newDeploymentMap[hpa.Namespace()] = new () { { hpa.Spec.ScaleTargetRef.Name, hpa } };
+                }
             }
 
-            // Store the hpaMap and hpaList
+            // Store the nsHPAMap and hpaList
             if (hpaList == null)
             {
-                hpaMap = newHpaMap;
+                nsHPAMap = newHpaMap;
+                nsDeploymentMap = newDeploymentMap;
                 hpaList = v2HpaList;
             }
             else
@@ -99,7 +115,8 @@ namespace Ngsa.BurstService.K8sApi
                 // Exchange the new dictionary with the old one
                 // Do interlocking exchange in case it is being used by different thread
                 // TODO: Might be unncessary to use InterLocking
-                Interlocked.Exchange(ref hpaMap, newHpaMap);
+                Interlocked.Exchange(ref nsHPAMap, newHpaMap);
+                Interlocked.Exchange(ref nsDeploymentMap, newDeploymentMap);
                 Interlocked.Exchange(ref hpaList, v2HpaList);
             }
         }
