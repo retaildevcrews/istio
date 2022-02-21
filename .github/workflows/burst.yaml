@@ -33,8 +33,6 @@ jobs:
       DOCKER_REPO: ghcr.io/retaildevcrews/burst-metrics-service
 
     steps:
-    - uses: actions/checkout@v2
-
     - name: Login to Container Registry
       uses: docker/login-action@v1
       with:
@@ -42,12 +40,15 @@ jobs:
         username: ${{ secrets.GHCR_ID }}
         password: ${{ secrets.GHCR_PAT }}
 
+    - name: Check out code
+      uses: actions/checkout@v2
+
     - name: Docker Build
       run: |
         docker build ./burst --progress auto -t image
 
     - name: Docker Tag and Push
-      if: github.event_name != 'push'
+      if: github.event_name == 'push' # Push the image only on git push
       run: |
         # tag the repo with :beta
         docker tag image $DOCKER_REPO:beta
