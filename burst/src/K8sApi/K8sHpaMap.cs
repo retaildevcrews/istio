@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using k8s;
 using k8s.Models;
+using Microsoft.Extensions.Logging;
 
 using HPADictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, k8s.Models.V2beta2HorizontalPodAutoscaler>>;
 using K8sHPAObj = k8s.Models.V2beta2HorizontalPodAutoscaler;
@@ -15,9 +17,20 @@ namespace Ngsa.BurstService.K8sApi
     /// </summary>
     public sealed class K8sHPAMap
     {
+        private readonly ILogger logger;
         private HPADictionary nsHPAMap;
         private HPADictionary nsDeploymentMap;
+        private HPADictionary nsServiceMap;
         private V2beta2HorizontalPodAutoscalerList hpaList;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="K8sHPAMap"/> class.
+        /// </summary>
+        /// <param name="logger">Logging object</param>
+        public K8sHPAMap(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         /// <summary>
         /// Gets HPA as List.
@@ -85,21 +98,66 @@ namespace Ngsa.BurstService.K8sApi
         /// Parses the K8s HPA List and maps them.
         /// Might throw exception, hence its upto the caller to handle exceptions.
         /// </summary>
-        /// <param name="v2HpaList">List of HPA from K8s Client SDK</param>
-        public void ParseHPAList(V2beta2HorizontalPodAutoscalerList v2HpaList)
+        /// <param name="k8sClient">List of HPA from K8s Client SDK</param>
+        /// <param name="target">HPA's target scale object</param>
+        /// <param name="selectorLabels">Labels to match the pods and service</param>
+        public void CreateHPAMap(IKubernetes k8sClient, K8sScaleTargetType target, IReadOnlyList<string> selectorLabels)
         {
-            var newHpaMap = new HPADictionary();
-            var newDeploymentMap = new HPADictionary();
+            var v2HpaList = k8sClient.ListHorizontalPodAutoscalerForAllNamespaces3(timeoutSeconds: 1);
+            HPADictionary newHpaMap = new ();
+            HPADictionary newDeploymentMap = new ();
+            HPADictionary newSvcMap = new ();
 
             // Iterate through the list and map HPA
             foreach (K8sHPAObj hpa in v2HpaList.Items)
             {
                 newHpaMap[hpa.Namespace()] = new () { { hpa.Name(), hpa } };
-                if (hpa.Spec.ScaleTargetRef.Kind == "Deployment")
+
+                // Check if the Scale target is the same as target (set in appsettins)
+                if (Enum.TryParse(hpa.Spec.ScaleTargetRef.Kind, true, out K8sScaleTargetType parsed) && parsed == target)
                 {
-                    // TODO: move the const "Deployment" to appsettings.json
-                    // If the target is a Deployment then add it to deploymentMap
+                    // Add it to deploymentMap if tartet matches
                     newDeploymentMap[hpa.Namespace()] = new () { { hpa.Spec.ScaleTargetRef.Name, hpa } };
+
+                    // Now map the service to an deployment/hpa
+                    try
+                    {
+                        // Very unlikely that the HPA will have a non existing deployment target
+                        // But if it does, this try-catch will catch ReadNamespacedDeployment
+                        var deploy = k8sClient.ReadNamespacedDeployment(hpa.Spec.ScaleTargetRef.Name, hpa.Namespace());
+                        var podLabels = deploy?.Spec.Template.Metadata.Labels;
+                        if (podLabels != null && selectorLabels != null)
+                        {
+                            string labelSelector = string.Empty;
+                            foreach (var item in selectorLabels)
+                            {
+                                if (podLabels.TryGetValue(item, out string labelValue))
+                                {
+                                    labelSelector += string.Format("aa{0}={1},", item, labelValue);
+                                }
+                            }
+
+                            if (labelSelector != string.Empty)
+                            {
+                                // Remove the last comma
+                                labelSelector = labelSelector.Remove(labelSelector.Length - 1);
+                            }
+
+                            var svcList = k8sClient.ListNamespacedService(hpa.Namespace(), labelSelector: labelSelector);
+                            foreach (var svc in svcList?.Items)
+                            {
+                                newSvcMap[svc.Namespace()] = new () { { svc.Name(), hpa } };
+                            }
+                        }
+                        else
+                        {
+                            logger?.LogWarning("Deployment pod label or target label is empty");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger?.LogWarning("Exception while mapping deployment and service. Exception: {}", ex.Message);
+                    }
                 }
             }
 
@@ -108,6 +166,7 @@ namespace Ngsa.BurstService.K8sApi
             {
                 nsHPAMap = newHpaMap;
                 nsDeploymentMap = newDeploymentMap;
+                nsServiceMap = newSvcMap;
                 hpaList = v2HpaList;
             }
             else
@@ -117,6 +176,7 @@ namespace Ngsa.BurstService.K8sApi
                 // TODO: Might be unncessary to use InterLocking
                 Interlocked.Exchange(ref nsHPAMap, newHpaMap);
                 Interlocked.Exchange(ref nsDeploymentMap, newDeploymentMap);
+                Interlocked.Exchange(ref nsServiceMap, newDeploymentMap);
                 Interlocked.Exchange(ref hpaList, v2HpaList);
             }
         }

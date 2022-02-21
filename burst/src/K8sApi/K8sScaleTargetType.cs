@@ -24,7 +24,7 @@ namespace Ngsa.BurstService.K8sApi
         /// <summary>
         /// Represents a target reference of Service.
         /// </summary>
-        [EnumMember(Value = "hpa")]
+        [EnumMember(Value = "service")]
         Service,
     }
 }

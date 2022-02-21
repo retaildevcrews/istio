@@ -2,11 +2,13 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using k8s;
 using k8s.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -17,13 +19,22 @@ namespace Ngsa.BurstService.K8sApi
         private const double TargetPercent = 0.8;
         private readonly ILogger<K8sHPAMetricsService> logger;
         private readonly IKubernetes client;
+        private readonly IConfiguration configuration;
+        private readonly K8sScaleTargetType scaleTargetType;
+        private readonly IReadOnlyList<string> svcSelectors;
+        private readonly K8sHPAMap hpaMap;
         private System.Timers.Timer timer;
 
-        private K8sHPAMap hpaMap = new ();
-
-        public K8sHPAMetricsService(ILogger<K8sHPAMetricsService> logger)
+        public K8sHPAMetricsService(ILogger<K8sHPAMetricsService> logger, IConfiguration configuration)
         {
             this.logger = logger;
+            this.configuration = configuration;
+            this.hpaMap = new (logger);
+
+            // Get the Target Scale Object (usually deployment)
+            this.scaleTargetType = Enum.TryParse(configuration["Service:TargetScaleObj"], true, out K8sScaleTargetType parsed) ? parsed : K8sScaleTargetType.Deployment;
+
+            this.svcSelectors = configuration.GetSection("Service:SelectorLabel").Get<List<string>>();
 
             KubernetesClientConfiguration config;
 
@@ -173,8 +184,7 @@ namespace Ngsa.BurstService.K8sApi
             // Call the K8s API
             try
             {
-                V2beta2HorizontalPodAutoscalerList hpaList = client.ListHorizontalPodAutoscalerForAllNamespaces3(timeoutSeconds: 1);
-                hpaMap.ParseHPAList(hpaList);
+                hpaMap.CreateHPAMap(client, this.scaleTargetType, this.svcSelectors);
             }
             catch (Exception ex)
             {
