@@ -85,8 +85,8 @@ namespace Ngsa.BurstService.K8sApi
                 _ => null,
 
             };
-            if (targetDict?.TryGetValue(ns, out Dictionary<string, K8sHPAObj> hpaDict) is true
-                && hpaDict?.TryGetValue(targetName, out K8sHPAObj targetHpa) is true)
+            if (targetDict != null && targetDict.TryGetValue(ns, out var hpaDict)
+                && hpaDict.TryGetValue(targetName, out var targetHpa))
             {
                 return targetHpa;
             }
