@@ -1,0 +1,38 @@
+name: Markdown linting and link check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    # Sequence of patterns matched against refs/heads
+    branches:
+    - main
+    types:
+    - opened
+    - synchronize
+
+jobs:
+  markdown-linter:
+    name: Markdown Linter
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Run mdl
+      uses: actionshub/markdownlint@main
+
+  markdown-link-check:
+    name: Markdown Link check
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@main
+    - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        config-file: '.github/workflows/mlc_config.json'
+        check-modified-files-only: 'yes'
+        base-branch: 'main'
+

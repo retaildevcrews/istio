@@ -5,6 +5,14 @@ on:
     # Run Sunday at 6:00 AM UTC
     - cron: "0 6 * * 0"
 
+  pull_request:
+    # Sequence of patterns matched against refs/heads
+    branches:
+    - main
+    types:
+    - opened
+    - synchronize
+
   push:
     branches:
       - main
@@ -39,6 +47,7 @@ jobs:
         docker build ./burst --progress auto -t image
 
     - name: Docker Tag and Push
+      if: github.event_name != 'push'
       run: |
         # tag the repo with :beta
         docker tag image $DOCKER_REPO:beta
