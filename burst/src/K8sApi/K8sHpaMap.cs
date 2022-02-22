@@ -3,10 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using k8s.Models;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 using HPADictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, k8s.Models.V2beta2HorizontalPodAutoscaler>>;
 using K8sHPAObj = k8s.Models.V2beta2HorizontalPodAutoscaler;
@@ -65,8 +62,8 @@ namespace Ngsa.BurstService.K8sApi
         /// <returns>The HPA object</returns>
         public K8sHPAObj GetHPA(string ns, string name)
         {
-            if (hpaMap?.TryGetValue(ns, out Dictionary<string, K8sHPAObj> hpaDict) is true
-                && hpaDict?.TryGetValue(name, out K8sHPAObj targetHpa) is true)
+            if (hpaMap != null && hpaMap.TryGetValue(ns, out var hpaDict)
+                && hpaDict.TryGetValue(name, out var targetHpa))
             {
                 return targetHpa;
             }
