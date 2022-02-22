@@ -48,7 +48,7 @@ Options:
 
 ### Using Visual Studio Codespaces
 
-> Visual Studio Codespaces is the easiest way to evaluate ngsa. 
+> Visual Studio Codespaces is the easiest way to evaluate ngsa.
 
 TODO: Describe opening and running a codespaces
 
