@@ -1,0 +1,2 @@
+rules "~MD013", "~MD024", "~MD033"
+style "./.markdown.style.rb"
