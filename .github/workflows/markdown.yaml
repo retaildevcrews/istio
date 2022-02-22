@@ -14,7 +14,7 @@ on:
 
 jobs:
   markdown-linter:
-    name: Markdown Linter
+    name: Markdown lint and link check
 
     runs-on: ubuntu-20.04
 
@@ -23,13 +23,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Run Markdown Lint
       uses: actionshub/markdownlint@main
-
-  markdown-link-check:
-    name: Markdown Link check
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@main
     - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      name: Markdown Link check
       with:
         use-quiet-mode: 'yes'
         use-verbose-mode: 'yes'

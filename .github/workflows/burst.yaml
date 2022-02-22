@@ -12,6 +12,12 @@ on:
     types:
     - opened
     - synchronize
+    paths:
+    - 'burst/Dockerfile'
+    - 'burst/*.csproj'
+    - 'burst/**.cs'
+    - '.github/workflows/burst.yaml'
+    - 'autogitops/**'
 
   push:
     branches:
