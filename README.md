@@ -36,8 +36,8 @@ make check
 
 ```bash
 
-# Run a 120 seconds test in the background
-make test seconds=120 > /dev/null 2>&1 &
+# Run a 60 seconds test in the background
+make test seconds=60 > /dev/null 2>&1 &
 
 # press enter a few times to clear background output
 
@@ -50,11 +50,26 @@ make test seconds=120 > /dev/null 2>&1 &
 
 make check
 
-kubectl get pods
+watch -n 1 kubectl get pods
+# Notice one more ngsa pod will pop up
+# Press Ctrl+C once done
 
 ```
 
 - The `HPA` will scale back to one pod in a few minutes
+
+- [Optional] To scale down immediately run the following commands:
+
+```bash
+
+  # Delete current HPA
+  kuebctl delete hpa ngsa
+  # Scale down replicas
+  kuebctl scale --replicas=1 deployment/ngsa
+  # Recreate the HPA
+  kuebctl autoscale deployment ngsa --cpu-percent=40 --min=1 --max=2
+
+```
 
 ## Use custom metrics from prometheus
 
@@ -69,12 +84,12 @@ NgsaRequestsPerSecond is used in addition to CPU metrics to scaled HPA.
 make prom-adapter-hpa
 
 # Watch for the new custom metrics to be avaialbe
-kubectl get hpa ngsa --watch
+watch -n 1 kubectl get hpa ngsa
 # Should output similar lines below (otherwise one or two would be Unknown)
 ## NAME   REFERENCE         TARGETS           MINPODS   MAXPODS   REPLICAS   AGE
 ## ngsa   Deployment/ngsa   499m/50, 2%/50%   1         2         2          14m
 
-# Press Ctrl+C to stop watch
+# Press Ctrl+C to stop watch once done
 
 ```
 

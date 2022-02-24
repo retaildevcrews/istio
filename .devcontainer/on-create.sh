@@ -2,6 +2,9 @@
 
 echo "on-create started" >> $HOME/status
 
+# Change shell to zsh for vscode
+sudo chsh --shell /bin/zsh vscode
+
 # Install k3d > 5.0.1
 k3d --version | grep -Eo '^k3d version v5...[1-9]$' > /dev/null 2>&1
 if [ $? -ne 0 ]; then
