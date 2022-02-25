@@ -2,7 +2,7 @@
 
 ## Content Overview
 
-0. [Joseph, 15 mins] WCNP Overview --> various components? --> 15 mins
+0. [Joseph, 15 mins] WCNP Overview --> various components? --> 15 mins~20min
 
 1. [J/K 3~5min] Ask them to start codespaces, from the repo link: https://github.com/retaildevcrews/istio/
 2. [Q?] We have to make sure they have access to CodeSpaces. Add them to retaildevcrews/cse-lab?
@@ -10,8 +10,11 @@
     2. Describe the initialization scripts
     > ? Is everyone's codespace is running?
 3. [J/K ~2min, optional?] Need of Istio Envoy Filter and Burst Metrics, how they operate (Diagram)
-    1. Istio Svc mesh model (sidecar vs no-sidecar)
-    2. Role of Envoy filter and how they are injected currently
+    1. Istio Svc mesh model (sidecar vs no-sidecar)??
+       [Q?] Should we delve into gateway model and explain?
+    2. Role of Envoy filter and how they are injected currently (not planning to go into the rust code)
+    3. Explain the current working item: using service dns name to call burstmetrics service.
+       Currently we are using deployment name (assuming its same as HPA name) and calling BMS with that info
     > ? Any questions so far?
 4. [J/K ~5min] Show deployment configuration, show `clusteradm/Makefile` and `./Makefile`
     1. Show Makefile targets and describe important commands
@@ -19,6 +22,8 @@
     3. Before the deployment, there are no burst header when we curl/http ngsa endpoint
     4. After deployment, we have burst metrics (describe a little?)
     5. Internally burstmetrics service is called by wasm filter: `curl http://localhost:30081/burstmetrics/default/ngsa`, describe `default` and `ngsa`
+    6. Explain the current working item: using service dns name to call burstmetrics service.
+       Currently we are using deployment name (assuming its same as HPA name) and calling BMS with that info
     > ? Any questions so far?
 5. [J/K ~8min] Now lets do a load test (describe how we are running the load)
     1. Run the load test
@@ -26,7 +31,7 @@
     3. Also show them burst metrics with `make check`
     4. Scale down
     > ? Any questions so far?
-6. [J/K ~10min, optional] Now lets show custom metrics from prometheus
+6. [J/K ~10min, optional, not too focused on wasm filter] Now lets show custom metrics from prometheus
     1. Deploy prometheus metrics server
     2. Explain the custom metrics in yaml file which prometheus is getting from NGSA /metrics endpoint
     3. Show scale and burst metrics with another load using custom metrics
