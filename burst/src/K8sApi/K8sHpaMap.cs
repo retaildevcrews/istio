@@ -82,6 +82,7 @@ namespace Ngsa.BurstService.K8sApi
             {
                 K8sScaleTargetType.Deployment => nsDeploymentMap,
                 K8sScaleTargetType.HPA => nsHPAMap,
+                K8sScaleTargetType.Service => nsServiceMap,
                 _ => null,
 
             };
@@ -111,13 +112,27 @@ namespace Ngsa.BurstService.K8sApi
             // Iterate through the list and map HPA
             foreach (K8sHPAObj hpa in v2HpaList.Items)
             {
-                newHpaMap[hpa.Namespace()] = new () { { hpa.Name(), hpa } };
+                // Since we can have multiple HPAs in one namespace
+                // But one HPA is associated with one scaleobject
+                if (!newHpaMap.ContainsKey(hpa.Namespace()))
+                {
+                    newHpaMap[hpa.Namespace()] = new () { };
+                }
 
-                // Check if the Scale target is the same as target (set in appsettins)
+                newHpaMap[hpa.Namespace()][hpa.Name()] = hpa;
+
+                // Check if the Scale target is the same as target (set in appsettings)
+                // TODO: Explore different scaleTargetRef or make target = deployment as constant
                 if (Enum.TryParse(hpa.Spec.ScaleTargetRef.Kind, true, out K8sScaleTargetType parsed) && parsed == target)
                 {
                     // Add it to deploymentMap if tartet matches
-                    newDeploymentMap[hpa.Namespace()] = new () { { hpa.Spec.ScaleTargetRef.Name, hpa } };
+                    if (!newDeploymentMap.ContainsKey(hpa.Namespace()))
+                    {
+                        newDeploymentMap[hpa.Namespace()] = new () { };
+                    }
+
+                    // We have 1-to-1 relationship with HPA and ScaleObject
+                    newDeploymentMap[hpa.Namespace()][hpa.Spec.ScaleTargetRef.Name] = hpa;
 
                     // Now map the service to an deployment/hpa
                     try
@@ -133,7 +148,7 @@ namespace Ngsa.BurstService.K8sApi
                             {
                                 if (podLabels.TryGetValue(item, out string labelValue))
                                 {
-                                    labelSelector += string.Format("aa{0}={1},", item, labelValue);
+                                    labelSelector += string.Format("{0}={1},", item, labelValue);
                                 }
                             }
 
@@ -146,7 +161,12 @@ namespace Ngsa.BurstService.K8sApi
                             var svcList = k8sClient.ListNamespacedService(hpa.Namespace(), labelSelector: labelSelector);
                             foreach (var svc in svcList?.Items)
                             {
-                                newSvcMap[svc.Namespace()] = new () { { svc.Name(), hpa } };
+                                if (!newSvcMap.ContainsKey(svc.Namespace()))
+                                {
+                                    newSvcMap[svc.Namespace()] = new () { };
+                                }
+
+                                newSvcMap[svc.Namespace()][svc.Name()] = hpa;
                             }
                         }
                         else
