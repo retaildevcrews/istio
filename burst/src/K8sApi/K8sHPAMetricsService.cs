@@ -2,8 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -63,7 +63,9 @@ namespace Ngsa.BurstService.K8sApi
                 return null;
             }
 
-            return hpaMap.GetHPADictionary(target).ToDictionary(x => x, x => x.Value.ToString());
+            // ToDictionary is O(N), will convert the dictionary of K8sHPAMetrics values to their string
+            // represntation as opposed to changing it directly within the K8sHpaMap class
+            return hpaMap.GetHPADictionary(target).ToDictionary(x => x.Key, x => x.Value.ToString());
         }
 
         public K8sHPAMetrics GetK8SHPAMetrics(K8sScaleTargetType target, string ns, string deployment)
