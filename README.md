@@ -97,7 +97,66 @@ Now follow [Add Load](#add-load) section to apply load to the ngsa app.
 
 ## Request Flow
 
-![Request Flow](images/flow.png)
+The following diagram depicts the request flow, metrics retrieval, and injection of headers:
+
+```mermaid
+
+sequenceDiagram
+    participant client  as Client
+    participant istio   as Istio/Envoy
+    participant sidecar as Sidecar
+    participant filter  as Wasm Filter
+    participant app     as App
+    participant metrics as Metrics Service
+    participant hpa     as K8s API/HPA
+
+    client    ->>   istio: 
+    activate client
+    activate istio
+    istio     ->>   sidecar: 
+    activate sidecar
+    sidecar   ->>   filter: 
+    activate filter
+    filter    ->>   app: 
+    activate app
+    deactivate app
+    app       -->>  filter: 
+    filter    ->>   filter: metrics retrieval from cache
+    filter    ->>   filter: inject header
+    deactivate filter
+    filter    -->>  sidecar: 
+    deactivate sidecar
+    sidecar   -->>  istio: 
+    deactivate istio
+    istio     -->>  client: 
+    deactivate client
+    
+    loop Cache Preformatted Metrics (timer)
+      filter  ->>   metrics: 
+      activate filter
+      activate metrics
+      deactivate metrics
+      metrics -->>  filter: 
+      filter  ->>   filter: update cache
+      deactivate filter
+    end
+    
+    loop Retrieve and Cache HPA Metrics (timer)
+      metrics  ->>  hpa: retrieve all configured apps
+      activate metrics
+      activate hpa
+      deactivate hpa
+      hpa     -->>  metrics: 
+      loop Process HPA Config Info
+        metrics ->>   metrics: Retrieve discrete metrics values for each app
+        metrics ->>   metrics: Build cache of header values by app
+        deactivate metrics
+      end 
+    end
+    
+```
+
+The Burst Metrics Service provides a layer of indirection that prefetches, formats, and caches values that the Wasm filter will inject.  This reduces latency on the request overall and decreases the processing required within the filter.
 
 ## Links
 
