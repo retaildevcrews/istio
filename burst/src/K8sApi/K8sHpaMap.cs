@@ -7,7 +7,7 @@ using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 
-using HPADictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, k8s.Models.V2beta2HorizontalPodAutoscaler>>;
+using HPADictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, Ngsa.BurstService.K8sApi.K8sHPAMetrics>>;
 using K8sHPAObj = k8s.Models.V2beta2HorizontalPodAutoscaler;
 
 namespace Ngsa.BurstService.K8sApi
@@ -17,6 +17,7 @@ namespace Ngsa.BurstService.K8sApi
     /// </summary>
     public sealed class K8sHPAMap
     {
+        private const double TargetPercent = 0.8;
         private readonly ILogger logger;
         private HPADictionary nsHPAMap;
         private HPADictionary nsDeploymentMap;
@@ -41,11 +42,11 @@ namespace Ngsa.BurstService.K8sApi
         public IList<K8sHPAObj> AsList => hpaList?.Items;
 
         /// <summary>
-        /// Indexer returning K8s HPA Object
+        /// Indexer returning K8sHPAMetrics Object
         /// </summary>
         /// <param name="nsDeploy">Tuple: First Item target type, 2nd namespace, 3rd deployment name</param>
-        /// <returns>V2beta2HorizontalPodAutoscaler</returns>
-        public K8sHPAObj this[ValueTuple<K8sScaleTargetType, string, string> nsDeploy] => GetHPA(nsDeploy.Item1, nsDeploy.Item2, nsDeploy.Item3);
+        /// <returns>K8sHPAMetrics</returns>
+        public K8sHPAMetrics this[ValueTuple<K8sScaleTargetType, string, string> nsDeploy] => GetHPA(nsDeploy.Item1, nsDeploy.Item2, nsDeploy.Item3);
 
         /// <summary>
         /// Gets if Returns if HPA Map is empty.
@@ -75,8 +76,8 @@ namespace Ngsa.BurstService.K8sApi
         /// <param name="target">HPA Target type</param>
         /// <param name="ns">Namespace</param>
         /// <param name="targetName">Name of deployment</param>
-        /// <returns>The HPA object</returns>
-        public K8sHPAObj GetHPA(K8sScaleTargetType target, string ns, string targetName)
+        /// <returns>The HPA Metrics object</returns>
+        public K8sHPAMetrics GetHPA(K8sScaleTargetType target, string ns, string targetName)
         {
             var targetDict = target switch
             {
@@ -93,6 +94,44 @@ namespace Ngsa.BurstService.K8sApi
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets HPA dictionary for a specified HPA target type.
+        /// </summary>
+        /// <param name="target">HPA Target type</param>
+        /// <returns>The HPADictionary object</returns>
+        public HPADictionary GetHPADictionary(K8sScaleTargetType target)
+        {
+            var targetDict = target switch
+            {
+                K8sScaleTargetType.Deployment => nsDeploymentMap,
+                K8sScaleTargetType.HPA => nsHPAMap,
+                K8sScaleTargetType.Service => nsServiceMap,
+                _ => null,
+
+            };
+
+            return targetDict;
+        }
+
+        /// <summary>
+        /// Create an HPA Metrics object from a HPA object.
+        /// </summary>
+        /// <param name="hpa">K8s HPA Object</param>
+        /// <param name="ns">namespace</param>
+        /// <param name="resourceName">HPA target resource name</param>
+        /// <returns>HPA Metrics object</returns>
+        public K8sHPAMetrics CreateMetricsFromHPA(K8sHPAObj hpa, string ns, string resourceName)
+        {
+            K8sHPAMetrics hpaMetrics = new ();
+
+            hpaMetrics.Service = $"{ns}/{resourceName}";
+            hpaMetrics.MaxLoad = GetMaxLoad(hpa);
+            hpaMetrics.CurrentLoad = GetCurrentLoad(hpa);
+            hpaMetrics.TargetLoad = (int?)Math.Floor(hpaMetrics.MaxLoad.GetValueOrDefault() * TargetPercent);
+
+            return hpaMetrics;
         }
 
         /// <summary>
@@ -119,20 +158,20 @@ namespace Ngsa.BurstService.K8sApi
                     newHpaMap[hpa.Namespace()] = new () { };
                 }
 
-                newHpaMap[hpa.Namespace()][hpa.Name()] = hpa;
+                newHpaMap[hpa.Namespace()][hpa.Name()] = CreateMetricsFromHPA(hpa, hpa.Namespace(), hpa.Name());
 
                 // Check if the Scale target is the same as target (set in appsettings)
                 // TODO: Explore different scaleTargetRef or make target = deployment as constant
                 if (Enum.TryParse(hpa.Spec.ScaleTargetRef.Kind, true, out K8sScaleTargetType parsed) && parsed == target)
                 {
-                    // Add it to deploymentMap if tartet matches
+                    // Add it to deploymentMap if target matches
                     if (!newDeploymentMap.ContainsKey(hpa.Namespace()))
                     {
                         newDeploymentMap[hpa.Namespace()] = new () { };
                     }
 
                     // We have 1-to-1 relationship with HPA and ScaleObject
-                    newDeploymentMap[hpa.Namespace()][hpa.Spec.ScaleTargetRef.Name] = hpa;
+                    newDeploymentMap[hpa.Namespace()][hpa.Spec.ScaleTargetRef.Name] = CreateMetricsFromHPA(hpa, hpa.Namespace(), hpa.Spec.ScaleTargetRef.Name);
 
                     // Now map the service to an deployment/hpa
                     try
@@ -166,7 +205,9 @@ namespace Ngsa.BurstService.K8sApi
                                     newSvcMap[svc.Namespace()] = new () { };
                                 }
 
-                                newSvcMap[svc.Namespace()][svc.Name()] = hpa;
+                                Console.WriteLine($"Service name {svc.Name()}, namespace {svc.Namespace()}");
+
+                                newSvcMap[svc.Namespace()][svc.Name()] = CreateMetricsFromHPA(hpa, svc.Namespace(), svc.Name());
                             }
                         }
                         else
@@ -199,6 +240,45 @@ namespace Ngsa.BurstService.K8sApi
                 Interlocked.Exchange(ref nsServiceMap, newDeploymentMap);
                 Interlocked.Exchange(ref hpaList, v2HpaList);
             }
+        }
+
+        /// <summary>
+        /// Get Current Load from K8s HPA object
+        /// </summary>
+        private static int GetCurrentLoad(V2beta2HorizontalPodAutoscaler hpa)
+        {
+            // Check if we created HPA but but don't have a metrics server
+            int currReplicas;
+            if (hpa?.Status != null)
+            {
+                currReplicas = hpa.Status.CurrentReplicas;
+            }
+            else
+            {
+                throw new Exception("Cannot get HPA metrics because hpa is null");
+            }
+
+            return currReplicas;
+        }
+
+        /// <summary>
+        /// Get Max Load from K8s HPA object
+        /// </summary>
+        private static int GetMaxLoad(V2beta2HorizontalPodAutoscaler hpa)
+        {
+            int maxReplicas;
+
+            // Check if we created HPA but didn't set any CPU Target
+            if (hpa?.Spec != null)
+            {
+                maxReplicas = hpa.Spec.MaxReplicas;
+            }
+            else
+            {
+                throw new Exception("Cannot get HPA Spec because hpa is null");
+            }
+
+            return maxReplicas;
         }
     }
 }

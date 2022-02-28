@@ -5,8 +5,14 @@ namespace Ngsa.BurstService.K8sApi
 {
     public class K8sHPAMetrics
     {
+        public string Service { get; internal set; } = null;
         public int? CurrentLoad { get; internal set; } = null;
         public int? TargetLoad { get; internal set; } = null;
         public int? MaxLoad { get; internal set; } = null;
+
+        public override string ToString()
+        {
+            return $"service={this.Service}, current-load={this.CurrentLoad}, target-load={this.TargetLoad}, max-load={this.MaxLoad}";
+        }
     }
 }

@@ -28,6 +28,20 @@ namespace Ngsa.BurstService.Controllers
             }
         }
 
+        [HttpGet("{target}/")]
+        public IActionResult BulkGet(K8sScaleTargetType target)
+        {
+            var hpaDictionary = service.GetBulkK8SHPAMetrics(target);
+
+            if (hpaDictionary == null)
+            {
+                // Means we don't have all the values available
+                return NoContent();
+            }
+
+            return Ok(hpaDictionary);
+        }
+
         [HttpGet("{target}/{ns}/{deployment}")]
         public IActionResult Get(K8sScaleTargetType target, string ns, string deployment)
         {
