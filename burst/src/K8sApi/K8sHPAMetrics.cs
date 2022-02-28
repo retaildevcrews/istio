@@ -9,6 +9,7 @@ namespace Ngsa.BurstService.K8sApi
         public int? CurrentLoad { get; internal set; } = null;
         public int? TargetLoad { get; internal set; } = null;
         public int? MaxLoad { get; internal set; } = null;
+        public static implicit operator string(K8sHPAMetrics km) => km.ToString();
 
         public override string ToString()
         {

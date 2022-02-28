@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using HPADictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, Ngsa.BurstService.K8sApi.K8sHPAMetrics>>;
+using HPADictionary = System.Collections.Generic.Dictionary<string, string>;
 
 namespace Ngsa.BurstService.K8sApi
 {
@@ -62,7 +63,7 @@ namespace Ngsa.BurstService.K8sApi
                 return null;
             }
 
-            return hpaMap.GetHPADictionary(target);
+            return hpaMap.GetHPADictionary(target).ToDictionary(x => x, x => x.Value.ToString());
         }
 
         public K8sHPAMetrics GetK8SHPAMetrics(K8sScaleTargetType target, string ns, string deployment)

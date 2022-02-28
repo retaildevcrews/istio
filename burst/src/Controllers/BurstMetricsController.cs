@@ -24,11 +24,11 @@ namespace Ngsa.BurstService.Controllers
             }
             else
             {
-                // _logger.LogInformation("Somrhing is wrong");
+                // _logger.LogInformation("Something is wrong");
             }
         }
 
-        [HttpGet("{target}/")]
+        [HttpGet("{target}s/")]
         public IActionResult BulkGet(K8sScaleTargetType target)
         {
             var hpaDictionary = service.GetBulkK8SHPAMetrics(target);
@@ -42,10 +42,10 @@ namespace Ngsa.BurstService.Controllers
             return Ok(hpaDictionary);
         }
 
-        [HttpGet("{target}/{ns}/{deployment}")]
-        public IActionResult Get(K8sScaleTargetType target, string ns, string deployment)
+        [HttpGet("{target}s/{ns}/{name}")]
+        public IActionResult Get(K8sScaleTargetType target, string ns, string name)
         {
-            K8sHPAMetrics hpaMetrics = service.GetK8SHPAMetrics(target, ns, deployment);
+            K8sHPAMetrics hpaMetrics = service.GetK8SHPAMetrics(target, ns, name);
 
             // Nullable interpolation will return "" for null objects
             // string cpuTarget = $"{hpaMetrics?.TargetCPULoad}";
@@ -59,17 +59,8 @@ namespace Ngsa.BurstService.Controllers
                 return NoContent();
             }
 
-            // hpaMetrics was Null checked, so it should have all the values
-            // Checking nullable would be redundant
-            string targetLoad = hpaMetrics.TargetLoad.ToString();
-            string currentLoad = hpaMetrics.CurrentLoad.ToString();
-            string maxLoad = hpaMetrics.MaxLoad.ToString();
-
-            // Get the CPU Target
-            logger.LogDebug("Max: {}, Target: {}, Cur: {},", maxLoad, targetLoad, currentLoad);
-
             // Console.WriteLine($"{DateTime.Now:s}  {Request.Path.ToString()}");
-            return Ok($"service={ns}/{deployment}, current-load={currentLoad}, target-load={targetLoad}, max-load={maxLoad}");
+            return Ok(hpaMetrics.ToString());
         }
     }
 }

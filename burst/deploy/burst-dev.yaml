@@ -39,6 +39,8 @@ metadata:
 rules:
 - apiGroups:
   - autoscaling
+  - apps
+  - ""
   resources:
   - "*"
   verbs:
