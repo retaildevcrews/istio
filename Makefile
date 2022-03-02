@@ -26,7 +26,24 @@ deploy : clean build
 	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[{\"name\":\"wasmfilters-dir\",\"configMap\": {\"name\": \"burst-wasm-filter\"}}]","sidecar.istio.io/userVolumeMount":"[{\"mountPath\":\"/var/local/lib/wasm-filters\",\"name\":\"wasmfilters-dir\"}]"}}}}}'
 
 	# turn the wasm filter on
-	@kubectl apply -f deploy/ngsa-memory/filter.yaml
+	@kubectl apply -f deploy/ngsa-memory/filter-sidecar.yaml
+
+deploy-gateway : clean build
+
+	# add config map
+	@kubectl create cm burst-wasm-filter -n istio-system --from-file=burst_header.wasm
+
+	# Patch istio-ingressgateway, will create a new deployment terminating the old one
+	@kubectl patch deployment istio-ingressgateway -n istio-system -p '{"spec":{"template":{"spec":{"containers":[{"name":"istio-proxy","volumeMounts":[{"mountPath":"/var/local/lib/wasm-filters","name":"wasmfilters-dir"}]}],"volumes":[{"configMap":{"name":"burst-wasm-filter"},"name":"wasmfilters-dir"}]}}}}'
+	
+	# Waiting for Istio Proxy to redeploy
+	@kubectl wait pod -l app=istio-ingressgateway --namespace=istio-system --for condition=ready --timeout=60s
+
+	# Patch istio-ingressgateway service, will expose the service to nodeport 300083
+	@kubectl patch -n istio-system svc istio-ingressgateway -p '{"spec":{"ports":[{"name":"http2","nodePort":30083,"port":80,"protocol":"TCP","targetPort":8080}]}}'
+
+	# turn the wasm filter on
+	@kubectl apply -f deploy/ngsa-memory/filter-gateway.yaml
 
 check :
 	# curl the healthz endpoint
@@ -37,10 +54,18 @@ check :
 	@http http://localhost:30080/healthz
 
 clean :
-	# delete filter and config map
-	@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[]","sidecar.istio.io/userVolumeMount":"[]"}}}}}'
-	@kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter.yaml
+	# delete ngsa sidecar patch and config map
+	-@kubectl patch deployment ngsa -p '{"spec":{"template":{"metadata":{"annotations":{"sidecar.istio.io/userVolume":"[]","sidecar.istio.io/userVolumeMount":"[]"}}}}}'
+	
+	# delete ingressgateway patch and config map
+	-@kubectl get deploy -n istio-system istio-ingressgateway -o json | jq '.spec.template.spec.containers[0].volumeMounts | map(.name == "wasmfilters-dir") | index(true)' | xargs -I % kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p "[{'op': 'remove', 'path': '/spec/template/spec/containers/0/volumeMounts/%'}]"
+
+	-@kubectl get deploy -n istio-system istio-ingressgateway -o json | jq '.spec.template.spec.volumes | map(.name == "wasmfilters-dir") | index(true)' | xargs -I % kubectl patch deployment istio-ingressgateway -n istio-system --type=json -p "[{'op': 'remove', 'path': '/spec/template/spec/volumes/%'}]"
+
+	@kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter-sidecar.yaml
+	@kubectl delete --ignore-not-found -f deploy/ngsa-memory/filter-gateway.yaml
 	@kubectl delete --ignore-not-found cm burst-wasm-filter
+	@kubectl delete --ignore-not-found cm -n istio-system burst-wasm-filter
 
 test :
 	# run a timed test ('$(seconds)' seconds)
