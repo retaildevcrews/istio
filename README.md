@@ -56,6 +56,27 @@ kubectl get pods
 
 - The `HPA` will scale back to one pod in a few minutes
 
+## Filter at Ingress Gateway
+
+By deafult the filter is applied at the istio sidecar in NGSA pods.
+
+To apply the filter at the ingress gateway level, do the following:
+
+```bash
+
+# Clear current filter configuration
+make clean
+
+# Now apply the wasm filter at the ingress gateway
+make deploy-gateway
+
+# Now check the burst headers
+make check-gateway
+
+```
+
+To apply a load goto [Add Load](#add-load) section then check the header using `make check-gateway`.
+
 ## Use custom metrics from prometheus
 
 NgsaRequestsPerSecond is exposed to the HPA as a custom metrics.

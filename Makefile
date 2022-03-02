@@ -48,11 +48,20 @@ deploy-gateway : clean build
 
 check :
 	# curl the healthz endpoint
+	# It won't show the burst headers since the user-agent won't match
 	@curl -i http://localhost:30080/healthz
 
 	# check the healthz endpoint with http
-	# this will show the burst header if enabled
+	# this will show the burst header if enabled and deployed at the sidecar level
 	@http http://localhost:30080/healthz
+
+check-gateway :
+	# curl the /memory/healthz endpoint
+	# It won't show the burst headers since the user-agent won't match
+	@curl -i http://localhost:30083/memory/healthz
+
+	# this will show the burst header if enabled and deployed at the gateway level
+	@http http://localhost:30083/memory/healthz
 
 clean :
 	# delete ngsa sidecar patch and config map
