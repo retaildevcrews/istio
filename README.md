@@ -36,8 +36,8 @@ make check
 
 ```bash
 
-# Run a 120 seconds test in the background
-make test seconds=120 > /dev/null 2>&1 &
+# Run a 60 seconds test in the background
+make test seconds=60 > /dev/null 2>&1 &
 
 # press enter a few times to clear background output
 
@@ -50,11 +50,26 @@ make test seconds=120 > /dev/null 2>&1 &
 
 make check
 
-kubectl get pods
+watch -n 1 kubectl get pods
+# Notice one more ngsa pod will pop up
+# Press Ctrl+C once done
 
 ```
 
 - The `HPA` will scale back to one pod in a few minutes
+
+- [Optional] To scale down immediately run the following commands:
+
+```bash
+
+  # Delete current HPA
+  kuebctl delete hpa ngsa
+  # Scale down replicas
+  kuebctl scale --replicas=1 deployment/ngsa
+  # Recreate the HPA
+  kuebctl autoscale deployment ngsa --cpu-percent=40 --min=1 --max=2
+
+```
 
 ## Filter at Ingress Gateway
 
@@ -90,12 +105,12 @@ NgsaRequestsPerSecond is used in addition to CPU metrics to scaled HPA.
 make prom-adapter-hpa
 
 # Watch for the new custom metrics to be avaialbe
-kubectl get hpa ngsa --watch
+watch -n 1 kubectl get hpa ngsa
 # Should output similar lines below (otherwise one or two would be Unknown)
 ## NAME   REFERENCE         TARGETS           MINPODS   MAXPODS   REPLICAS   AGE
 ## ngsa   Deployment/ngsa   499m/50, 2%/50%   1         2         2          14m
 
-# Press Ctrl+C to stop watch
+# Press Ctrl+C to stop watch once done
 
 ```
 
@@ -103,7 +118,66 @@ Now follow [Add Load](#add-load) section to apply load to the ngsa app.
 
 ## Request Flow
 
-![Request Flow](images/flow.png)
+The following diagram depicts the request flow, metrics retrieval, and injection of headers:
+
+```mermaid
+
+sequenceDiagram
+    participant client  as Client
+    participant istio   as Istio/Envoy
+    participant sidecar as Sidecar
+    participant filter  as Wasm Filter
+    participant app     as App
+    participant metrics as Metrics Service
+    participant hpa     as K8s API/HPA
+
+    client    ->>   istio: 
+    activate client
+    activate istio
+    istio     ->>   sidecar: 
+    activate sidecar
+    sidecar   ->>   filter: 
+    activate filter
+    filter    ->>   app: 
+    activate app
+    deactivate app
+    app       -->>  filter: 
+    filter    ->>   filter: metrics retrieval from cache
+    filter    ->>   filter: inject header
+    deactivate filter
+    filter    -->>  sidecar: 
+    deactivate sidecar
+    sidecar   -->>  istio: 
+    deactivate istio
+    istio     -->>  client: 
+    deactivate client
+    
+    loop Cache Preformatted Metrics (timer)
+      filter  ->>   metrics: 
+      activate filter
+      activate metrics
+      deactivate metrics
+      metrics -->>  filter: 
+      filter  ->>   filter: update cache
+      deactivate filter
+    end
+    
+    loop Retrieve and Cache HPA Metrics (timer)
+      metrics  ->>  hpa: retrieve all configured apps
+      activate metrics
+      activate hpa
+      deactivate hpa
+      hpa     -->>  metrics: 
+      loop Process HPA Config Info
+        metrics ->>   metrics: Retrieve discrete metrics values for each app
+        metrics ->>   metrics: Build cache of header values by app
+        deactivate metrics
+      end 
+    end
+    
+```
+
+The Burst Metrics Service provides a layer of indirection that prefetches, formats, and caches values that the Wasm filter will inject.  This reduces latency on the request overall and decreases the processing required within the filter.
 
 ## Links
 
