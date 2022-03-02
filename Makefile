@@ -3,7 +3,8 @@
 help :
 	@echo "Usage:"
 	@echo "   make build               - build the plug-in"
-	@echo "   make deploy              - deploy the istio plugin to ngsa"
+	@echo "   make deploy              - deploy the istio plugin to ngsa sidecar"
+	@echo "   make deploy-gateway      - deploy the istio plugin to istio ingressgateway"
 	@echo "   make check               - check the endpoints with curl"
 	@echo "   make check-istio         - check istio status and logs"
 	@echo "   make check-metrics       - check the raw pod metrics"
