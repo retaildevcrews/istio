@@ -23,7 +23,7 @@
     - Validate our NGSA deployments
 6. Jumpbox
     - Show how to access the shell of the jumpbox via alias, kuebctl exec and also k9s
-7.  Port forwarding in codespaces
+7. Port forwarding in codespaces
     - Explanation of Nodeports and how codespaces automatically picks up nodeports
     - Show how we can define ports in devcontainer and using labels
 8. NGSA App Deploy and review
@@ -39,15 +39,15 @@
 >[15 min break]
 
 ### Istio Rust WebAssembly Hands-on Labs (CSE Labs)
+
 [Kushal]
-  1. [K/S 3~5min] Ask them to start codespaces, from the repo link: https://github.com/retaildevcrews/istio/
-  2. [K/S~2min, optional?] Need of Istio Envoy Filter and Burst Metrics, how they operate (Diagram)
-    1. Istio Svc mesh model (sidecar vs no-sidecar)??
-       [Q?] Should we delve into gateway model and explain?
+
+  1. Ask them to start codespaces, from the repo link: https://github.com/cse-labs/istio-rust-webassembly-labs
+  2. Need of Istio Envoy Filter and Burst Metrics, how they operate (diagram)
+    1. Istio Svc mesh model (sidecar vs no-sidecar)?? https://istio.io/latest/docs/ops/deployment/architecture/
+       Delve into gateway model and explain little bit, its our latest engagement
     2. Role of Envoy filter and how they are injected currently (not planning to go into the rust code)
-    3. Explain the current working item: using service dns name to call burstmetrics service.
-       Currently we are using deployment name (assuming its same as HPA name) and calling BMS with that info
-  3. [K/S ~5min] Show deployment configuration, show `clusteradm/Makefile` and `./Makefile`
+  3. Strat the first lab deployment configuration, show `clusteradm/Makefile` and `./Makefile`
     1. Show Makefile targets and describe important commands
     2. After deployment is completed, these pods are created
     3. Before the deployment, there are no burst header when we curl/http ngsa endpoint
