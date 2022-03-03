@@ -18,14 +18,88 @@ Couple of caveats to note:
 
 ## API Endpoints
 
-### `/burstmetrics/{namespace}/{HPA}`
+### `/burstmetrics/{target-type}s`
 
-This is the only endpoint exposed by this service.
-This endpoint will check the k8s `{namespace}` for the specified `{HPA}`.
+This endpoint exposes the three different targets supported by this service.
 
-If the `{HPA}` is found and is accessible, it will return the metrics below in a formatted fashion:
+The supported targets includes:
 
-- service={namespace}/{HPA-name}
+- Service
+- Deployment
+- HPA
+
+Note that, target-type endpoints are plural in nature.
+
+Examples:
+
+- For service(s): `/burstmetrics/services`
+- For deployment(s): `/burstmetrics/deployments`
+- For hpa(s): `/burstmetrics/hpas`
+
+All of these target endpoints return json in below format:
+
+```json
+
+{
+  "{namespace-1/target-name-1}" :"formatted burst header for target-name-1",
+  "{namespace-1/target-name-2}" :"formatted burst header for target-name-2",
+  "{namespace-a/target-name-b}" :"formatted burst header for target-name-b"
+}
+
+```
+
+> The target names are either a type of hpa, deployment or service
+> Depends on which target is called (e.g. hpas, services etc.)
+
+For the burst header format see [this section](#burstmetricstarget-typesnamespacetarget-name)
+
+#### API Details
+
+- **Method** : `GET`
+- **Permissions/Auth** : None
+- **Success Response**
+  - **Code** : `200 OK`
+    > If at least one target is returned.
+
+    **Content Type** : application/json; charset=utf-8
+
+    **Content Format** :
+
+    ```json
+    {
+      "{ns-1}/{target-name-1}" : "service={ns}/{name}, current-load=<int>, target-load=<int>, max-load=<int>",
+      "{ns-2}/{target-name-2}" : "service={ns}/{name}, current-load=<int>, target-load=<int>, max-load=<int>"
+    }
+    ```
+
+    See [examples](#example-1-200-ok) for detailed API content format.
+
+  - **Code** : `204 No Content`
+    > If there are no burst headers for that specific target, but the API call was successful
+
+For any unhandled exception during the API call, it will return `HTTP 500 Internal Server Error`.
+
+### `/burstmetrics/{target-type}s/{namespace}/{target-name}`
+
+This endpoints gets burst header for a specific target of specific target types.
+
+Targets included:
+
+- Service
+- Deployment
+- HPA
+
+The target types are plural in nature.
+
+Examples:
+
+- For service(s): `/burstmetrics/services/{namespace}/{service-name}`
+- For deployment(s): `/burstmetrics/deployments/{namespace}/{deployment-name}`
+- For hpa(s): `/burstmetrics/hpas/{namespace}/{hpa-name}`
+
+The burst header follows the below format::
+
+- service={namespace}/{deployment-name}
 - current-load=current pod count
 - max-load=target hpa pod count
 - target-load=80% of max-load
@@ -43,29 +117,100 @@ If the `{HPA}` is found and is accessible, it will return the metrics below in a
     **Content Format** :
 
     `service={ns}/{name}, current-load=<int>, target-load=<int>, max-load=<int>`
+
+    See [examples](#example-1-200-ok) for detailed API content format.
   - **Code** : `204 No Content`
     > When an `{hpa}` deployment/HPA is not found in `{ns}` namespace but the API call itself is successful
 
 For any unhandled exception during the API call, it will return `HTTP 500 Internal Server Error`.
 
+### Examples
+
+Suppose we have two deployments named ngsa-1, ngsa-2.
+
+Associated services and HPA are as follows:
+
+| Deployment Name | Namespace |Service Name | HPA Name   |
+|:----------------|:----------|:------------|:-----------|
+| ngsa-1          | default   |ngsa-svc-1   | ngsa-hpa-1 |
+| ngsa-2          | ngsa      |ngsa-svc-2   | ngsa-hpa-2 |
+
 #### Example 1: 200 OK
 
+> `http localhost:8080/burstmetrics/deployments/default/ngsa-1`
+
 ```http
+
 HTTP/1.1 200 OK
 content-type: text/plain; charset=utf-8
-date: Mon, 23 Aug 2021 16:29:51 GMT
+date: Thu, 03 Mar 2022 11:29:51 GMT
 server: istio-envoy
 transfer-encoding: chunked
 x-envoy-upstream-service-time: 1
 
-service=default/ngsa, current-load=2, target-load=5, max-load=6
+service=default/ngsa-1, current-load=1, target-load=3, max-load=5
+```
+
+> `http localhost:8080/burstmetrics/services/ngsa/ngsa-svc-2`
+
+```http
+HTTP/1.1 200 OK
+content-type: text/plain; charset=utf-8
+date: Thu, 03 Mar 2022 13:14:13 GMT
+server: istio-envoy
+transfer-encoding: chunked
+x-envoy-upstream-service-time: 1
+
+service=ngsa/ngsa-2, current-load=2, target-load=4, max-load=6
+```
+
+> `http localhost:8080/burstmetrics/services/`
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Thu, 03 Mar 2022 20:24:37 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{
+    "default/ngsa-svc-1": "service=default/ngsa-1, current-load=1, target-load=3, max-load=5",
+    "ngsa/ngsa-svc-2": "service=ngsa/ngsa-2, current-load=2, target-load=4, max-load=6"
+}
+```
+
+> `http localhost:8080/burstmetrics/hpas/`
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Thu, 03 Mar 2022 20:24:37 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{
+    "default/ngsa-hpa-1": "service=default/ngsa-1, current-load=1, target-load=3, max-load=5",
+    "ngsa/ngsa-hpa-2": "service=ngsa/ngsa-2, current-load=2, target-load=4, max-load=6"
+}
 ```
 
 #### Example 2: 204 No Content
 
+> `http localhost:8080/burstmetrics/services/default/ngsa-non-existing`
+
 ```http
 HTTP/1.1 204 No Content
-date: Mon, 23 Aug 2021 16:30:26 GMT
+date: Thu, 01 Mar 2022 16:30:26 GMT
+server: istio-envoy
+x-envoy-upstream-service-time: 16
+```
+
+> `http localhost:8080/burstmetrics/services`
+> Assuming we don't have any HPA associated with any deployments
+
+```http
+HTTP/1.1 204 No Content
+date: Thu, 01 Mar 2022 13:10:12 GMT
 server: istio-envoy
 x-envoy-upstream-service-time: 16
 ```

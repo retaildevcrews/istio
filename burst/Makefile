@@ -27,8 +27,6 @@ run-local:
 
 check :
 	# get the metrics via deployment name
-	@curl -q http://localhost:30081/burstmetrics/deployments/default/ngsa
-	@echo ""
+	@curl -q http://localhost:30081/burstmetrics/deployments/default/ngsa; echo
 	# get all metrics under services
-	@curl -q http://localhost:30081/burstmetrics/services
-	@echo ""
+	@curl -q http://localhost:30081/burstmetrics/services; echo
