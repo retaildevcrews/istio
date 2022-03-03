@@ -2,26 +2,44 @@
 
 ## Content Overview
 
-0. Introductions / Logistics / Verify People have access to the org and codespaces (have someone assist getting access)
-1. [Joseph, 15 mins] WCNP Overview --> various components? --> 15 mins~20min
+### Introductions / Logistics
 
-2. [Joaquin/AK 45~60 min] CSE Labs - Kubernetes in Codespaces Lab
-  
-   1. Start codespaces from repo https://github.com/cse-labs/kubernetes-in-codespaces
-   2. Build and deploy k3d cluster
-   3. Intro to k9s
-   4. Jumpbox
-   5. Port forwarding in codespaces
-   6. NGSA App Deploy and review
-   7. Prometheus and Grafana Dashboards
-   8. Run Load Test and see the load in Grafana
-   9. Introduction to FluentBit logs
-   10. How Codespaces is Built
+[Joseph/Siva]
+- Verify People have access to the org and codespaces (have someone assist getting access)
+- WCNP Overview
+  - Talk about various component
+
+### CSE Labs - Kubernetes in Codespaces Lab
+
+[Joaquin]  
+1. Start codespaces from repo https://github.com/cse-labs/kubernetes-in-codespaces
+    - Quick intro about what Codespaces is, how we use it and how it solves the "It doesn't work on my machine" problem
+    - While Codespaces is running, talk about what is happening in the background (pulling a devcontainer image, etc)
+2. Build and deploy k3d cluster
+3. Quick runthrough of the Makefile, explain what happens when we run make all (k3d, etc)
+4. Deploy the k3d cluster, show a few kubectl commands
+5. Intro to k9s
+    - Talk about what k9s is, how make development in kubernetes much easier, show different commands to show pods, deployments, logs
+    - Validate our NGSA deployments
+6. Jumpbox
+    - Show how to access the shell of the jumpbox via alias, kuebctl exec and also k9s
+7.  Port forwarding in codespaces
+    - Explanation of Nodeports and how codespaces automatically picks up nodeports
+    - Show how we can define ports in devcontainer and using labels
+8. NGSA App Deploy and review
+    - Show deployed NGSA App (Swagger) via browser using exposed port
+    - Run a few queries from the browser
+    - Build and deploy a local version of ngsa-memory
+[AK]
+9. Prometheus and Grafana Dashboards
+10. Run Load Test and see the load in Grafana
+11. Introduction to FluentBit logs
+12. How Codespaces is Built
 
 >[15 min break]
 
-3. [Kushal] Istio Rust WebAssembly Hands-on Labs (CSE Labs)
-
+### Istio Rust WebAssembly Hands-on Labs (CSE Labs)
+[Kushal]
   1. [K/S 3~5min] Ask them to start codespaces, from the repo link: https://github.com/retaildevcrews/istio/
   2. [K/S~2min, optional?] Need of Istio Envoy Filter and Burst Metrics, how they operate (Diagram)
     1. Istio Svc mesh model (sidecar vs no-sidecar)??
