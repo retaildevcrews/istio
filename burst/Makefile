@@ -21,7 +21,12 @@ build :
 	@docker build . -t localhost:5000/burst:local
 	@docker push localhost:5000/burst:local
 
+run-local:
+	# run burst metrics locally
+	dotnet run
+
 check :
-	# get the metrics
-	@curl -q http://localhost:30081/burstmetrics/default/ngsa
-	@echo ""
+	# get the metrics via deployment name
+	@curl -q http://localhost:30081/burstmetrics/deployments/default/ngsa; echo
+	# get all metrics under services
+	@curl -q http://localhost:30081/burstmetrics/services; echo
