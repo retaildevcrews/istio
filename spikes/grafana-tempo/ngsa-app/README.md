@@ -48,7 +48,7 @@ Options:
 
 ### Using Visual Studio Codespaces
 
-> Visual Studio Codespaces is the easiest way to evaluate ngsa. 
+> Visual Studio Codespaces is the easiest way to evaluate ngsa.
 
 TODO: Describe opening and running a codespaces
 
@@ -57,13 +57,9 @@ TODO: Describe opening and running a codespaces
 > This will work from a terminal in Visual Studio Codespaces as well
 
 1. Clone the repo
-
-> git clone https://github.com/retaildevcrews/ngsa-app.git
-
+    >`git clone https://github.com/retaildevcrews/ngsa-app.git`
 2. Change to the app root directory
-
-> cd ngsa-app
-
+    >`cd ngsa-app`
 3. Run the application in memory mode
 
   Running the application in memory mode allows us to run the application without setting up the rest of the supporting infrastructure.

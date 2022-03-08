@@ -81,7 +81,7 @@ kubectl get all # in the default namespace
 We've deployed all the services we needed.
 
 Now lets explore our Grafana UI from browser.
-
+<!-- markdown-link-check-disable-next-line -->
 - If you're using codespaces in VSCode just goto "http://127.0.0.1:30083/explore" in your browser.
 - If using codespaces from browser, goto `PORTS` and visit the port 30083.
 
@@ -95,7 +95,7 @@ In a terminal:
 ```bash
 
 # Request the ngsa-memory/version via istio ingress
-http localhost:30082/memory/version
+http localhost:30082/memory/version #<!-- markdown-link-check-disable-line -->
 ## Here 30082 is the nodeport for Istio Ingress
 ## /memory is the virtual service router for ngsa-memory
 
@@ -111,7 +111,7 @@ It should return something like this
 > server: istio-envoy
 > transfer-encoding: chunked
 > x-envoy-upstream-service-time: 124
->   
+>
 > 0.5.0-0118-1756
 
 Copy the value of `istio-trace-id` and paste it in the Grafana Tempo and run the query
