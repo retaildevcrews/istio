@@ -2,16 +2,17 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: burst-wasm
-  namespace: default
+  namespace: istio-system
 spec:
   workloadSelector:
     labels:
-      app: ngsa
+      app: istio-ingressgateway
+      istio: ingressgateway
   configPatches:
     # The first patch adds the lua filter to the listener/http connection manager
   - applyTo: HTTP_FILTER
     match:
-      context: SIDECAR_INBOUND
+      context: GATEWAY
       listener:
         filterChain:
           filter:
@@ -36,14 +37,12 @@ spec:
         configuration:
          "@type": "type.googleapis.com/google.protobuf.StringValue"
          value: |
-          { 
+          {
             "service_cluster": "healthcluster",
             "service_authority": "burst.burstservice",
-            "service_path": "/burstmetrics",
+            "service_path": "/burstmetrics/services",
             "user_agent": "HTTPie/",
-            "cache_seconds": 3,
-            "namespace": "default",
-            "deployment": "ngsa"
+            "cache_seconds": 3
           }               
   # "user_agent": "EF-Strati-HealthCheck-Client/1.0",
 
@@ -51,7 +50,7 @@ spec:
   # cds match is omitted as a new cluster is being added
   - applyTo: CLUSTER
     match:
-      context: SIDECAR_OUTBOUND
+      context: GATEWAY
     patch:
       operation: ADD
       value: # cluster specification

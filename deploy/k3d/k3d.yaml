@@ -7,13 +7,16 @@ kubeAPI:
   hostIP: 0.0.0.0
   hostPort: "6443"
 ports:
-- port: 30080:30080
+- port: 30080:30080 # Ngsa NodePort
   nodeFilters:
   - server:0
-- port: 30081:30081
+- port: 30081:30081 # Burst Service NodePort
   nodeFilters:
   - server:0
-- port: 30082:30082
+- port: 30082:30082 # Prometheus NodePort
+  nodeFilters:
+  - server:0
+- port: 30083:30083 # Istio IngressGateway NodePort
   nodeFilters:
   - server:0
 options:
