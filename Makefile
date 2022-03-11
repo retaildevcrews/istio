@@ -41,9 +41,6 @@ deploy-gateway : clean build
 	# Waiting for Istio Proxy to redeploy
 	@kubectl wait pod -l app=istio-ingressgateway --namespace=istio-system --for condition=ready --timeout=60s
 
-	# Patch istio-ingressgateway service, will expose the service to nodeport 300083
-	@kubectl patch -n istio-system svc istio-ingressgateway -p '{"spec":{"ports":[{"name":"http2","nodePort":30083,"port":80,"protocol":"TCP","targetPort":8080}]}}'
-
 	# turn the wasm filter on
 	@kubectl apply -f deploy/ngsa-memory/filter-gateway.yaml
 
@@ -59,10 +56,10 @@ check :
 check-gateway :
 	# curl the /memory/healthz endpoint
 	# It won't show the burst headers since the user-agent won't match
-	@curl -i http://localhost:30083/memory/healthz
+	@curl -i http://localhost:30000/memory/healthz
 
 	# this will show the burst header if enabled and deployed at the gateway level
-	@http http://localhost:30083/memory/healthz
+	@http http://localhost:30000/memory/healthz
 
 clean :
 	# delete ngsa sidecar patch and config map

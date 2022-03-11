@@ -16,9 +16,9 @@ ports:
 - port: 30082:30082 # Prometheus NodePort
   nodeFilters:
   - server:0
-- port: 30083:30083 # Istio IngressGateway NodePort
+- port: 30000:80 # Istio IngressGateway LoadBalancer NodePort
   nodeFilters:
-  - server:0
+  - loadbalancer
 options:
   k3d:
     wait: true

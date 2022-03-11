@@ -20,7 +20,7 @@
 		"30080": { "label": "NGSA-Memory NodePort" },
 		"30081": { "label": "Burst Metric Serivce NodePort" },
 		"30082": { "label": "Prometheus UI NodePort" },
-		"30083": { "label": "Istio Ingress Gateway NodePort" }
+		"30000": { "label": "Istio Ingress Gateway NodePort" }
 	},
 	// Set container specific settings
 
