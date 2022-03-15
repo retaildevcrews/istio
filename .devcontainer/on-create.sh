@@ -29,4 +29,11 @@ make all
 cd ..
 make deploy
 
+# Setup omnisharp global configuration
+mkdir -p $HOME/.omnisharp
+ln -s /workspaces/istio/omnisharp.json $HOME/.omnisharp
+
+# Add omz plugins for easier development
+omz plugin enable git gitfast docker dotnet kubectl rust vscode
+
 echo "on-create completed" > $HOME/status
