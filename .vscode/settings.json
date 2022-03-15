@@ -1,0 +1,19 @@
+{
+    "editor.suggestSelection": "first",
+    "editor.renderControlCharacters": true,
+    "editor.copyWithSyntaxHighlighting": false,
+    "editor.renderWhitespace": "selection",
+    "editor.rulers": [
+        79,
+        118
+    ],
+    // For .net test
+    "dotnet-test-explorer.testProjectPath": "./burstsvc/**/*Test.@(csproj|vbproj|fsproj)",
+    "files.insertFinalNewline": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    // Yaml
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+}
