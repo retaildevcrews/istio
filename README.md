@@ -73,7 +73,7 @@ watch -n 1 kubectl get pods
 
 ## Filter at Ingress Gateway
 
-By deafult the filter is applied at the istio sidecar in NGSA pods.
+By default the filter is applied at the istio sidecar in NGSA pods.
 
 To apply the filter at the ingress gateway level, do the following:
 
@@ -91,6 +91,27 @@ make check-gateway
 ```
 
 To apply a load goto [Add Load](#add-load) section then check the header using `make check-gateway`.
+
+### Resolve application hostname within ingress filter
+
+When deploying the sidecar filter, the application deployment and namespace values were provided directly into the filter config. This is not suitable for the ingress filter for multiple reasons:
+ - Multiple apps interact with ingress gateway and thus the filter. Providing deployment/ns values for all apps in the config is inefficient
+ - The app's service name might not always be the same as the deployment name or HPA name. The burst metrics service should return app metrics given an HPA, deployment or service name
+
+The following code is key to addressing the mentioned problems. This involves reading the Istio `cluster_metadata` property to retrieve the app's hostname that the request is being routed to. This hostname is formatted as `<app-service-name>.<namespace>.svc.cluster.local`, which is the common hostname structure for apps within a K8S cluster.
+
+```rust
+get_property(vec![
+  "cluster_metadata",
+  "filter_metadata",
+  "istio",
+  "services",
+  "0",
+  "host",
+])
+```
+
+As the hostname contains the service name and the namespace, we simply extract these values from the string, send them in a request to the burst metrics service and attach the resulting metrics into the request as usual. Quite important to note that the burst metrics service should now support endpoints for the service name, since that's the only information available within the WASM filter. Refer to the [API Endpoints](burst/README.md#api-endpoints) for more information on the burst metrics service endpoints.
 
 ## Use custom metrics from prometheus
 
