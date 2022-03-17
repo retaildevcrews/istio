@@ -40,6 +40,18 @@
                 "${workspaceFolder}/burstsvc/burst/Ngsa.BurstService.csproj"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build burst service test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/burstsvc/burst.tests/Ngsa.BurstService.Test.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }

@@ -12,14 +12,21 @@
     <LangVersion>Latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup> 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <!-- See this for details: https://docs.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#preservecompilationcontext-->
+    <ProduceReferenceAssemblyInOutDir>true</ProduceReferenceAssemblyInOutDir>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Experimental'">
+    <!-- See this for details: https://docs.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#preservecompilationcontext-->
+    <ProduceReferenceAssemblyInOutDir>true</ProduceReferenceAssemblyInOutDir>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
     <DefineConstants>TRACE;DEBUG;EXPERIMENTAL</DefineConstants>
   </PropertyGroup>
 
@@ -31,12 +38,18 @@
     <None Include="src\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup> <!-- To make internal fields available to our unit test project -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+    <_Parameter1>$(AssemblyName).tests</_Parameter1> <!-- We use the value of AssemblyName to declare the value of the attribute -->
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="KubernetesClient" Version="7.0.11" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
     <PackageReference Include="Microsoft.CorrelationVector" Version="1.0.42" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3">
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
