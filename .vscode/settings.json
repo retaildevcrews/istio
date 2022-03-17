@@ -12,8 +12,15 @@
     "files.insertFinalNewline": true,
     "omnisharp.enableRoslynAnalyzers": true,
     "omnisharp.enableEditorConfigSupport": true,
+    // C# Specific Configuration
+    "[csharp]": {
+        "editor.formatOnSave": true
+    },
     // Yaml
     "[yaml]": {
         "editor.defaultFormatter": "redhat.vscode-yaml"
     },
+    "csharp.referencesCodeLens.enabled": true,
+    "csharp.testsCodeLens.enabled": true,
+    // "omnisharp.useModernNet": true,
 }

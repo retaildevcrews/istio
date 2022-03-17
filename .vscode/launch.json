@@ -5,10 +5,10 @@
             // Use IntelliSense to find out which attributes exist for C# debugging
             // Use hover for the description of the existing attributes
             // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
-            "name": ".NET Core Launch (web)",
+            "name": "Launch burst svc(web)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build burst service",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/burstsvc/burst/bin/Debug/net5.0/burstservice.dll",
             "args": [],
@@ -30,6 +30,22 @@
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
+        },
+        {
+            // Use IntelliSense to find out which attributes exist for C# debugging
+            // Use hover for the description of the existing attributes
+            // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+            "name": "Launch Burst svc test(console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build burst service test",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/burstsvc/burst.tests/bin/Debug/net5.0/burstservice.tests.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/burstsvc/burst.tests",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
         }
     ]
 }

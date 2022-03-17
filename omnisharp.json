@@ -11,9 +11,9 @@
         "enableEditorConfigSupport": true
     },
     "RenameOptions": {
-        "RenameInComments": true,
-        "RenameOverloads": true,
-        "RenameInStrings": true
+        "RenameOverloads": true
+        // "RenameInComments": true,
+        // "RenameInStrings": true
     },
     "fileOptions": {
         "systemExcludeSearchPatterns": [
