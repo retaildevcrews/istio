@@ -14,57 +14,6 @@ namespace Burst.Tests.UnitTests
     /// </summary>
     public class HPAExtensionTest
     {
-        private readonly V2beta2HorizontalPodAutoscalerList listOfHpa;
-        private readonly List<HPAEssentials> nsDeploy = new()
-        {
-            new(
-                deployment: "deploy1",
-                @namespace: "ns1",
-                maxReplicas: 10,
-                minReplicas: 1,
-                currentReplicas: 1,
-                targetPercent: .8,
-                apiVersion: "v2beta2"),
-            new(
-                deployment: "deploy2",
-                @namespace: "ns2",
-                maxReplicas: 5,
-                minReplicas: 2,
-                currentReplicas: 3,
-                targetPercent: .5,
-                apiVersion: "v1"),
-            new(
-                deployment: "deploy3",
-                @namespace: "ns1",
-                maxReplicas: 100,
-                minReplicas: 50,
-                currentReplicas: 77,
-                targetPercent: .9,
-                apiVersion: "v3"),
-            new(
-                deployment: "deploy4",
-                @namespace: "ns2",
-                maxReplicas: 5,
-                minReplicas: 1,
-                currentReplicas: 2,
-                targetPercent: 0,
-                apiVersion: "v2beta2"),
-        };
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="K8sHPAMapTest"/> class.
-        /// </summary>
-        public HPAExtensionTest()
-        {
-            List<V2beta2HorizontalPodAutoscaler> hpas = new();
-            foreach (var hPAEssentials in this.nsDeploy)
-            {
-                hpas.Add(hPAEssentials.FakeHpa);
-            }
-
-            this.listOfHpa = new V2beta2HorizontalPodAutoscalerList(hpas);
-        }
-
         /// <summary>
         /// Testing ToHPAMetrics function.
         /// </summary>
@@ -72,17 +21,26 @@ namespace Burst.Tests.UnitTests
         [Trait("Category", "UnitTest")]
         public void TestToHPAMetrics()
         {
-            foreach (var hpa in this.nsDeploy)
+            //Arragne
+            var fakeHPAList = GenerateFakeHpa();
+            foreach (var hpa in fakeHPAList)
             {
+                // Act
                 var metrics = hpa.FakeHpa.ToHPAMetrics(hpa.TargetPercent);
-                // System.Console.WriteLine("Actual {0}\nExpect {1}", metrics.ToString(), hpa.ExpectedMetrics.ToString());
+
+                // Assert K8sHPAMetrics ToString and implicit string
                 Assert.True(hpa.ExpectedMetrics.ToString() == metrics.ToString());
+                Assert.True((string)hpa.ExpectedMetrics == (string)metrics);
+
                 Assert.True(
                    hpa.ExpectedMetrics.CurrentLoad == metrics.CurrentLoad
                     && hpa.ExpectedMetrics.TargetLoad == metrics.TargetLoad
                     && hpa.ExpectedMetrics.MaxLoad == metrics.MaxLoad
                     && hpa.ExpectedMetrics.Service == metrics.Service);
             }
+
+            V2beta2HorizontalPodAutoscaler nullHpa = null;
+            Assert.Null(nullHpa.ToHPAMetrics(0.0));
         }
 
         /// <summary>
@@ -92,11 +50,22 @@ namespace Burst.Tests.UnitTests
         [Trait("Category", "UnitTest")]
         public void TestGetCurrentLoad()
         {
-            foreach (var hpa in this.nsDeploy)
+            // Arrange
+            var fakeHPAList = GenerateFakeHpa();
+            foreach (var hpa in fakeHPAList)
             {
+                // Act
                 var currentLoad = hpa.FakeHpa.GetCurrentLoad();
+
+                // Assert
                 Assert.Equal(hpa.CurrentReplicas, currentLoad);
             }
+
+            V2beta2HorizontalPodAutoscaler nullHpa = null;
+            Assert.Throws<Exception>(() => nullHpa.GetCurrentLoad());
+            nullHpa = fakeHPAList[0].FakeHpa;
+            nullHpa.Status = null;
+            Assert.Throws<Exception>(() => nullHpa.GetCurrentLoad());
         }
 
         /// <summary>
@@ -106,11 +75,61 @@ namespace Burst.Tests.UnitTests
         [Trait("Category", "UnitTest")]
         public void TestGetMaxLoad()
         {
-            foreach (var hpa in this.nsDeploy)
+            // Arrange
+            var fakeHPAList = GenerateFakeHpa();
+            foreach (var hpa in fakeHPAList)
             {
+                // Act
                 var maxLoad = hpa.FakeHpa.GetMaxLoad();
+
+                // Assert
                 Assert.Equal(hpa.MaxReplicas, maxLoad);
             }
+
+            V2beta2HorizontalPodAutoscaler nullHpa = null;
+            Assert.Throws<Exception>(() => nullHpa.GetMaxLoad());
+            nullHpa = fakeHPAList[0].FakeHpa;
+            nullHpa.Spec = null;
+            Assert.Throws<Exception>(() => nullHpa.GetMaxLoad());
+        }
+
+        private List<HPAEssentials> GenerateFakeHpa()
+        {
+            return new List<HPAEssentials>()
+            {
+                new(
+                deployment: "deploy1",
+                @namespace: "ns1",
+                maxReplicas: 10,
+                minReplicas: 1,
+                currentReplicas: 1,
+                targetPercent: .8,
+                apiVersion: "v2beta2"),
+                new(
+                deployment: "deploy2",
+                @namespace: "ns2",
+                maxReplicas: 5,
+                minReplicas: 2,
+                currentReplicas: 3,
+                targetPercent: .5,
+                apiVersion: "v1"),
+                new(
+                deployment: "deploy3",
+                @namespace: "ns1",
+                maxReplicas: 100,
+                minReplicas: 50,
+                currentReplicas: 77,
+                targetPercent: .9,
+                apiVersion: "v3"),
+                new(
+                deployment: "deploy4",
+                @namespace: "ns2",
+                maxReplicas: 5,
+                minReplicas: 1,
+                currentReplicas: 2,
+                targetPercent: 0,
+                apiVersion: "v2beta2"),
+            };
         }
 
         internal struct HPAEssentials
