@@ -36,4 +36,9 @@ ln -s /workspaces/istio/omnisharp.json $HOME/.omnisharp
 # Add omz plugins for easier development
 omz plugin enable git gitfast docker dotnet kubectl rust vscode
 
+# For unittest report
+dotnet tool install -g dotnet-reportgenerator-globaltool
+# pip3 install --upgrade setuptools pip distlib
+# pip3 install mdv3
+
 echo "on-create completed" > $HOME/status
