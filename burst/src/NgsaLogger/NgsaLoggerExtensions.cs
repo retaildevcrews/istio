@@ -18,7 +18,7 @@ namespace Ngsa.Middleware
 
         public static ILoggingBuilder AddNgsaLogger(this ILoggingBuilder builder, Action<NgsaLoggerConfiguration> configure)
         {
-            NgsaLoggerConfiguration config = new ();
+            NgsaLoggerConfiguration config = new();
             configure(config);
 
             return builder.AddNgsaLogger(config);
