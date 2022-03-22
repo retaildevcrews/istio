@@ -42,6 +42,7 @@
 		"visualstudioexptteam.vscodeintellicode",
 		"eamodio.gitlens",
 		"redhat.vscode-yaml",
+		"editorconfig.editorconfig",
 		"ms-dotnettools.csharp", // Remove when burst svc is separated
 		"formulahendry.dotnet-test-explorer" // .NET Test runner
 	],
