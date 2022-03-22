@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using Burst.Tests.Helper;
 using k8s.Models;
+using Moq;
 using Ngsa.BurstService.K8sApi;
 using Xunit;
 
@@ -19,24 +21,28 @@ namespace Burst.Tests.UnitTests
         /// </summary>
         [Fact]
         [Trait("Category", "UnitTest")]
-        public void TestToHPAMetrics()
+        public void Test_ToHPAMetrics()
         {
-            //Arragne
-            var fakeHPAList = GenerateFakeHpa();
+            // Arrange 1
+            var fakeHPAList = HPAEssentials.GenerateHPAEssentials();
             foreach (var hpa in fakeHPAList)
             {
+                // Arrange 2
+                var mockHpa = hpa.CreateMockHPA();
+                var expectedMetrics = hpa.CreateExpectedMetrics();
+
                 // Act
-                var metrics = hpa.FakeHpa.ToHPAMetrics(hpa.TargetPercent);
+                var metrics = mockHpa.ToHPAMetrics(hpa.TargetPercent);
 
                 // Assert K8sHPAMetrics ToString and implicit string
-                Assert.True(hpa.ExpectedMetrics.ToString() == metrics.ToString());
-                Assert.True((string)hpa.ExpectedMetrics == (string)metrics);
+                Assert.True(expectedMetrics.ToString() == metrics.ToString());
+                Assert.True((string)expectedMetrics == (string)metrics);
 
                 Assert.True(
-                   hpa.ExpectedMetrics.CurrentLoad == metrics.CurrentLoad
-                    && hpa.ExpectedMetrics.TargetLoad == metrics.TargetLoad
-                    && hpa.ExpectedMetrics.MaxLoad == metrics.MaxLoad
-                    && hpa.ExpectedMetrics.Service == metrics.Service);
+                       expectedMetrics.CurrentLoad == metrics.CurrentLoad
+                    && expectedMetrics.TargetLoad == metrics.TargetLoad
+                    && expectedMetrics.MaxLoad == metrics.MaxLoad
+                    && expectedMetrics.Service == metrics.Service);
             }
 
             V2beta2HorizontalPodAutoscaler nullHpa = null;
@@ -48,14 +54,17 @@ namespace Burst.Tests.UnitTests
         /// </summary>
         [Fact]
         [Trait("Category", "UnitTest")]
-        public void TestGetCurrentLoad()
+        public void Test_GetCurrentLoad()
         {
-            // Arrange
-            var fakeHPAList = GenerateFakeHpa();
+            // Arrange 1
+            var fakeHPAList = HPAEssentials.GenerateHPAEssentials();
             foreach (var hpa in fakeHPAList)
             {
+                // Arrange 2
+                var mockHpa = hpa.CreateMockHPA();
+
                 // Act
-                var currentLoad = hpa.FakeHpa.GetCurrentLoad();
+                var currentLoad = mockHpa.GetCurrentLoad();
 
                 // Assert
                 Assert.Equal(hpa.CurrentReplicas, currentLoad);
@@ -63,8 +72,9 @@ namespace Burst.Tests.UnitTests
 
             V2beta2HorizontalPodAutoscaler nullHpa = null;
             Assert.Throws<Exception>(() => nullHpa.GetCurrentLoad());
-            nullHpa = fakeHPAList[0].FakeHpa;
-            nullHpa.Status = null;
+
+            var mockHpa2 = fakeHPAList[0].CreateMockHPA();
+            mockHpa2.Status = null;
             Assert.Throws<Exception>(() => nullHpa.GetCurrentLoad());
         }
 
@@ -73,14 +83,17 @@ namespace Burst.Tests.UnitTests
         /// </summary>
         [Fact]
         [Trait("Category", "UnitTest")]
-        public void TestGetMaxLoad()
+        public void Test_GetMaxLoad()
         {
             // Arrange
-            var fakeHPAList = GenerateFakeHpa();
+            var fakeHPAList = HPAEssentials.GenerateHPAEssentials();
             foreach (var hpa in fakeHPAList)
             {
+                // Arrange
+                var mockHpa = hpa.CreateMockHPA();
+
                 // Act
-                var maxLoad = hpa.FakeHpa.GetMaxLoad();
+                var maxLoad = mockHpa.GetMaxLoad();
 
                 // Assert
                 Assert.Equal(hpa.MaxReplicas, maxLoad);
@@ -88,89 +101,9 @@ namespace Burst.Tests.UnitTests
 
             V2beta2HorizontalPodAutoscaler nullHpa = null;
             Assert.Throws<Exception>(() => nullHpa.GetMaxLoad());
-            nullHpa = fakeHPAList[0].FakeHpa;
-            nullHpa.Spec = null;
+            var anotherMock = fakeHPAList[0].CreateMockHPA();
+            anotherMock.Spec = null;
             Assert.Throws<Exception>(() => nullHpa.GetMaxLoad());
-        }
-
-        private List<HPAEssentials> GenerateFakeHpa()
-        {
-            return new List<HPAEssentials>()
-            {
-                new(
-                deployment: "deploy1",
-                @namespace: "ns1",
-                maxReplicas: 10,
-                minReplicas: 1,
-                currentReplicas: 1,
-                targetPercent: .8,
-                apiVersion: "v2beta2"),
-                new(
-                deployment: "deploy2",
-                @namespace: "ns2",
-                maxReplicas: 5,
-                minReplicas: 2,
-                currentReplicas: 3,
-                targetPercent: .5,
-                apiVersion: "v1"),
-                new(
-                deployment: "deploy3",
-                @namespace: "ns1",
-                maxReplicas: 100,
-                minReplicas: 50,
-                currentReplicas: 77,
-                targetPercent: .9,
-                apiVersion: "v3"),
-                new(
-                deployment: "deploy4",
-                @namespace: "ns2",
-                maxReplicas: 5,
-                minReplicas: 1,
-                currentReplicas: 2,
-                targetPercent: 0,
-                apiVersion: "v2beta2"),
-            };
-        }
-
-        internal struct HPAEssentials
-        {
-            public string Namespace;
-            public string Deployment;
-            public int MaxReplicas;
-            public int MinReplicas;
-            public int CurrentReplicas;
-            public string ApiVersion;
-            public double TargetPercent;
-            public V2beta2HorizontalPodAutoscaler FakeHpa;
-            public K8sHPAMetrics ExpectedMetrics;
-
-            public HPAEssentials(string @namespace, string deployment, int maxReplicas, int minReplicas, int currentReplicas, double targetPercent, string apiVersion)
-            {
-                this.Namespace = @namespace;
-                this.Deployment = deployment;
-                this.MaxReplicas = maxReplicas;
-                this.MinReplicas = minReplicas;
-                this.CurrentReplicas = currentReplicas;
-                this.TargetPercent = targetPercent;
-                this.ApiVersion = apiVersion;
-
-                this.FakeHpa = new V2beta2HorizontalPodAutoscaler()
-                {
-                    Metadata = new V1ObjectMeta(name: this.Deployment, namespaceProperty: this.Namespace),
-                    Spec = new V2beta2HorizontalPodAutoscalerSpec(maxReplicas: this.MaxReplicas, minReplicas: this.MinReplicas, scaleTargetRef: new V2beta2CrossVersionObjectReference(kind: "Deployment", name: this.Deployment, apiVersion: this.ApiVersion)),
-                    Status = new V2beta2HorizontalPodAutoscalerStatus(currentReplicas: currentReplicas, desiredReplicas: maxReplicas),
-                };
-
-                var calcReplica = Math.Floor(this.MaxReplicas * this.TargetPercent);
-
-                this.ExpectedMetrics = new K8sHPAMetrics()
-                {
-                    Service = string.Format("{0}/{1}", this.Namespace, this.Deployment),
-                    CurrentLoad = this.CurrentReplicas,
-                    TargetLoad = (int?)(calcReplica < 1 ? this.MaxReplicas : calcReplica),
-                    MaxLoad = this.MaxReplicas,
-                };
-            }
         }
     }
 }
