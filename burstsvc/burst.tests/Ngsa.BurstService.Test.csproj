@@ -52,6 +52,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="moq" Version="4.17.2" />
   </ItemGroup>
 
   <ItemGroup>
