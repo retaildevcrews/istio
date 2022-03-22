@@ -17,15 +17,7 @@ namespace Ngsa.BurstService.Controllers
         public BurstMetricsController(ILogger<BurstMetricsController> logger, IK8sHPAMetricsService timedService)
         {
             this.logger = logger;
-            if (timedService != null)
-            {
-                // _logger.LogInformation("Got it right");
-                service = timedService;
-            }
-            else
-            {
-                // _logger.LogInformation("Something is wrong");
-            }
+            service = timedService;
         }
 
         [HttpGet("{target}s/")]
