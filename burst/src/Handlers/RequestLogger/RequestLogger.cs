@@ -134,7 +134,7 @@ namespace Ngsa.Middleware
 
             string category = "TODO";
 
-            Dictionary<string, object> log = new ()
+            Dictionary<string, object> log = new()
             {
                 { "Date", dt },
                 { "LogName", "Ngsa.RequestLog" },

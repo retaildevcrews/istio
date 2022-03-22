@@ -35,8 +35,8 @@ namespace Ngsa.BurstService
             }
 
             // create the dictionaries
-            Dictionary<string, object> result = new ();
-            Dictionary<string, object> checks = new ();
+            Dictionary<string, object> result = new();
+            Dictionary<string, object> checks = new();
 
             // add header values
             result.Add("status", IetfCheck.ToIetfStatus(healthReport.Status));
@@ -87,7 +87,7 @@ namespace Ngsa.BurstService
             }
 
             // Convert the HealthCheckResult to a HealthReport
-            HealthReport rpt = new (
+            HealthReport rpt = new(
                 new Dictionary<string, HealthReportEntry> { { CosmosHealthCheck.ServiceId, new HealthReportEntry(res.Status, res.Description, totalTime, res.Exception, res.Data) } },
                 totalTime);
 

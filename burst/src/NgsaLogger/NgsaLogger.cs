@@ -50,7 +50,7 @@ namespace Ngsa.Middleware
                 return;
             }
 
-            Dictionary<string, object> d = new ()
+            Dictionary<string, object> d = new()
             {
                 { "logName", name },
                 { "logLevel", logLevel.ToString() },

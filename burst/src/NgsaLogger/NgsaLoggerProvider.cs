@@ -12,7 +12,7 @@ namespace Ngsa.Middleware
     public sealed class NgsaLoggerProvider : ILoggerProvider
     {
         private readonly NgsaLoggerConfiguration config;
-        private readonly ConcurrentDictionary<string, NgsaLogger> loggers = new ();
+        private readonly ConcurrentDictionary<string, NgsaLogger> loggers = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NgsaLoggerProvider"/> class.

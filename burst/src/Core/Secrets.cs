@@ -32,7 +32,7 @@ namespace Ngsa.BurstService
             }
 
             // get k8s secrets from volume
-            Secrets sec = new ()
+            Secrets sec = new()
             {
                 Volume = volume,
             };

@@ -16,7 +16,7 @@ namespace Ngsa.BurstService
     public partial class CosmosHealthCheck : IHealthCheck
     {
         private const int MaxResponseTime = 200;
-        private readonly Stopwatch stopwatch = new ();
+        private readonly Stopwatch stopwatch = new();
 
         /// <summary>
         /// Build the response
@@ -32,7 +32,7 @@ namespace Ngsa.BurstService
             stopwatch.Stop();
 
             // create the result
-            HealthzCheck result = new ()
+            HealthzCheck result = new()
             {
                 Endpoint = uri,
                 Status = HealthStatus.Healthy,
