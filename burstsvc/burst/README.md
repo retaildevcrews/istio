@@ -4,6 +4,26 @@ Burst metrics service is responsible for reading HPA metrics from a Kubernetes(k
 
 The service captures current pod count and target pod count from an HPA.
 
+## Dockerfile Notes
+
+The `Dockerfile` contains conditional multi-stage steps and is build directory dependent.
+
+Because `Dockerfile` copies the `burst` and `burst.tests` folders, the build context directory has to be one above the `Dockerfile` directory.
+
+To simply build without any unit tests:
+
+```bash
+# Assuming you are in repo root directory
+ docker build ./burstsvc -f ./burstsvc/burst/Dockerfile -t burst
+```
+
+To run with unittest:
+
+```bash
+# Assuming you are in repo root directory
+ docker build ./burstsvc -f ./burstsvc/burst/Dockerfile -t burst --build-arg BUILD_ENV=unittest
+```
+
 ## Deployment/usage
 
 Deploying in a local cluster is easy and straightforward.
