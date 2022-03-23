@@ -19,7 +19,7 @@ namespace Ngsa.BurstService
     public sealed partial class App
     {
         // capture parse errors from env vars
-        private static readonly List<string> EnvVarErrors = new ();
+        private static readonly List<string> EnvVarErrors = new();
 
         /// <summary>
         /// Run the app
@@ -28,7 +28,7 @@ namespace Ngsa.BurstService
         /// <returns>status</returns>
         public static async Task<int> RunApp(Config config)
         {
-            NgsaLog logger = new () { Name = typeof(App).FullName };
+            NgsaLog logger = new() { Name = typeof(App).FullName };
 
             // start collecting CPU usage
             CpuCounter.Start();
@@ -81,7 +81,7 @@ namespace Ngsa.BurstService
         /// <returns>RootCommand</returns>
         public static RootCommand BuildRootCommand()
         {
-            RootCommand root = new ()
+            RootCommand root = new()
             {
                 Name = "Ngsa.BurstService",
                 Description = "NGSA Validation App",
@@ -182,7 +182,7 @@ namespace Ngsa.BurstService
                 }
             }
 
-            Option<int> opt = new (names, () => value, description);
+            Option<int> opt = new(names, () => value, description);
 
             opt.AddValidator((res) =>
             {

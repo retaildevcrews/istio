@@ -125,9 +125,9 @@ namespace Ngsa.BurstService.K8sApi
         public void CreateHPAMap(IKubernetes k8sClient, K8sScaleTargetType target, IReadOnlyList<string> selectorLabels)
         {
             var v2HpaList = k8sClient.ListHorizontalPodAutoscalerForAllNamespaces3(timeoutSeconds: 1);
-            HPADictionary newHpaMap = new ();
-            HPADictionary newDeploymentMap = new ();
-            HPADictionary newSvcMap = new ();
+            HPADictionary newHpaMap = new();
+            HPADictionary newDeploymentMap = new();
+            HPADictionary newSvcMap = new();
 
             // Iterate through the list and map HPA
             foreach (K8sHPAObj hpa in v2HpaList.Items)

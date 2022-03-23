@@ -44,7 +44,7 @@ namespace Ngsa.BurstService
         {
             if (args != null)
             {
-                ReadOnlySpan<string> cmd = new (args);
+                ReadOnlySpan<string> cmd = new(args);
 
                 if (!cmd.Contains("--version") &&
                     (cmd.Contains("-h") ||
@@ -78,7 +78,7 @@ namespace Ngsa.BurstService
         // Create a CancellationTokenSource that cancels on ctl-c or sigterm
         private static CancellationTokenSource SetupSigTermHandler(IWebHost host, NgsaLog logger)
         {
-            CancellationTokenSource ctCancel = new ();
+            CancellationTokenSource ctCancel = new();
 
             Console.CancelKeyPress += async (sender, e) =>
             {

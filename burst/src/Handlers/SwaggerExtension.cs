@@ -29,7 +29,7 @@ namespace Ngsa.Middleware
         /// <returns>ApplicationBuilder</returns>
         public static IApplicationBuilder UseSwaggerReplaceJson(this IApplicationBuilder builder, string jsonPath, string urlPrefix)
         {
-            FileInfo fi = new (jsonPath);
+            FileInfo fi = new(jsonPath);
 
             if (!fi.Exists)
             {

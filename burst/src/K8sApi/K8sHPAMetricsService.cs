@@ -29,7 +29,7 @@ namespace Ngsa.BurstService.K8sApi
         public K8sHPAMetricsService(ILogger<K8sHPAMetricsService> logger, IConfiguration configuration)
         {
             this.logger = logger;
-            this.hpaMap = new (logger);
+            this.hpaMap = new(logger);
 
             // Get the Target Scale Object (usually deployment)
             this.scaleTargetType = Enum.TryParse(configuration["Service:TargetScaleObj"], true, out K8sScaleTargetType parsed) ? parsed : K8sScaleTargetType.Deployment;

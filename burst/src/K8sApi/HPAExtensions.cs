@@ -12,7 +12,7 @@ namespace Ngsa.BurstService.K8sApi
         {
             if (hpa != null)
             {
-                K8sHPAMetrics hpaMetrics = new ();
+                K8sHPAMetrics hpaMetrics = new();
 
                 // Get the Target CPU load
                 hpaMetrics.MaxLoad = hpa.GetMaxLoad();
