@@ -21,8 +21,7 @@ all : delete
 	cd .. && cp target/wasm32-unknown-unknown/release/burst_header.wasm .
 
 	# build burst service
-	docker build ../burstsvc/burst -t localhost:5000/burst:local
-	docker push localhost:5000/burst:local
+	$(MAKE) -f ../burstsvc/burst/Makefile build
 
 	# wait for cluster to be ready
 	@kubectl wait node --for condition=ready --all --timeout=60s

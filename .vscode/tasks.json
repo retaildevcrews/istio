@@ -71,7 +71,7 @@
             "isTestCommand": true,
             "args": [
                 "-c",
-                "${workspaceFolder}/burstsvc/burst.tests/gen_coverage_report.bash"], // 
+                "${workspaceFolder}/burstsvc/burst.tests/gen_coverage_report.sh"], // 
             "problemMatcher": ["$msCompile"]
         }
     ]

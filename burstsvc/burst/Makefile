@@ -1,3 +1,4 @@
+MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 .PHONY: build check clean deploy
 
 help :
@@ -18,7 +19,7 @@ clean :
 
 build :
 	# build burst metrics server
-	@docker build . -t localhost:5000/burst:local
+	@docker build $(MAKEFILE_DIR)/../ -f $(MAKEFILE_DIR)/Dockerfile -t localhost:5000/burst:local
 	@docker push localhost:5000/burst:local
 
 run-local:
