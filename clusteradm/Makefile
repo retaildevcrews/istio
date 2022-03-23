@@ -21,8 +21,7 @@ all : delete
 	cd .. && cp target/wasm32-unknown-unknown/release/burst_header.wasm .
 
 	# build burst service
-	docker build ../burst -t localhost:5000/burst:local
-	docker push localhost:5000/burst:local
+	$(MAKE) -f ../burstsvc/burst/Makefile build
 
 	# wait for cluster to be ready
 	@kubectl wait node --for condition=ready --all --timeout=60s
@@ -38,7 +37,7 @@ all : delete
 	@kubectl create cm burst-wasm-filter --from-file=../burst_header.wasm
 
 	# deploy apps
-	@kubectl apply -f ../burst/deploy
+	@kubectl apply -f ../burstsvc/burst/deploy
 	@kubectl apply -f ../deploy/ngsa-memory/ngsa-memory.yaml
 	@kubectl apply -f ../deploy/ngsa-memory/ngsa-gw.yaml
 

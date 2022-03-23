@@ -1,0 +1,78 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build burst service",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/burstsvc/burst/Ngsa.BurstService.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "publish burst service",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/burstsvc/burst/Ngsa.BurstService.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch burst service",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/burstsvc/burst/Ngsa.BurstService.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build burst service test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/burstsvc/burst.tests/Ngsa.BurstService.Test.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "burst svc unittest",
+            "type": "process",
+            "command": "bash",
+            "isTestCommand": true,
+            "args": [
+                "-c","dotnet test ${workspaceFolder}/burstsvc/burst.tests --collect:'XPlat Code Coverage' --logger 'console;verbosity=normal' --filter 'Category=UnitTest'"
+            ],
+            "problemMatcher": ["$msCompile"]
+        },
+        {
+            "label": "burst svc unittest (with coverage)",
+            "dependsOn" : "burst svc unittest",
+            "type": "process",
+            "command": "bash",
+            "isTestCommand": true,
+            "args": [
+                "-c",
+                "${workspaceFolder}/burstsvc/burst.tests/gen_coverage_report.sh"], // 
+            "problemMatcher": ["$msCompile"]
+        }
+    ]
+}

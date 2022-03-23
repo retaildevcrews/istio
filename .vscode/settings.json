@@ -1,0 +1,27 @@
+{
+    "editor.suggestSelection": "first",
+    "editor.renderControlCharacters": true,
+    "editor.copyWithSyntaxHighlighting": false,
+    "editor.renderWhitespace": "selection",
+    "editor.rulers": [
+        79,
+        118
+    ],
+    // For .net test
+    "dotnet-test-explorer.testProjectPath": "./burstsvc/**/*Test.@(csproj|vbproj|fsproj)",
+    "files.insertFinalNewline": true,
+    // C# Specific Configuration
+    "[csharp]": {
+        "editor.formatOnSave": true
+    },
+    // Yaml
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "csharp.referencesCodeLens.enabled": true,
+    "csharp.testsCodeLens.enabled": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.organizeImportsOnFormat": true
+    // "omnisharp.useModernNet": true,
+}

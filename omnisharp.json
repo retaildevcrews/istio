@@ -1,0 +1,28 @@
+// Followed: https://github.com/OmniSharp/omnisharp-roslyn/wiki/Configuration-Options
+// And     : https://www.strathweb.com/2020/02/hidden-features-of-omnisharp-and-c-extension-for-vs-code/
+{
+    "RoslynExtensionsOptions": {
+        "enableAnalyzersSupport": true,
+        "enableDecompilationSupport": true,
+        "enableImportCompletion": true
+    },
+    "FormattingOptions": {
+        "OrganizeImports": true,
+        "enableEditorConfigSupport": true
+    },
+    "RenameOptions": {
+        "RenameOverloads": true
+        // "RenameInComments": true,
+        // "RenameInStrings": true
+    },
+    "fileOptions": {
+        "systemExcludeSearchPatterns": [
+          "**/node_modules/**/*",
+          "**/bin/**/*",
+          "**/obj/**/*",
+          "**/target/**/*",
+          "**/deploy/**/*"
+        ],
+        "excludeSearchPatterns": []
+      }
+}

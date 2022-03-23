@@ -29,4 +29,16 @@ make all
 cd ..
 make deploy
 
+# Setup omnisharp global configuration
+mkdir -p $HOME/.omnisharp
+ln -s /workspaces/istio/omnisharp.json $HOME/.omnisharp
+
+# Add omz plugins for easier cli typing
+sed -i 's#(git)#(git gitfast docker dotnet kubectl rust vscode)#g' ~/.zshrc
+
+# For unittest report
+dotnet tool install -g dotnet-reportgenerator-globaltool
+# pip3 install --upgrade setuptools pip distlib
+# pip3 install mdv3
+
 echo "on-create completed" > $HOME/status

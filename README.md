@@ -111,7 +111,7 @@ get_property(vec![
 ])
 ```
 
-As the hostname contains the service name and the namespace, we simply extract these values from the string, send them in a request to the burst metrics service and attach the resulting metrics into the request as usual. Quite important to note that the burst metrics service should now support endpoints for the service name, since that's the only information available within the WASM filter. Refer to the [API Endpoints](burst/README.md#api-endpoints) for more information on the burst metrics service endpoints.
+As the hostname contains the service name and the namespace, we simply extract these values from the string, send them in a request to the burst metrics service and attach the resulting metrics into the request as usual. Quite important to note that the burst metrics service should now support endpoints for the service name, since that's the only information available within the WASM filter. Refer to the [API Endpoints](./burstsvc/burst/README.md#api-endpoints) for more information on the burst metrics service endpoints.
 
 ## Use custom metrics from prometheus
 

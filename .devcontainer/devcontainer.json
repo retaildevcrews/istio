@@ -12,6 +12,7 @@
 	},
 	// Forwarded ports
 	"forwardPorts": [
+		30000,
 		30080,
 		30081
 	],
@@ -40,7 +41,10 @@
 		"serayuzgur.crates",
 		"visualstudioexptteam.vscodeintellicode",
 		"eamodio.gitlens",
-		"ms-dotnettools.csharp" // Remove when burst svc is separated
+		"redhat.vscode-yaml",
+		"editorconfig.editorconfig",
+		"ms-dotnettools.csharp", // Remove when burst svc is separated
+		"formulahendry.dotnet-test-explorer" // .NET Test runner
 	],
 
 	// Run Bash scripts

@@ -13,9 +13,9 @@ on:
     - opened
     - synchronize
     paths:
-    - 'burst/Dockerfile'
-    - 'burst/*.csproj'
-    - 'burst/**.cs'
+    - 'burstsvc/burst/Dockerfile'
+    - 'burstsvc/burst/*.csproj'
+    - 'burstsvc/burst/**.cs'
     - '.github/workflows/burst.yaml'
     - 'autogitops/**'
 
@@ -24,9 +24,9 @@ on:
       - main
 
     paths:
-    - 'burst/Dockerfile'
-    - 'burst/*.csproj'
-    - 'burst/**.cs'
+    - 'burstsvc/burst/Dockerfile'
+    - 'burstsvc/burst/*.csproj'
+    - 'burstsvc/burst/**.cs'
     - '.github/workflows/burst.yaml'
     - 'autogitops/**'
 
@@ -51,7 +51,7 @@ jobs:
 
     - name: Docker Build
       run: |
-        docker build ./burst --progress auto -t image
+        docker build ./burstsvc/ -f ./burstsvc/burst/Dockerfile --build-arg BUILD_ENV=unittest --progress auto -t image
 
     - name: Docker Tag and Push
       if: github.event_name == 'push' # Push the image only on git push
