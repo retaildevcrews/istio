@@ -1,18 +1,23 @@
+ARG BUILD_ENV=
 ### Build and Test the App
 FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
 
 ### copy the source and tests
 COPY burst/ /src/burst/
-COPY burst.tests/ /src/burst.tests/
 
 WORKDIR /src/burst
 
-# build the app
-RUN dotnet test /src/burst.tests/ --collect:'XPlat Code Coverage' --logger 'console;verbosity=normal' --filter 'Category=UnitTest' \
-    && dotnet tool install dotnet-reportgenerator-globaltool --tool-path /usr/local/bin \
-    &&./../burst.tests/gen_coverage_report.bash \
-    && dotnet publish -c Release -o /app
+FROM build AS buildunittest
+ONBUILD COPY burst.tests/ /src/burst.tests/
 
+# build the app
+ONBUILD RUN dotnet test /src/burst.tests/ --collect:'XPlat Code Coverage' --logger 'console;verbosity=normal' --filter 'Category=UnitTest' \
+    && dotnet tool install dotnet-reportgenerator-globaltool --tool-path /usr/local/bin \
+    &&./../burst.tests/gen_coverage_report.sh
+
+FROM build${BUILD_ENV} as publish
+ 
+RUN dotnet publish -c Release -o /app
 ###########################################################
 
 
@@ -34,6 +39,6 @@ RUN addgroup -S ngsa && \
 USER ngsa
 
 ### copy the app
-COPY --from=build /app .
+COPY --from=publish /app .
 
 ENTRYPOINT [ "dotnet",  "burstservice.dll" ]
