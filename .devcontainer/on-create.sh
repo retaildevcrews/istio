@@ -33,8 +33,8 @@ make deploy
 mkdir -p $HOME/.omnisharp
 ln -s /workspaces/istio/omnisharp.json $HOME/.omnisharp
 
-# Add omz plugins for easier development
-omz plugin enable git gitfast docker dotnet kubectl rust vscode
+# Add omz plugins for easier cli typing
+sed -i 's#(git)#(git gitfast docker dotnet kubectl rust vscode)#g' ~/.zshrc
 
 # For unittest report
 dotnet tool install -g dotnet-reportgenerator-globaltool
