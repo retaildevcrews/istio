@@ -20,7 +20,7 @@ namespace Ngsa.BurstService.K8sApi
     public class K8sHPAMetricsService : IHostedService, IDisposable, IK8sHPAMetricsService
     {
         private readonly ILogger<K8sHPAMetricsService> logger;
-        private readonly IKubernetes client;
+        private readonly K8sClientFacade k8SClientFacade;
         private readonly K8sScaleTargetType scaleTargetType;
         private readonly IReadOnlyList<string> svcSelectors;
         private readonly K8sHPAMap hpaMap;
@@ -36,22 +36,11 @@ namespace Ngsa.BurstService.K8sApi
 
             this.svcSelectors = configuration.GetSection("Service:SelectorLabel").Get<List<string>>();
 
-            KubernetesClientConfiguration config;
-
-            // Create a new config and a client
-            if (KubernetesClientConfiguration.IsInCluster())
+            k8SClientFacade = new K8sClientFacade(logger);
+            if (!k8SClientFacade.BuildK8sConfiguration())
             {
-                // Get In-Cluster Config
-                config = KubernetesClientConfiguration.InClusterConfig();
+                logger?.LogCritical("K8s Client cannot be created");
             }
-            else
-            {
-                // Otherwise get the default config from K8s
-                config = KubernetesClientConfiguration.BuildDefaultConfig();
-            }
-
-            // Create a k8s client from config
-            client = new Kubernetes(config);
         }
 
         public HPADictionary GetBulkK8SHPAMetrics(K8sScaleTargetType target)
@@ -148,7 +137,7 @@ namespace Ngsa.BurstService.K8sApi
             // Call the K8s API
             try
             {
-                hpaMap.CreateHPAMap(client, this.scaleTargetType, this.svcSelectors);
+                hpaMap.CreateHPAMap(this.k8SClientFacade, this.scaleTargetType, this.svcSelectors);
             }
             catch (Exception ex)
             {
