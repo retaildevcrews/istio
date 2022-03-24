@@ -20,7 +20,7 @@ namespace Ngsa.BurstService.K8sApi
     public class K8sHPAMetricsService : IHostedService, IDisposable, IK8sHPAMetricsService
     {
         private readonly ILogger<K8sHPAMetricsService> logger;
-        private readonly K8sClientFacade k8SClientFacade;
+        private readonly IK8sClientFacade k8SClientFacade;
         private readonly K8sScaleTargetType scaleTargetType;
         private readonly IReadOnlyList<string> svcSelectors;
         private readonly K8sHPAMap hpaMap;

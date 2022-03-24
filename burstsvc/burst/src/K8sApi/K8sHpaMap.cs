@@ -122,7 +122,7 @@ namespace Ngsa.BurstService.K8sApi
         /// <param name="k8sClient">List of HPA from K8s Client SDK</param>
         /// <param name="target">HPA's target scale object</param>
         /// <param name="selectorLabels">Labels to match the pods and service</param>
-        public void CreateHPAMap(K8sClientFacade k8sClient, K8sScaleTargetType target, IReadOnlyList<string> selectorLabels)
+        public void CreateHPAMap(IK8sClientFacade k8sClient, K8sScaleTargetType target, IReadOnlyList<string> selectorLabels)
         {
             var v2HpaList = k8sClient.ListHPAForAllNamespaces(timeoutSeconds: 1);
             HPADictionary newHpaMap = new();

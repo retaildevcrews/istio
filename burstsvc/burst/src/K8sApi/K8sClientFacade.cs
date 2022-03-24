@@ -15,21 +15,8 @@ namespace Ngsa.BurstService.K8sApi
     /// <summary>
     /// Handle all /burstmetrics requests.
     /// </summary>
-    public sealed class K8sClientFacade
+    public class K8sClientFacade : IK8sClientFacade
     {
-        public enum K8sConfigType
-        {
-            /// <summary>
-            /// Represents a k8s config from default k8s context.
-            /// </summary>
-            DefaultContext,
-
-            /// <summary>
-            /// Represents a k8s config inside a pod in a cluster.
-            /// </summary>
-            InCluster,
-        }
-
         public IKubernetes K8sObject { get; private set; }
 
         private readonly ILogger logger;
