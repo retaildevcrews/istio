@@ -171,7 +171,6 @@ impl RootContext for RootHandler {
                 // Parse and store the configuration
                 match serde_json::from_slice::<FilterConfig>(c.as_ref()) {
                     Ok(config) => {
-                        // TODO - add validation
                         self.config = config;
                     }
                     Err(e) => {

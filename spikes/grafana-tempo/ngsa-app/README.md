@@ -50,8 +50,6 @@ Options:
 
 > Visual Studio Codespaces is the easiest way to evaluate ngsa.
 
-TODO: Describe opening and running a codespaces
-
 ### Using bash shell
 
 > This will work from a terminal in Visual Studio Codespaces as well

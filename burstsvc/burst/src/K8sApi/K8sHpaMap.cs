@@ -137,7 +137,6 @@ namespace Ngsa.BurstService.K8sApi
                 newHpaMap[CreateDictKey(hpa.Namespace(), hpa.Name())] = hpa.ToHPAMetrics(TargetPercent);
 
                 // Check if the Scale target is the same as target (set in appsettings)
-                // TODO: Explore different scaleTargetRef or make target = deployment as constant
                 if (Enum.TryParse(hpa.Spec.ScaleTargetRef.Kind, true, out K8sScaleTargetType parsed) && parsed == target)
                 {
                     // We have 1-to-1 relationship with HPA and ScaleObject
@@ -197,7 +196,6 @@ namespace Ngsa.BurstService.K8sApi
             {
                 // Exchange the new dictionary with the old one
                 // Do interlocking exchange in case it is being used by different thread
-                // TODO: Might be unncessary to use InterLocking
                 Interlocked.Exchange(ref nsHPAMap, newHpaMap);
                 Interlocked.Exchange(ref nsDeploymentMap, newDeploymentMap);
                 Interlocked.Exchange(ref nsServiceMap, newSvcMap);

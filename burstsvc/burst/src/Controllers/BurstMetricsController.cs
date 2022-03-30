@@ -43,7 +43,6 @@ namespace Ngsa.BurstService.Controllers
             // string cpuTarget = $"{hpaMetrics?.TargetCPULoad}";
             // string cpuCurrent = $"{hpaMetrics?.CurrentCPULoad}";
             // But we can control what to output if we do null
-            // TODO: Set the default value from appsettings.json
 
             if (hpaMetrics == null)
             {

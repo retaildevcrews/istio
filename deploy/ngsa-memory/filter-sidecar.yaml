@@ -40,7 +40,6 @@ spec:
             "service_cluster": "healthcluster",
             "service_authority": "burst.burstservice",
             "service_path": "/burstmetrics/services",
-            "user_agent": "HTTPie/",
             "cache_seconds": 3
           }               
   # "user_agent": "EF-Strati-HealthCheck-Client/1.0",
