@@ -132,7 +132,7 @@ namespace Ngsa.Middleware
         {
             DateTime dt = DateTime.UtcNow;
 
-            string category = "TODO";
+            string category = "BurstMetrics";
 
             Dictionary<string, object> log = new()
             {

@@ -97,7 +97,7 @@ impl Context for RootHandler {
         match self.get_http_call_response_body(0, body_size) {
             Some(body) => {
                 let result = String::from_utf8(body).ok().and_then(|v| {
-                    let parsed: Option<Value> = serde_json::from_str(v.as_str()).ok().unwrap();
+                    let parsed: Option<Value> = serde_json::from_str(v.as_str()).ok();
                     parsed
                 });
                 if let Some(v) = result {
@@ -171,7 +171,6 @@ impl RootContext for RootHandler {
                 // Parse and store the configuration
                 match serde_json::from_slice::<FilterConfig>(c.as_ref()) {
                     Ok(config) => {
-                        // TODO - add validation
                         self.config = config;
                     }
                     Err(e) => {

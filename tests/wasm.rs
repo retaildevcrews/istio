@@ -1,6 +1,5 @@
 #[cfg(test)]
 
-// TODO - this is failing in proxy_wasm::*
 #[path="../src/lib.rs"]
 mod burst_header;
 
