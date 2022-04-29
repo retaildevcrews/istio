@@ -1,0 +1,1109 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 2,
+    "id": 1,
+    "links": [],
+    "panels": [
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 10,
+        "panels": [],
+        "title": "Reliability",
+        "type": "row"
+      },
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 1
+        },
+        "id": 70,
+        "panels": [],
+        "title": "  Server Requests",
+        "type": "row"
+      },
+      {
+        "datasource": null,
+        "description": "For ngsa memory",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 7,
+          "x": 0,
+          "y": 2
+        },
+        "id": 14,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "mean"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "repeat": "Zone",
+        "repeatDirection": "v",
+        "targets": [
+          {
+            "appInsights": {
+              "dimension": [],
+              "metricName": "select",
+              "timeGrain": "auto"
+            },
+            "azureLogAnalytics": {
+              "query": "ngsa_CL\r\n| where k_app_s == \"ngsa-memory\" \r\n| summarize RequestSuccessRate = round(100.0*countif(StatusCode_d < 400)/count(),4)\r\n| project RequestSuccessRate\r\n\r\n\r\n",
+              "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+              "resultFormat": "time_series",
+              "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+            },
+            "azureMonitor": {
+              "aggOptions": [],
+              "dimensionFilter": "*",
+              "dimensionFilters": [],
+              "metricDefinition": "select",
+              "metricName": "select",
+              "metricNamespace": "select",
+              "resourceGroup": "select",
+              "resourceName": "select",
+              "timeGrain": "auto",
+              "timeGrains": [],
+              "top": "10"
+            },
+            "azureResourceGraph": {
+              "resultFormat": "table"
+            },
+            "insightsAnalytics": {
+              "query": "",
+              "resultFormat": "time_series"
+            },
+            "queryType": "Azure Log Analytics",
+            "refId": "A",
+            "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+            "subscriptions": [
+              "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Successful Requests",
+        "type": "stat"
+      },
+      {
+        "datasource": null,
+        "description": "for ngsa-memory",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "#EAB839",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 100
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 7,
+          "x": 7,
+          "y": 2
+        },
+        "id": 25,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "mean"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "repeat": "Zone",
+        "repeatDirection": "v",
+        "targets": [
+          {
+            "appInsights": {
+              "dimension": [],
+              "metricName": "select",
+              "timeGrain": "auto"
+            },
+            "azureLogAnalytics": {
+              "query": "ngsa_CL\r\n| where k_app_s == \"ngsa-memory\" \r\n| summarize FailedRequestCount=countif(StatusCode_d >= 400)\r\n| project FailedRequestCount\r\n",
+              "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+              "resultFormat": "time_series",
+              "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+            },
+            "azureMonitor": {
+              "aggOptions": [],
+              "dimensionFilter": "*",
+              "dimensionFilters": [],
+              "metricDefinition": "select",
+              "metricName": "select",
+              "metricNamespace": "select",
+              "resourceGroup": "select",
+              "resourceName": "select",
+              "timeGrain": "auto",
+              "timeGrains": [],
+              "top": "10"
+            },
+            "azureResourceGraph": {
+              "resultFormat": "table"
+            },
+            "insightsAnalytics": {
+              "query": "",
+              "resultFormat": "time_series"
+            },
+            "queryType": "Azure Log Analytics",
+            "refId": "A",
+            "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+            "subscriptions": [
+              "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Failed Requests",
+        "type": "stat"
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": null,
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 6,
+          "w": 7,
+          "x": 0,
+          "y": 5
+        },
+        "hiddenSeries": false,
+        "id": 18,
+        "legend": {
+          "avg": false,
+          "current": false,
+          "max": false,
+          "min": false,
+          "show": false,
+          "total": false,
+          "values": false
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+          "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.1",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "appInsights": {
+              "dimension": [],
+              "metricName": "select",
+              "timeGrain": "auto"
+            },
+            "azureLogAnalytics": {
+              "query": "ngsa_CL\r\n| where  $__timeFilter(Date_t) \r\n   and k_app_s == \"ngsa-memory\"\r\n| summarize RequestSuccessRate = 100.0 * countif(StatusCode_d < 400) / count() by bin_at(Date_t, 2m, datetime(00:00)), Zone_s\r\n| project-rename Date=Date_t\r\n| order by Date asc",
+              "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+              "resultFormat": "time_series",
+              "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+            },
+            "azureMonitor": {
+              "aggOptions": [],
+              "dimensionFilter": "*",
+              "dimensionFilters": [],
+              "metricDefinition": "select",
+              "metricName": "select",
+              "metricNamespace": "select",
+              "resourceGroup": "select",
+              "resourceName": "select",
+              "timeGrain": "auto",
+              "timeGrains": [],
+              "top": "10"
+            },
+            "azureResourceGraph": {
+              "resultFormat": "table"
+            },
+            "insightsAnalytics": {
+              "query": "",
+              "resultFormat": "time_series"
+            },
+            "queryType": "Azure Log Analytics",
+            "refId": "A",
+            "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+            "subscriptions": [
+              "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+            ]
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "% Successful Server Requests",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          },
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": null,
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 6,
+          "w": 7,
+          "x": 7,
+          "y": 5
+        },
+        "hiddenSeries": false,
+        "id": 23,
+        "legend": {
+          "alignAsTable": false,
+          "avg": false,
+          "current": true,
+          "max": false,
+          "min": false,
+          "rightSide": false,
+          "show": false,
+          "total": false,
+          "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+          "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.1",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "appInsights": {
+              "dimension": [],
+              "metricName": "select",
+              "timeGrain": "auto"
+            },
+            "azureLogAnalytics": {
+              "query": "ngsa_CL\r\n| where  $__timeFilter(Date_t) \r\n   and k_app_s == \"ngsa-memory\"\r\n| summarize FailureRate = 100.0 * countif(StatusCode_d >= 400) / count() by bin_at(Date_t, 2m, datetime(00:00))\r\n| project-rename Date=Date_t\r\n| order by Date asc\r\n",
+              "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+              "resultFormat": "time_series",
+              "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+            },
+            "azureMonitor": {
+              "aggOptions": [],
+              "dimensionFilter": "*",
+              "dimensionFilters": [],
+              "metricDefinition": "select",
+              "metricName": "select",
+              "metricNamespace": "select",
+              "resourceGroup": "select",
+              "resourceName": "select",
+              "timeGrain": "auto",
+              "timeGrains": [],
+              "top": "10"
+            },
+            "azureResourceGraph": {
+              "resultFormat": "table"
+            },
+            "insightsAnalytics": {
+              "query": "",
+              "resultFormat": "time_series"
+            },
+            "queryType": "Azure Log Analytics",
+            "refId": "A",
+            "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+            "subscriptions": [
+              "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+            ]
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "% Failed Server Requests",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          },
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "collapsed": true,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 11
+        },
+        "id": 78,
+        "panels": [
+          {
+            "datasource": null,
+            "fieldConfig": {
+              "defaults": {
+                "custom": {
+                  "align": null,
+                  "displayMode": "auto",
+                  "filterable": false
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Zone"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 154
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Path"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 325
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "StatusCode"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 91
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "RequestCount"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 123
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 7,
+              "x": 0,
+              "y": 12
+            },
+            "id": 33,
+            "options": {
+              "showHeader": true,
+              "sortBy": []
+            },
+            "pluginVersion": "8.1.1",
+            "targets": [
+              {
+                "appInsights": {
+                  "dimension": [],
+                  "metricName": "select",
+                  "timeGrain": "auto"
+                },
+                "azureLogAnalytics": {
+                  "query": "ngsa_CL\r\n| where $__timeFilter(Date_t) \r\n    and k_app_s == \"ngsa-memory\" \r\n    and StatusCode_d >= 400\r\n| summarize count() by tostring(toint(StatusCode_d)), Path_s, Zone_s\r\n| project-rename StatusCode=StatusCode_d,RequestCount=count_,Path=Path_s, Zone=Zone_s\r\n",
+                  "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+                  "resultFormat": "time_series",
+                  "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+                },
+                "azureMonitor": {
+                  "aggOptions": [],
+                  "dimensionFilter": "*",
+                  "dimensionFilters": [],
+                  "metricDefinition": "select",
+                  "metricName": "select",
+                  "metricNamespace": "select",
+                  "resourceGroup": "select",
+                  "resourceName": "select",
+                  "timeGrain": "auto",
+                  "timeGrains": [],
+                  "top": "10"
+                },
+                "azureResourceGraph": {
+                  "resultFormat": "table"
+                },
+                "insightsAnalytics": {
+                  "query": "",
+                  "resultFormat": "time_series"
+                },
+                "queryType": "Azure Log Analytics",
+                "refId": "A",
+                "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+                "subscriptions": [
+                  "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+                ]
+              }
+            ],
+            "timeFrom": null,
+            "timeShift": null,
+            "title": "Failed Requests (ngsa-memory)",
+            "type": "table"
+          }
+        ],
+        "title": "          Detailed Failed Server Requests ",
+        "type": "row"
+      },
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 12
+        },
+        "id": 76,
+        "panels": [],
+        "title": "          Server Requests",
+        "type": "row"
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": null,
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 7,
+          "w": 7,
+          "x": 0,
+          "y": 13
+        },
+        "hiddenSeries": false,
+        "id": 28,
+        "legend": {
+          "avg": false,
+          "current": false,
+          "max": false,
+          "min": false,
+          "show": false,
+          "total": false,
+          "values": false
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+          "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.1",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "repeat": null,
+        "repeatDirection": "v",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "appInsights": {
+              "dimension": [],
+              "metricName": "select",
+              "timeGrain": "auto"
+            },
+            "azureLogAnalytics": {
+              "query": "ngsa_CL\r\n| where  $__timeFilter(Date_t)\r\n   and k_app_s == \"ngsa-memory\" \r\n| summarize count() by bin_at(Date_t, 1m, datetime(00:00)), Zone_s\r\n| project-rename Date=Date_t, ServerRequests=count_\r\n| order by Date asc\r\n",
+              "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+              "resultFormat": "time_series",
+              "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+            },
+            "azureMonitor": {
+              "aggOptions": [],
+              "dimensionFilter": "*",
+              "dimensionFilters": [],
+              "metricDefinition": "select",
+              "metricName": "select",
+              "metricNamespace": "select",
+              "resourceGroup": "select",
+              "resourceName": "select",
+              "timeGrain": "auto",
+              "timeGrains": [],
+              "top": "10"
+            },
+            "azureResourceGraph": {
+              "resultFormat": "table"
+            },
+            "insightsAnalytics": {
+              "query": "",
+              "resultFormat": "time_series"
+            },
+            "queryType": "Azure Log Analytics",
+            "refId": "A",
+            "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+            "subscriptions": [
+              "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+            ]
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Server Requests (ngsa-memory)",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          },
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "collapsed": true,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 20
+        },
+        "id": 88,
+        "panels": [],
+        "title": "Performance",
+        "type": "row"
+      },
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 21
+        },
+        "id": 82,
+        "panels": [],
+        "title": "          Server Response Time Percentile",
+        "type": "row"
+      },
+      {
+        "datasource": null,
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": null,
+              "displayMode": "auto",
+              "filterable": false
+            },
+            "decimals": 2,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "AppType"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 120
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Zone"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 136
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "75th"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 103
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "90th"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 148
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "95th"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 107
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "98th"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 90
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 7,
+          "x": 0,
+          "y": 22
+        },
+        "id": 40,
+        "options": {
+          "showHeader": true,
+          "sortBy": []
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+          {
+            "appInsights": {
+              "dimension": [],
+              "metricName": "select",
+              "timeGrain": "auto"
+            },
+            "azureLogAnalytics": {
+              "query": "ngsa_CL\r\n| where k_app_s == 'ngsa-memory'\r\n| summarize percentile(Duration_d, 75), percentile(Duration_d, 90), percentile(Duration_d, 95), percentile(Duration_d, 98) by k_app_s\r\n| extend 75th=round(percentile_Duration_d_75,2), 90th=round(percentile_Duration_d_90,2), 95th=round(percentile_Duration_d_95,2), 98th=round(percentile_Duration_d_98,2), AppType=k_app_s\r\n| project AppType, 75th, 90th, 95th, 98th\r\n| order by AppType",
+              "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+              "resultFormat": "time_series",
+              "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+            },
+            "azureMonitor": {
+              "aggOptions": [],
+              "dimensionFilter": "*",
+              "dimensionFilters": [],
+              "metricDefinition": "select",
+              "metricName": "select",
+              "metricNamespace": "select",
+              "resourceGroup": "select",
+              "resourceName": "select",
+              "timeGrain": "auto",
+              "timeGrains": [],
+              "top": "10"
+            },
+            "azureResourceGraph": {
+              "resultFormat": "table"
+            },
+            "insightsAnalytics": {
+              "query": "",
+              "resultFormat": "time_series"
+            },
+            "queryType": "Azure Log Analytics",
+            "refId": "A",
+            "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+            "subscriptions": [
+              "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Server Response Time (Percentiles)",
+        "type": "table"
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": null,
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "fill": 0,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 9,
+          "w": 7,
+          "x": 0,
+          "y": 25
+        },
+        "hiddenSeries": false,
+        "id": 43,
+        "legend": {
+          "avg": false,
+          "current": false,
+          "max": false,
+          "min": false,
+          "show": true,
+          "total": false,
+          "values": false
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+          "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.1",
+        "pointradius": 2,
+        "points": true,
+        "renderer": "flot",
+        "repeat": "Zone",
+        "repeatDirection": "v",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "appInsights": {
+              "dimension": [],
+              "metricName": "select",
+              "timeGrain": "auto"
+            },
+            "azureLogAnalytics": {
+              "query": "ngsa_CL\r\n| where $__timeFilter(Date_t) and k_app_s == 'ngsa-memory'\r\n| summarize percentile(Duration_d, 75), percentile(Duration_d, 90), percentile(Duration_d, 95), percentile(Duration_d, 98) by bin_at(Date_t, 1m, datetime(00:00))\r\n| project-rename Date=Date_t, ResponseTime_75th=percentile_Duration_d_75, ResponseTime_90th=percentile_Duration_d_90,  ResponseTime_95th=percentile_Duration_d_95, ResponseTime_98th=percentile_Duration_d_98\r\n| order by Date asc",
+              "resource": "/subscriptions/648dcb5a-de1e-48b2-af6b-fe6ef28d355c/resourceGroups/observability-sans-k8s/providers/Microsoft.OperationalInsights/workspaces/ngsa-la",
+              "resultFormat": "time_series",
+              "workspace": "6e15e078-3857-48e1-b64c-9791741a5968"
+            },
+            "azureMonitor": {
+              "aggOptions": [],
+              "dimensionFilter": "*",
+              "dimensionFilters": [],
+              "metricDefinition": "select",
+              "metricName": "select",
+              "metricNamespace": "select",
+              "resourceGroup": "select",
+              "resourceName": "select",
+              "timeGrain": "auto",
+              "timeGrains": [],
+              "top": "10"
+            },
+            "azureResourceGraph": {
+              "resultFormat": "table"
+            },
+            "insightsAnalytics": {
+              "query": "",
+              "resultFormat": "time_series"
+            },
+            "queryType": "Azure Log Analytics",
+            "refId": "A",
+            "subscription": "648dcb5a-de1e-48b2-af6b-fe6ef28d355c",
+            "subscriptions": [
+              "648dcb5a-de1e-48b2-af6b-fe6ef28d355c"
+            ]
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Server Response Time (Percentiles)",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "$$hashKey": "object:160",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          },
+          {
+            "$$hashKey": "object:161",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      }
+    ],
+    "refresh": false,
+    "schemaVersion": 30,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "NGSA Dev - Azure Monitor",
+    "uid": "B0-zMDw7k",
+    "version": 11
+  }
