@@ -1,0 +1,37 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: harbor-vs
+  namespace: azure-arc
+spec:
+  gateways:
+  - istio-system/istio-gateway
+  hosts:
+  - harbor-core-westus2-dev.cse.ms
+  http:
+  - name: "core"
+    match:
+    - uri:
+        prefix: "/api/"
+    - uri:
+        prefix: "/service/"
+    - uri:
+        prefix: "/v2/"
+    - uri:
+        prefix: "/chartrepo/"
+    - uri:
+        prefix: "/c/"
+    route:
+    - destination:
+        host: harbor-core
+        port:
+          number: 80
+  - name: "portal"
+    match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: harbor-portal
+        port:
+          number: 80
