@@ -12,6 +12,7 @@
   - Backend settings (with no custom probes, that we don't have to configure probes)
   - Listeners (http and https)
   - Rules (http and https)
+- Add an exception for the harbor-host in the WAF policy (e.g. for WestUS2-dev you'll add it in `rg-ngsa-asb-dev/ngsa-asb-waf-policy-westus2`)
 
 At this point Harbor should be ready to deploy.
 Now we need to make sure our cluste can pull the container images.
