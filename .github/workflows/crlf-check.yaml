@@ -12,5 +12,5 @@ jobs:
     - name: Checkout repository contents
       uses: actions/checkout@v1
 
-    - name: Check for CRLF endings
+    - name: Check for CRLF line endings
       uses: erclu/check-crlf@v1
