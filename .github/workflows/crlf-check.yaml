@@ -1,6 +1,8 @@
 name: Check Line Endings (find CRLF)
 
-on: push
+on: 
+  pull_request:
+    branches: [ main ]
 
 jobs:
   check_pull_request_job:
@@ -10,10 +12,5 @@ jobs:
     - name: Checkout repository contents
       uses: actions/checkout@v1
 
-    - name: Validate files with custom script
-      run: |
-        chmod +x "./.github/crlf-check.sh"
-        ./.github/crlf-check.sh
-
-    - name: Use action to check for CRLF endings
+    - name: Check for CRLF endings
       uses: erclu/check-crlf@v1
