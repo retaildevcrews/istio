@@ -15,5 +15,5 @@ jobs:
         chmod +x "./.github/crlf-check.sh"
         ./.github/crlf-check.sh
 
-#    - name: Use action to check for CRLF endings
-#      uses: erclu/check-crlf@v1
+    - name: Use action to check for CRLF endings
+      uses: erclu/check-crlf@v1
