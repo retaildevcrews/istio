@@ -52,6 +52,21 @@ jobs:
     - name: Docker Build
       run: |
         docker build ./burstsvc/ -f ./burstsvc/burst/Dockerfile --build-arg BUILD_ENV=unittest --progress auto -t image
+    
+    - name: Grype Scan Image for Vulnerabilities
+      uses: anchore/scan-action@v3
+      id: grype
+      with:
+        image: "image"
+        severity-cutoff: critical
+        acs-report-enable: true
+        fail-build: true
+
+    - name: Upload Grype Vulnerability SARIF report
+      if: always()
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: ${{ steps.grype.outputs.sarif }}
 
     - name: Docker Tag and Push
       if: github.event_name == 'push' # Push the image only on git push
