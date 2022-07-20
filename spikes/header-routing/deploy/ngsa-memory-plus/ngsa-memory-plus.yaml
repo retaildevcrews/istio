@@ -1,0 +1,75 @@
+##################################################################################################
+# Details service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ngsaplus
+  namespace: ngsaplus
+  labels:
+    app: ngsaplus
+    service: ngsaplus
+spec:
+  ports:
+  - port: 8080
+    name: http
+    nodePort: 30083
+  type: NodePort # For external access (k3d, kind)
+  selector:
+    app: ngsaplus
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ngsaplus
+  namespace: ngsaplus
+  labels:
+    account: ngsaplus
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngsaplus
+  namespace: ngsaplus
+  labels:
+    app: ngsaplus
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngsaplus
+      version: v1
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+      labels:
+        app: ngsaplus
+        version: v1
+    spec:
+      serviceAccountName: ngsaplus
+      containers:
+      - name: ngsa
+        image: ghcr.io/retaildevcrews/ngsa-app:beta
+        resources:
+          limits:
+            cpu: "500m"
+        args:
+          - --in-memory
+          - --prometheus
+          - --log-level
+          - Warning
+          - --request-log-level
+          - Information
+          - --zone
+          - dev
+          - --region
+          - dev
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080 
+        securityContext:
+          runAsUser: 1000

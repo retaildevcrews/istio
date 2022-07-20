@@ -1,0 +1,49 @@
+apiVersion: k3d.io/v1alpha4
+kind: Simple
+servers: 1
+network: k3d
+
+kubeAPI:
+  hostIP: 0.0.0.0
+  hostPort: "6443"
+ports:
+- port: 30080:30080 # Ngsa NodePort
+  nodeFilters:
+  - server:0
+- port: 30081:30081 # Burst Service NodePort
+  nodeFilters:
+  - server:0
+- port: 30082:30082 # Prometheus NodePort
+  nodeFilters:
+  - server:0
+- port: 30083:30083 # Ngsa plus NodePort
+  nodeFilters:
+  - server:0
+- port: 30084:30084 # Ngsa std NodePort
+  nodeFilters:
+  - server:0
+- port: 30085:30085 # Kiali NodePort
+  nodeFilters:
+  - server:0
+- port: 30086:30086 # Jaeger NodePort
+  nodeFilters:
+  - server:0
+- port: 30000:80 # Istio IngressGateway LoadBalancer NodePort
+  nodeFilters:
+  - loadbalancer
+options:
+  k3d:
+    wait: true
+    timeout: 1m0s
+    disableLoadbalancer: false
+    disableImageVolume: false
+    disableRollback: false
+  k3s:
+    extraArgs:
+    - arg: --tls-san=127.0.0.1
+      nodeFilters:
+      - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
+  runtime: {}
