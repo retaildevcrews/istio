@@ -23,11 +23,13 @@ watch make test-all
 
 ```
 
-## Observability using Kiali
+## Observability
 
 Kiali is installed by default with the k3d cluster specific for this spike. The kiali dashboard can be accessed on **port 30085** of the codespace instance.
 
-In Kiali, click on the "Graph" panel in the sidebar to view a topology of the services. To view live data, ensure that `watch make test-all` is running in the background.
+We also have Jaeger setup, wired with Jaeger and Kiali, and you can view the Jaeger dashboard on **port 30086**.
+
+In Kiali, click on the "Graph" panel in the sidebar to view a topology of the services. To view live data, ensure that `watch make test-all` is running in the background. Kiali also has an option to view the traces by clicking on a node in the graph view, or by selecting a specific workload from the "Workloads" panel.
 
 ## Routing config
 

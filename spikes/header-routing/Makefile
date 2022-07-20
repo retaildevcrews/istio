@@ -25,7 +25,7 @@ all : delete
 	@kubectl wait pod -A --all --for condition=ready --timeout=60s
 
 	# install istio
-	@/usr/local/istio/bin/istioctl install --set profile=demo -y
+	@/usr/local/istio/bin/istioctl install --set profile=demo -y -f ./deploy/istio-mesh-config.yaml
 
 	# initialize app namespaces
 	kubectl create namespace ngsa
@@ -47,8 +47,11 @@ all : delete
 	# deploy kiali dashboard
 	@kubectl apply -f ./deploy/kiali.yaml
 
+	# deploy jaeger tracing
+	@kubectl apply -f ./deploy/jaeger.yaml
+
 	# deploy prometheus for istio
-	@kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.14/samples/addons/prometheus.yaml
+	@kubectl apply -f ./deploy/prometheus.yaml
 
 test-all : test-standard test-plus test-base
 

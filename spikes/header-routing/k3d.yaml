@@ -25,6 +25,9 @@ ports:
 - port: 30085:30085 # Kiali NodePort
   nodeFilters:
   - server:0
+- port: 30086:30086 # Jaeger NodePort
+  nodeFilters:
+  - server:0
 - port: 30000:80 # Istio IngressGateway LoadBalancer NodePort
   nodeFilters:
   - loadbalancer

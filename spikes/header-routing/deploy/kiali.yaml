@@ -91,8 +91,12 @@ data:
     external_services:
       custom_dashboards:
         enabled: true
+      prometheus:
+        cache_enabled: false
       istio:
         root_namespace: istio-system
+      tracing:
+        in_cluster_url: 'http://tracing.istio-system:16685/jaeger'
     identity:
       cert_file: ""
       private_key_file: ""
