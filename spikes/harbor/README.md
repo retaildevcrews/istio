@@ -61,10 +61,10 @@ For deploying harbor locally we need to have these tools available:
 
 ### Steps
 
-Follow the steps below (based on https://goharbor.io/docs/1.10/install-config/):
+Follow the steps below (based on [installation config](https://goharbor.io/docs/1.10/install-config/)):
 
 1. Download the **online** installer `wget https://github.com/goharbor/harbor/releases/download/{VERSION}/harbor-online-installer-{VERSION}.tar.gz` file from [harbor github release page](https://github.com/goharbor/harbor/releases)
-    > Notes: Download the online installer: e.g wget https://github.com/goharbor/harbor/releases/download/v2.5.1/harbor-online-installer-v2.5.1.tgz
+    > Notes: Download the online installer: e.g `wget https://github.com/goharbor/harbor/releases/download/v2.5.1/harbor-online-installer-v2.5.1.tgz`
 
 1. Extract the archive (assuming the extracted path is `$HARBOR_PATH`)
 
@@ -90,3 +90,109 @@ Follow the steps below (based on https://goharbor.io/docs/1.10/install-config/):
     ```
 
 1. Try `docker ps` and try the ports for `harbor-nginx` and `harbor-portal`.
+
+```mermaid
+
+sequenceDiagram
+    participant gha     as Github Action
+    participant ghcr    as GH Container Registry
+    participant hrbrr   as Harbor Registry
+    participant hrbrp   as Harbor Proxy
+
+    alt Push to GHCR & optionally to Harbor
+        gha     ->> ghcr: push image
+        activate    gha
+        activate    ghcr
+        ghcr   -->> gha: return
+        deactivate  ghcr
+        gha      -) hrbrr: optional push
+        activate hrbrr
+        hrbrr   --) gha: retrun
+        deactivate  gha
+        deactivate  hrbrr
+    end
+
+    alt Scheduled Replication
+        hrbrr   ->> ghcr: scheduled pull
+        activate    hrbrr
+        activate    ghcr
+        ghcr   -->> hrbrr: return image
+        hrbrr  -->> hrbrr: scan image
+        deactivate  hrbrr
+    end
+
+    alt Replication via Harbor WebAPI
+        gha     ->> hrbrr: replication API call
+        activate    gha
+        activate    hrbrr
+        hrbrr  -->> gha: API return
+        deactivate gha
+        hrbrr   --) ghcr: off-schedule pull
+        ghcr    --) hrbrr: returns image
+        hrbrr  -->> hrbrr: scans image
+        deactivate  hrbrr
+    end
+
+    alt Proxy Pre-Caching
+        gha     ->> hrbrp: pull from Proxy to initiate caching
+        activate    gha
+        activate    hrbrp
+        hrbrp    -) ghcr: pull if image doesn't exist
+        activate    ghcr
+        ghcr    --) hrbrp: returns image
+        deactivate  ghcr
+        par Parellel return and scan
+        hrbrp  -->> gha: returns image
+        deactivate gha
+        hrbrp  -->> hrbrp: scans image
+        deactivate  hrbrp
+        end
+    end
+    
+```
+<!-- markdownlint-disable MD033 -->
+<!--- This section tracks comments and TODO -->
+<span hidden>
+
+FOLLOW UP:
+
+- [X] AAD Integration - Delete any local user (other than admin) then integrate
+- [X] Repository replication from/to other repo
+- [X] Repository proxy
+  - [X] Can harbor act as a proxy to other registries
+    - Ans: It can
+  - [X] If harbor doesn't have an image, can it pull from a know public registry and deliver
+    - Ans: It can pull from most known repos, given we provide an endpoint with proper Access Keys
+- [X] What happens if scanner finds issue in harbor? DevOps flow [Assuming `Prevent vulerable images from running` is selected]
+  - When the scanner is running, we can't pull It will show this msg
+
+    ```bash
+        Error response from daemon: unknown: current image with "Running" status of vulnerability scanning cannot be pulled due to configured policy in 'Prevent images with vulnerability severity of "Low" or higher from running.' To continue with pull, please contact your project administrator for help.
+    ```
+
+  - Once scan is finished, it will let it pass depending on the scanner result
+  - For proxy repo, the image is first pulled from source, made available to the pull
+    - Then its scanned, and added to cache
+    - Before scanning is finished, it is made available as a passthrough (meaning vulnerable images can be pulled for the first time)
+    - At this point if policy allows, it does block further pull if vulnerable
+- [X] Harbor can pull/push from remote repo --> Hence it will be able to pull and scan
+- [X] Cache and scan
+- [X] Replication endpoints Harbor/ACR/GHCR[X]
+  - Replication (pull mode) works as usual with endpoints
+  - Problem is: after first replication/pull the image is scanned and if the existing image has vulnerabilities
+- [X] Azure disk/PVC classes to use in Harbor deployment
+  - [X] If Azure disks have redundant backup - usually don't
+  - [X] If we can use 3rd party storage used in AKS: We can
+- [X] Worklfow diagram**
+  - [ X Push, pull (after deployment)
+  - [ X Harbor deployment workflow
+- [ ] Script is preferred but also explore cluster_admin
+  - Fully automatic or semi-automatic
+
+---
+
+- [ ] Make sure from the cluster we can pull from Harbor without going through the internet
+  - DNS settings need to be changed in order for local service acting as a registry
+- [ ] For Proxy: Configure to pre-pull and scan rather than passthrough before the scan
+- [ ] *Multiple Harbor deployment and using Front Door as a one-stop URL
+</span>
