@@ -91,6 +91,8 @@ Follow the steps below (based on [installation config](https://goharbor.io/docs/
 
 1. Try `docker ps` and try the ports for `harbor-nginx` and `harbor-portal`.
 
+## Proposed Sequence diagram to use Harbor Registry and Proxy
+
 ```mermaid
 
 sequenceDiagram
