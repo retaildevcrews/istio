@@ -66,22 +66,22 @@ Follow the steps below (based on [installation config](https://goharbor.io/docs/
 1. Download the **online** installer `wget https://github.com/goharbor/harbor/releases/download/{VERSION}/harbor-online-installer-{VERSION}.tar.gz` file from [harbor github release page](https://github.com/goharbor/harbor/releases)
     > Notes: Download the online installer: e.g `wget https://github.com/goharbor/harbor/releases/download/v2.5.1/harbor-online-installer-v2.5.1.tgz`
 
-1. Extract the archive (assuming the extracted path is `$HARBOR_PATH`)
+2. Extract the archive (assuming the extracted path is `$HARBOR_PATH`)
 
-1. Copy `harbor.yml` to `$HARBOR_PATH` (so that `harbor.yml` will be in the same directory as `install.sh`)
+3. Copy `harbor.yml` to `$HARBOR_PATH` (so that `harbor.yml` will be in the same directory as `install.sh`)
 
-1. Generate certificate for HTTPS access.
+4. Generate certificate for HTTPS access.
 
     ```bash
     # Here replace $HARBOR_PATH with the extracted dir path
     ./gen-multi-domain-certs.bash --cert-path ${HARBOR_PATH} --cert-prefix harbor-ssl -san 127.0.0.1,localhost,harboar.core.local,harbor.notary.local,harboar.local
     ```
 
-1. Change `certificate` and `private_key` entry in `harbor.yml` file and point to `$HARBOR_PATH/harbor-ssl.crt` and `$HARBOR_PATH/harbor-ssl.key`.
+5. Change `certificate` and `private_key` entry in `harbor.yml` file and point to `$HARBOR_PATH/harbor-ssl.crt` and `$HARBOR_PATH/harbor-ssl.key`.
 
     > *Note:* Use full path for `certificate` and `private_key`
 
-1. Run the installer
+6. Run the installer
 
     ```bash
     # Here replace $HARBOR_PATH with the extracted dir path
@@ -89,7 +89,7 @@ Follow the steps below (based on [installation config](https://goharbor.io/docs/
     sudo ./install.sh
     ```
 
-1. Try `docker ps` and try the ports for `harbor-nginx` and `harbor-portal`.
+7. Try `docker ps` and try the ports for `harbor-nginx` and `harbor-portal`.
 
 ## Sequence diagram for Harbor Registry and Proxy
 
