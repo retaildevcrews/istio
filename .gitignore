@@ -27,6 +27,10 @@ Cargo.lock
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# Checkov scan result files
+results_cli.txt
+checkov_scan_results.txt
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
