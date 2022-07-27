@@ -91,7 +91,9 @@ Follow the steps below (based on [installation config](https://goharbor.io/docs/
 
 1. Try `docker ps` and try the ports for `harbor-nginx` and `harbor-portal`.
 
-## Proposed Sequence diagram to use Harbor Registry and Proxy
+## Sequence diagram for Harbor Registry and Proxy
+
+The diagram shows four different use cases to use Harbor Proxy and Harbor Registry with existing CI/CD pipeline which includes caching and vulnerability scans.
 
 ```mermaid
 
@@ -152,6 +154,55 @@ sequenceDiagram
     end
     
 ```
+
+## Flowchart for Harbor Proxy
+
+The flowchart shows how Harbor proxy can be used in tandem with a standard
+GHCR/Docker registry, providing cache and vulnerability scans.
+
+```mermaid
+flowchart TD
+subgraph Harbor Proxy Behavior
+    subgraph K8s-Cluster
+        A[Cluster Image Pull]
+    end
+    subgraph Harbor Proxy
+      C{Image\nExists?}
+      E(Check if GHCR\nimage is updated)
+      G{New Image\nin GHCR?}
+      H{Cached Image\nvulnerable?}
+      I[Returns Error]
+      J[Returns cached Image]
+      D(Pull Image\nfrom GHCR)
+      K[Returns Image]
+      L[[Scan image\nthen cache]]
+    end
+    subgraph GHCR/Docker
+      F[[Rest API]]
+      FF[Returns\nImage Info]
+      DD[Returns Image]
+    end
+    A ==>|Image Pull| C
+    C -->|No| D
+    K -->|Parallel| L
+    C -->|Yes| E
+    G -->|Yes| D
+    G -->|No| H
+    H -->|Yes| I
+    H -->|No| J
+    K -.->|Returns ghcr image| K8s-Cluster
+    I -.->|No Image is returned| K8s-Cluster
+    J -.->|Returns cached image| K8s-Cluster
+    E -->|HEAD Request| F
+    F -->|For HEAD req| FF
+    FF -.-> G
+    F -->|For img req| DD
+    DD -.-> K
+    D -->|Image Request| F
+    
+end
+```
+
 <!-- markdownlint-disable MD033 -->
 <!--- This section tracks comments and TODO -->
 <span hidden>
