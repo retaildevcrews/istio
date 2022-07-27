@@ -200,6 +200,31 @@ sequenceDiagram
 
 The Burst Metrics Service provides a layer of indirection that prefetches, formats, and caches values that the Wasm filter will inject.  This reduces latency on the request overall and decreases the processing required within the filter.
 
+## Run Checkov scan
+
+- Navigate to `Codespaces main menu` (top left icon with three horizontal lines)
+- Click on `Terminal` menu item, then `Run Task`
+- From tasks menu locate `Run Checkov Scan` and click on it
+- Task terminal will show up executing substasks and indicating when scan completed
+- Scan results file `checkov_scan_results` will be created at root level, and automatically will get open by VSCode
+- Review the file and evaluate failed checks. For instance:
+
+```bash
+  kubernetes scan results:
+
+  Passed checks: 860, Failed checks: 146, Skipped checks: 0
+  ...
+  ...
+
+  dockerfile scan results:
+
+  Passed checks: 22, Failed checks: 4, Skipped checks: 0
+
+  ...
+  ...
+
+```
+
 ## Links
 
 - Building Envoy filters with Rust and WebAssembly - <https://github.com/proxy-wasm/proxy-wasm-rust-sdk>
