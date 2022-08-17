@@ -4,9 +4,15 @@ use proxy_wasm::{
     traits::{Context, HttpContext, RootContext},
     types::{Action, ContextType, LogLevel},
 };
-use serde::Deserialize;
+use crate::config::{FilterConfig, FilterConfigError};
+use protobuf::well_known_types::Struct;
+use protobuf::Message;
 use serde_json::{Map, Value};
+use std::convert::TryFrom;
+use std::error::Error;
 use std::time::Duration;
+
+pub mod config;
 
 const USER_AGENT: &str = "user-agent";
 const HEADER_NAME: &str = "X-Load-Feedback";
@@ -17,7 +23,18 @@ macro_rules! KEY_FORMAT {
 }
 // root handler holds config
 struct RootHandler {
-    config: FilterConfig
+    config: Option<FilterConfig>,
+    /// Cluster svc to burst header map
+    cluster_map: Option<Map<String, Value>>
+}
+
+impl RootHandler {
+    pub(crate) fn new() -> Self {
+        Self {
+            config: None,
+            cluster_map: None,
+        }
+    }
 }
 
 // each request gets burst_header and user_agent from root
@@ -25,47 +42,6 @@ pub struct RequestContext {
     add_header: bool,
     user_agent: String,
     host_svc_header: String,
-}
-
-// config structure
-#[derive(Deserialize, Debug)]
-#[serde(default)]
-pub struct FilterConfig {
-    /// constant header, set at configmap
-    burst_header: String,
-
-    /// Cache duration in seconds
-    cache_seconds: u64,
-
-    /// The authority to set when calling the HTTP service providing headers.
-    service_authority: String,
-
-    /// The Envoy cluster name
-    service_cluster: String,
-
-    /// The path to call on the HTTP service providing headers.
-    service_path: String,
-
-    /// user agent
-    user_agent: String,
-
-    /// Cluster svc to burst header map
-    cluster_map: Map<String, Value>
-}
-
-// default values for config
-impl Default for FilterConfig {
-    fn default() -> Self {
-        FilterConfig {
-            burst_header: String::new(),
-            cache_seconds: 60 * 60 * 24,
-            service_authority: String::new(),
-            service_cluster: String::new(),
-            service_path: String::new(),
-            user_agent: String::new(),
-            cluster_map: Map::new()
-        }
-    }
 }
 
 #[no_mangle]
@@ -76,10 +52,23 @@ pub fn _start() {
 
     // create root context and load config
     proxy_wasm::set_root_context(|_context_id| -> Box<dyn RootContext> {
-        Box::new(RootHandler {
-            config: FilterConfig::default()
-        })
+        Box::new(RootHandler::new())
     });
+}
+
+// Root Handler implementation
+
+impl RootHandler {
+    fn parse_configuration(&mut self) -> Result<(), Box<dyn Error>> {
+        let config = self
+            .get_configuration()
+            .ok_or(FilterConfigError::Missing)?;
+        let config = Struct::parse_from_bytes(config.as_slice())?;
+        let config = FilterConfig::try_from(config)?;
+
+        self.config = Some(config);
+        Ok(())
+    }
 }
 
 // Root Context implementation
@@ -93,6 +82,7 @@ impl Context for RootHandler {
         body_size: usize,
         _num_trailers: usize,
     ) {
+        let config = self.config.as_ref().unwrap();
         // get the response body of metrics server call
         match self.get_http_call_response_body(0, body_size) {
             Some(body) => {
@@ -102,11 +92,11 @@ impl Context for RootHandler {
                 });
                 if let Some(v) = result {
                     if let Some(obj) = v.as_object() {
-                        self.config.cluster_map = obj.clone();
+                        self.cluster_map = Some(obj.clone());
                     } else {
                         warn!(
                             "Invalid JSON body from service cluster ({}/{})",
-                            self.config.service_authority, self.config.service_cluster
+                            config.service_authority, config.service_cluster
                         );
                     }
                 }
@@ -122,7 +112,8 @@ impl Context for RootHandler {
 impl RootContext for RootHandler {
     // create http context for new requests
     fn create_http_context(&self, _context_id: u32) -> Option<Box<dyn HttpContext>> {
-        let host_svc_header = if self.config.burst_header.is_empty() {
+        let config = self.config.as_ref().unwrap();
+        let host_svc_header = if config.burst_header.is_empty() {
             let host_addr = match get_property(vec![
                 "cluster_metadata",
                 "filter_metadata",
@@ -142,19 +133,19 @@ impl RootContext for RootHandler {
             // But for now we're interesting about service and namespace only
             let tokens: Vec<&str> = host_addr.split(".").collect();
             let key = format!(KEY_FORMAT!(), tokens[1], tokens[0]);
-            match self.config.cluster_map.get(key.as_str()) {
+            match self.cluster_map.as_ref().unwrap().get(key.as_str()) {
                 Some(val) => val.as_str().unwrap(),
                 _ => "",
             }
         } else {
-            self.config.burst_header.as_str()
+            config.burst_header.as_str()
         };
 
         info!("Host header: {}", host_svc_header);
         Some(Box::new(RequestContext {
             add_header: false,
             // copy the values from root config to request
-            user_agent: self.config.user_agent.clone(),
+            user_agent: config.user_agent.to_string().clone(),
             host_svc_header: host_svc_header.to_string(),
         }))
     }
@@ -166,45 +157,36 @@ impl RootContext for RootHandler {
 
     // read the config and store in self.config
     fn on_configure(&mut self, _config_size: usize) -> bool {
-        match self.get_configuration() {
-            Some(c) => {
-                // Parse and store the configuration
-                match serde_json::from_slice::<FilterConfig>(c.as_ref()) {
-                    Ok(config) => {
-                        self.config = config;
-                    }
-                    Err(e) => {
-                        // fail on invalid config
-                        error!("failed to parse configuration: {:?}", e);
-                        return false;
-                    }
-                }
-            }
-            None => {
-                // fail on missing config
-                error!("configuration missing");
-                return false;
-            }
-        };
-
         // set a short duration to cause the timer to fire quickly
         self.set_tick_period(Duration::from_secs(1));
 
-        return true;
+        match self.parse_configuration() {
+            Ok(_) => true,
+            Err(e) => {
+                // fail on invalid config
+                error!("failed to parse configuration: {:?}", e);
+                false
+            }
+        }
     }
 
     // refresh the cache on a timer
     fn on_tick(&mut self) {
-        self.set_tick_period(Duration::from_secs(self.config.cache_seconds));
+        if self.config.is_none() {
+            return;
+        }
+
+        let config = self.config.as_ref().unwrap();
+        self.set_tick_period(config.cache_seconds);
 
         // dispatch an async HTTP call to the configured cluster
         // response is handled in Context::on_http_call_response
         let res = self.dispatch_http_call(
-            &self.config.service_cluster,
+            &config.service_cluster,
             vec![
                 (":method", "GET"),
-                (":path", &format!("{}", self.config.service_path)),
-                (":authority", &self.config.service_authority),
+                (":path", &format!("{}", config.service_path)),
+                (":authority", &config.service_authority),
             ],
             None,
             vec![],

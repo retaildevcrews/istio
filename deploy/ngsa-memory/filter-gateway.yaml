@@ -35,16 +35,13 @@ spec:
           local:
            filename: /var/local/lib/wasm-filters/burst_header.wasm
         configuration:
-         "@type": "type.googleapis.com/google.protobuf.StringValue"
-         value: |
-          {
-            "service_cluster": "healthcluster",
-            "service_authority": "burst.burstservice",
-            "service_path": "/burstmetrics/services",
-            "user_agent": "HTTPie/",
-            "cache_seconds": 3
-          }               
-  # "user_agent": "EF-Strati-HealthCheck-Client/1.0",
+         "@type": "type.googleapis.com/google.protobuf.Struct"
+         value:
+            service_cluster: "healthcluster"
+            service_authority: "burst.burstservice"
+            service_path: "/burstmetrics/services"
+            cache_seconds: 3
+            user_agent: "HTTPie/"
 
   # The second patch adds the cluster that is referenced by the lua code
   # cds match is omitted as a new cluster is being added

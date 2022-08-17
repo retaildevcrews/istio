@@ -8,7 +8,7 @@ using k8s.Models;
 using Microsoft.Extensions.Logging;
 
 using HPADictionary = System.Collections.Generic.Dictionary<string, Ngsa.BurstService.K8sApi.K8sHPAMetrics>;
-using K8sHPAObj = k8s.Models.V2beta2HorizontalPodAutoscaler;
+using K8sHPAObj = k8s.Models.V2HorizontalPodAutoscaler;
 
 namespace Ngsa.BurstService.K8sApi
 {
@@ -23,7 +23,7 @@ namespace Ngsa.BurstService.K8sApi
         private HPADictionary nsHPAMap;
         private HPADictionary nsDeploymentMap;
         private HPADictionary nsServiceMap;
-        private V2beta2HorizontalPodAutoscalerList hpaList;
+        private V2HorizontalPodAutoscalerList hpaList;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="K8sHPAMap"/> class.
@@ -124,7 +124,7 @@ namespace Ngsa.BurstService.K8sApi
         /// <param name="selectorLabels">Labels to match the pods and service</param>
         public void CreateHPAMap(IKubernetes k8sClient, K8sScaleTargetType target, IReadOnlyList<string> selectorLabels)
         {
-            var v2HpaList = k8sClient.ListHorizontalPodAutoscalerForAllNamespaces3(timeoutSeconds: 1);
+            var v2HpaList = k8sClient.AutoscalingV2.ListHorizontalPodAutoscalerForAllNamespaces(timeoutSeconds: 1);
             HPADictionary newHpaMap = new();
             HPADictionary newDeploymentMap = new();
             HPADictionary newSvcMap = new();
@@ -147,7 +147,7 @@ namespace Ngsa.BurstService.K8sApi
                     {
                         // Very unlikely that the HPA will have a non existing deployment target
                         // But if it does, this try-catch will catch ReadNamespacedDeployment
-                        var deploy = k8sClient.ReadNamespacedDeployment(hpa.Spec.ScaleTargetRef.Name, hpa.Namespace());
+                        var deploy = k8sClient.AppsV1.ReadNamespacedDeployment(hpa.Spec.ScaleTargetRef.Name, hpa.Namespace());
                         var podLabels = deploy?.Spec.Template.Metadata.Labels;
                         if (podLabels != null && selectorLabels != null)
                         {
@@ -166,7 +166,7 @@ namespace Ngsa.BurstService.K8sApi
                                 labelSelector = labelSelector.Remove(labelSelector.Length - 1);
                             }
 
-                            var svcList = k8sClient.ListNamespacedService(hpa.Namespace(), labelSelector: labelSelector);
+                            var svcList = k8sClient.CoreV1.ListNamespacedService(hpa.Namespace(), labelSelector: labelSelector);
                             foreach (var svc in svcList?.Items)
                             {
                                 newSvcMap[CreateDictKey(svc.Namespace(), svc.Name())] = hpa.ToHPAMetrics(TargetPercent);
