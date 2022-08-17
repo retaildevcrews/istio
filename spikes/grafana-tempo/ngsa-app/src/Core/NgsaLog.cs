@@ -17,7 +17,7 @@ namespace Ngsa.Middleware
 
         private static readonly JsonSerializerOptions Options = new ()
         {
-            IgnoreNullValues = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
         public static LogLevel LogLevel { get; set; } = LogLevel.Information;

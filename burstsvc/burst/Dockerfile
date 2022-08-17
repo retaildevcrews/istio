@@ -1,6 +1,6 @@
 ARG BUILD_ENV=
 ### Build and Test the App
-FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
 
 ### copy the source and tests
 COPY burst/ /src/burst/
@@ -22,7 +22,7 @@ RUN dotnet publish -c Release -o /app
 
 
 ### Build the runtime container
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine AS release
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS release
 
 ### if port is changed, also update value in Config
 EXPOSE 8080

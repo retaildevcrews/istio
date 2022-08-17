@@ -57,7 +57,7 @@ namespace Ngsa.Application.DataAccessLayer
                         MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(Timeout),
                         SerializerOptions = new CosmosSerializationOptions()
                         {
-                            IgnoreNullValues = true,
+                            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                             Indented = false,
                             PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
                         },

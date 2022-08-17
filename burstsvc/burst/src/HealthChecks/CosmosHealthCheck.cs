@@ -19,6 +19,11 @@ namespace Ngsa.BurstService
     /// </summary>
     public partial class CosmosHealthCheck : IHealthCheck
     {
+        /// <summary>
+        /// Represents the Name of Message atttribute utilizes for logging.
+        /// It is utilized as 'format string' in the message template format.
+        /// </summary>
+        public const string LoggerMessageAttributeName = "{message}";
         public static readonly string ServiceId = "ngsa";
         public static readonly string Description = "NGSA Health Check";
 
@@ -96,7 +101,7 @@ namespace Ngsa.BurstService
             catch (Exception ex)
             {
                 // log and return unhealthy
-                logger.LogError($"{ex}\nException:Healthz:{ex.Message}");
+                logger.LogError(LoggerMessageAttributeName, $"{ex}\nException:Healthz:{ex.Message}");
 
                 data.Add("Exception", ex.Message);
 
