@@ -2,7 +2,7 @@
 # See docs specific to v1.22
 # https://v1-22.docs.kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/ 
 #######################################################
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: ngsa

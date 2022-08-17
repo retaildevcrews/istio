@@ -46,8 +46,8 @@ namespace Ngsa.Application
                 // ignore nulls in json
                 jsonOptions = new JsonSerializerOptions
                 {
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    IgnoreNullValues = true,
                     DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
                 };
 

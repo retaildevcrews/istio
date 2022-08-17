@@ -40,17 +40,12 @@ namespace Ngsa.BurstService.Controllers
             K8sHPAMetrics hpaMetrics = service.GetK8SHPAMetrics(target, ns, name);
 
             // Nullable interpolation will return "" for null objects
-            // string cpuTarget = $"{hpaMetrics?.TargetCPULoad}";
-            // string cpuCurrent = $"{hpaMetrics?.CurrentCPULoad}";
-            // But we can control what to output if we do null
-
             if (hpaMetrics == null)
             {
                 // Means we don't have all the values available
                 return NoContent();
             }
 
-            // Console.WriteLine($"{DateTime.Now:s}  {Request.Path.ToString()}");
             return Ok(hpaMetrics.ToString());
         }
     }

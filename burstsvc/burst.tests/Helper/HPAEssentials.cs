@@ -28,7 +28,7 @@ namespace Burst.Tests.Helper
                 minReplicas: 1,
                 currentReplicas: 1,
                 targetPercent: .8,
-                apiVersion: "v2beta2"),
+                apiVersion: "v2"),
                 new(
                 deployment: "deploy2",
                 @namespace: "ns2",
@@ -52,7 +52,7 @@ namespace Burst.Tests.Helper
                 minReplicas: 1,
                 currentReplicas: 2,
                 targetPercent: 0,
-                apiVersion: "v2beta2"),
+                apiVersion: "v2"),
             };
         }
 
@@ -67,13 +67,13 @@ namespace Burst.Tests.Helper
             this.ApiVersion = apiVersion;
         }
 
-        public V2beta2HorizontalPodAutoscaler CreateMockHPA()
+        public V2HorizontalPodAutoscaler CreateMockHPA()
         {
-            return new V2beta2HorizontalPodAutoscaler()
+            return new V2HorizontalPodAutoscaler()
             {
                 Metadata = new V1ObjectMeta(name: this.Deployment, namespaceProperty: this.Namespace),
-                Spec = new V2beta2HorizontalPodAutoscalerSpec(maxReplicas: this.MaxReplicas, minReplicas: this.MinReplicas, scaleTargetRef: new V2beta2CrossVersionObjectReference(kind: "Deployment", name: this.Deployment, apiVersion: this.ApiVersion)),
-                Status = new V2beta2HorizontalPodAutoscalerStatus(currentReplicas: this.CurrentReplicas, desiredReplicas: this.MaxReplicas),
+                Spec = new V2HorizontalPodAutoscalerSpec(maxReplicas: this.MaxReplicas, minReplicas: this.MinReplicas, scaleTargetRef: new V2CrossVersionObjectReference(kind: "Deployment", name: this.Deployment, apiVersion: this.ApiVersion)),
+                Status = new V2HorizontalPodAutoscalerStatus(currentReplicas: this.CurrentReplicas, desiredReplicas: this.MaxReplicas),
             };
         }
 

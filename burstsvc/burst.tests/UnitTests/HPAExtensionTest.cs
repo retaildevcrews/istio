@@ -45,7 +45,7 @@ namespace Burst.Tests.UnitTests
                     && expectedMetrics.Service == metrics.Service);
             }
 
-            V2beta2HorizontalPodAutoscaler nullHpa = null;
+            V2HorizontalPodAutoscaler nullHpa = null;
             Assert.Null(nullHpa.ToHPAMetrics(0.0));
         }
 
@@ -70,7 +70,7 @@ namespace Burst.Tests.UnitTests
                 Assert.Equal(hpa.CurrentReplicas, currentLoad);
             }
 
-            V2beta2HorizontalPodAutoscaler nullHpa = null;
+            V2HorizontalPodAutoscaler nullHpa = null;
             Assert.Throws<Exception>(() => nullHpa.GetCurrentLoad());
 
             var mockHpa2 = fakeHPAList[0].CreateMockHPA();
@@ -99,7 +99,7 @@ namespace Burst.Tests.UnitTests
                 Assert.Equal(hpa.MaxReplicas, maxLoad);
             }
 
-            V2beta2HorizontalPodAutoscaler nullHpa = null;
+            V2HorizontalPodAutoscaler nullHpa = null;
             Assert.Throws<Exception>(() => nullHpa.GetMaxLoad());
             var anotherMock = fakeHPAList[0].CreateMockHPA();
             anotherMock.Spec = null;

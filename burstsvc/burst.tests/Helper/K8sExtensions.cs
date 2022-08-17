@@ -9,9 +9,9 @@ namespace Burst.Tests.Helper
 {
     internal static class K8sExtensions
     {
-        public static V2beta2HorizontalPodAutoscalerList ListHorizontalPodAutoscalerForAllNamespaces3(this IKubernetes ik8s, int timeoutSeconds = 1)
+        public static V2HorizontalPodAutoscalerList ListHorizontalPodAutoscalerForAllNamespaces3(this IKubernetes ik8s, int timeoutSeconds = 1)
         {
-            V2beta2HorizontalPodAutoscalerList hpaList = new();
+            V2HorizontalPodAutoscalerList hpaList = new();
             var hpaEssentials = HPAEssentials.GenerateHPAEssentials();
             foreach (var hpa in hpaEssentials)
             {
@@ -20,11 +20,5 @@ namespace Burst.Tests.Helper
 
             return hpaList;
         }
-
-        // public static V1Deployment ReadNamespacedDeployment(string name, string @namespace)
-        // {
-        //     var v1spec = new V1DeploymentSpec()
-        //     var v1Depl = new V1Deployment();
-        // }
     }
 }

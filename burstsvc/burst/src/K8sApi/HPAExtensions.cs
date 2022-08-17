@@ -8,23 +8,21 @@ namespace Ngsa.BurstService.K8sApi
 {
     public static class HPAExtensions
     {
-        public static K8sHPAMetrics ToHPAMetrics(this V2beta2HorizontalPodAutoscaler hpa, double targetPercentOfMaxLoad)
+        public static K8sHPAMetrics ToHPAMetrics(this V2HorizontalPodAutoscaler hpa, double targetPercentOfMaxLoad)
         {
             if (hpa != null)
             {
-                K8sHPAMetrics hpaMetrics = new();
+                K8sHPAMetrics hpaMetrics = new()
+                {
+                    MaxLoad = hpa.GetMaxLoad(),
+                    CurrentLoad = hpa.GetCurrentLoad(),
 
-                // Get the Target CPU load
-                hpaMetrics.MaxLoad = hpa.GetMaxLoad();
-
-                // Get the current CPU load
-                hpaMetrics.CurrentLoad = hpa.GetCurrentLoad();
-                hpaMetrics.TargetLoad = (int?)Math.Floor(hpaMetrics.MaxLoad.GetValueOrDefault() * targetPercentOfMaxLoad);
-
-                // Setting the burst header service name to namespace/deployment
-                hpaMetrics.Service = string.Format("{0}/{1}", hpa.Namespace(), hpa.Spec.ScaleTargetRef.Name);
+                    // Setting the burst header service name to namespace/deployment
+                    Service = string.Format("{0}/{1}", hpa.Namespace(), hpa.Spec.ScaleTargetRef.Name),
+                };
 
                 // If calculated target load is zero (it can be since we are flooring MaxLoad)
+                hpaMetrics.TargetLoad = (int?)Math.Floor(hpaMetrics.MaxLoad.GetValueOrDefault() * targetPercentOfMaxLoad);
                 if (hpaMetrics.TargetLoad == 0)
                 {
                     hpaMetrics.TargetLoad = hpaMetrics.MaxLoad;
@@ -36,13 +34,13 @@ namespace Ngsa.BurstService.K8sApi
             return null;
         }
 
-        public static int GetCurrentLoad(this V2beta2HorizontalPodAutoscaler hpa)
+        public static int GetCurrentLoad(this V2HorizontalPodAutoscaler hpa)
         {
             // Check if we created HPA but but don't have a metrics server
             int currReplicas;
             if (hpa?.Status != null)
             {
-                currReplicas = hpa.Status.CurrentReplicas;
+                currReplicas = hpa.Status.CurrentReplicas.GetValueOrDefault();
             }
             else
             {
@@ -52,11 +50,11 @@ namespace Ngsa.BurstService.K8sApi
             return currReplicas;
         }
 
-        public static int GetMaxLoad(this V2beta2HorizontalPodAutoscaler hpa)
+        public static int GetMaxLoad(this V2HorizontalPodAutoscaler hpa)
         {
             int maxReplicas;
 
-            // Check if we created HPA but didn't set any CPU Target
+            // Check if we created HPA but didn't set any Target
             if (hpa?.Spec != null)
             {
                 maxReplicas = hpa.Spec.MaxReplicas;

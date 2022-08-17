@@ -23,7 +23,7 @@ namespace Ngsa.Application.Controllers
         // json serialization options
         private static readonly JsonSerializerOptions Options = new ()
         {
-            IgnoreNullValues = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
