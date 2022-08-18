@@ -9,8 +9,12 @@ using System.IO;
 using System.Threading;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ngsa.Middleware;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Trace;
 
 namespace Ngsa.BurstService
 {
@@ -128,7 +132,12 @@ namespace Ngsa.BurstService
                         .AddFilter("Default", Config.LogLevel)
                         .AddFilter("Ngsa.BurstService", Config.LogLevel);
                     }
-                });
+                })
+                .ConfigureServices(services => services.AddOpenTelemetryTracing(b =>
+                {
+                    b.AddAspNetCoreInstrumentation();
+                }));
+            Sdk.SetDefaultTextMapPropagator(new B3Propagator());
 
             // build the host
             return builder.Build();
