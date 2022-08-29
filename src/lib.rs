@@ -32,7 +32,7 @@ impl RootHandler {
     pub(crate) fn new() -> Self {
         Self {
             config: None,
-            cluster_map: None,
+            cluster_map: Some(Map::new()),
         }
     }
 }
@@ -213,12 +213,14 @@ impl Context for RequestContext {}
 impl HttpContext for RequestContext {
     // check headers for user-agent match and store in self
     fn on_http_request_headers(&mut self, _: usize) -> Action {
-        if self
+        self.add_header = true;
+        if !self.user_agent.as_str().is_empty() &&
+            !self
             .get_http_request_header(USER_AGENT)
             .unwrap_or_default()
             .starts_with(self.user_agent.as_str())
         {
-            self.add_header = true;
+            self.add_header = false;
         } else {
             debug!("Not adding header. User agent mismatch");
         }
