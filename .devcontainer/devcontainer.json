@@ -35,7 +35,7 @@
 		"gruntfuggly.todo-tree",
 		"ms-azuretools.vscode-docker",
 		"mutantdino.resourcemonitor",
-		"rust-lang.rust",
+		"rust-lang.rust-analyzer",
 		"vadimcn.vscode-lldb",
 		"humao.rest-client",
 		"serayuzgur.crates",
