@@ -127,12 +127,14 @@ impl RootContext for RootHandler {
             }
             .unwrap_or_default();
 
+            error!("DEBUG: host_addr: {}", host_addr);
             // host_addr format: service.namespace.svc.cluster.local
             // cluster.local portion can be different based on which
             // cluster the service is in
             // But for now we're interesting about service and namespace only
             let tokens: Vec<&str> = host_addr.split(".").collect();
             let key = format!(KEY_FORMAT!(), tokens[1], tokens[0]);
+
             match self.cluster_map.as_ref().unwrap().get(key.as_str()) {
                 Some(val) => val.as_str().unwrap(),
                 _ => "",
