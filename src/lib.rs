@@ -129,8 +129,7 @@ impl RootContext for RootHandler {
 
             let mut key = String::new();
 
-            if host_addr.is_empty()
-            {
+            if host_addr.is_empty(){
                 warn!("host_addr is empty.");
             }
             else{
@@ -141,12 +140,10 @@ impl RootContext for RootHandler {
                 let tokens: Vec<&str> = host_addr.split(".").collect();
 
                 // we check to make sure tokens has at least 2 items.
-                if tokens.len() >= 2
-                {
+                if tokens.len() >= 2{
                     key = format!(KEY_FORMAT!(), tokens[1], tokens[0]);
                 }
-                else
-                {
+                else{
                     warn!("host_addr does not match the expected format: '{}'", host_addr )
                 }
             }
