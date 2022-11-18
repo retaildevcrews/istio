@@ -172,7 +172,7 @@ Our crews are distributed across timezones and across the world. Where possible,
 ### Versioning & Tagging
 
 - Code requires versioning to support side-by-side releases.
-- Semantic versioning will be used (ex.: 0.5.0-MMdd-hhmm).
+- Semantic versioning will be used (ex.: 1.0.0-MMdd-hhmm).
 - We will tag as needed to identify releases along main branch.
 
 ### Reviews

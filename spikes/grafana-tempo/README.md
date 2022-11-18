@@ -112,7 +112,7 @@ It should return something like this
 > transfer-encoding: chunked
 > x-envoy-upstream-service-time: 124
 >
-> 0.5.0-0118-1756
+> 1.0.0-0118-1756
 
 Copy the value of `istio-trace-id` and paste it in the Grafana Tempo and run the query
 ![Tempo simple tracing](imgs/tempo_query_simple.png)
