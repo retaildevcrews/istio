@@ -37,11 +37,8 @@ namespace Ngsa.Middleware
             this.next = next;
             this.options = options?.Value;
 
-            if (this.options == null)
-            {
-                // use default
-                this.options = new RequestLoggerOptions();
-            }
+            // use default
+            this.options ??= new RequestLoggerOptions();
 
             if (App.Config.Prometheus)
             {
