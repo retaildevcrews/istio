@@ -16,9 +16,12 @@ namespace Ngsa.Middleware
         public static IApplicationBuilder UseRequestLogger(this IApplicationBuilder builder, RequestLoggerOptions options = null)
         {
             // extension - use app.UseRequestLogger();
-            options ??= new RequestLoggerOptions();
+            if (options == null)
+            {
+                options = new RequestLoggerOptions();
+            }
 
-            return builder.UseMiddleware<RequestLogger>(Options.Create(options));
+            return builder.UseMiddleware<RequestLogger>(Options.Create<RequestLoggerOptions>(options));
         }
     }
 }

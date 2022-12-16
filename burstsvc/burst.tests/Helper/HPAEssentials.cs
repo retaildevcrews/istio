@@ -17,24 +17,6 @@ namespace Burst.Tests.Helper
         public string ApiVersion;
         public double TargetPercent;
 
-        public HPAEssentials(
-            string @namespace,
-            string deployment,
-            int maxReplicas,
-            int minReplicas,
-            int currentReplicas,
-            double targetPercent,
-            string apiVersion)
-        {
-            Namespace = @namespace;
-            Deployment = deployment;
-            MaxReplicas = maxReplicas;
-            MinReplicas = minReplicas;
-            CurrentReplicas = currentReplicas;
-            TargetPercent = targetPercent;
-            ApiVersion = apiVersion;
-        }
-
         public static List<HPAEssentials> GenerateHPAEssentials()
         {
             return new List<HPAEssentials>()
@@ -74,25 +56,36 @@ namespace Burst.Tests.Helper
             };
         }
 
+        public HPAEssentials(string @namespace, string deployment, int maxReplicas, int minReplicas, int currentReplicas, double targetPercent, string apiVersion)
+        {
+            this.Namespace = @namespace;
+            this.Deployment = deployment;
+            this.MaxReplicas = maxReplicas;
+            this.MinReplicas = minReplicas;
+            this.CurrentReplicas = currentReplicas;
+            this.TargetPercent = targetPercent;
+            this.ApiVersion = apiVersion;
+        }
+
         public V2HorizontalPodAutoscaler CreateMockHPA()
         {
             return new V2HorizontalPodAutoscaler()
             {
-                Metadata = new V1ObjectMeta(name: Deployment, namespaceProperty: Namespace),
-                Spec = new V2HorizontalPodAutoscalerSpec(maxReplicas: MaxReplicas, minReplicas: MinReplicas, scaleTargetRef: new V2CrossVersionObjectReference(kind: "Deployment", name: Deployment, apiVersion: ApiVersion)),
-                Status = new V2HorizontalPodAutoscalerStatus(currentReplicas: CurrentReplicas, desiredReplicas: MaxReplicas),
+                Metadata = new V1ObjectMeta(name: this.Deployment, namespaceProperty: this.Namespace),
+                Spec = new V2HorizontalPodAutoscalerSpec(maxReplicas: this.MaxReplicas, minReplicas: this.MinReplicas, scaleTargetRef: new V2CrossVersionObjectReference(kind: "Deployment", name: this.Deployment, apiVersion: this.ApiVersion)),
+                Status = new V2HorizontalPodAutoscalerStatus(currentReplicas: this.CurrentReplicas, desiredReplicas: this.MaxReplicas),
             };
         }
 
         public K8sHPAMetrics CreateExpectedMetrics()
         {
-            var calcReplica = Math.Floor(MaxReplicas * TargetPercent);
+            var calcReplica = Math.Floor(this.MaxReplicas * this.TargetPercent);
             return new K8sHPAMetrics()
             {
-                Service = string.Format("{0}/{1}", Namespace, Deployment),
-                CurrentLoad = CurrentReplicas,
-                TargetLoad = (int?)(calcReplica < 1 ? MaxReplicas : calcReplica),
-                MaxLoad = MaxReplicas,
+                Service = string.Format("{0}/{1}", this.Namespace, this.Deployment),
+                CurrentLoad = this.CurrentReplicas,
+                TargetLoad = (int?)(calcReplica < 1 ? this.MaxReplicas : calcReplica),
+                MaxLoad = this.MaxReplicas,
             };
         }
     }
