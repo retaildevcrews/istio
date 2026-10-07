@@ -40,21 +40,21 @@ jobs:
 
     steps:
     - name: Login to Container Registry
-      uses: docker/login-action@v1
+      uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1.14.1
       with:
         registry: ghcr.io
         username: ${{ secrets.GHCR_ID }}
         password: ${{ secrets.GHCR_PAT }}
 
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
 
     - name: Docker Build
       run: |
         docker build ./burstsvc/ -f ./burstsvc/burst/Dockerfile --build-arg BUILD_ENV=unittest --progress auto -t image
     
     - name: Grype Scan Image for Vulnerabilities
-      uses: anchore/scan-action@v3
+      uses: anchore/scan-action@3343887d815d7b07465f6fdcd395bd66508d486a # v3.6.4
       id: grype
       with:
         image: "image"
@@ -64,7 +64,7 @@ jobs:
 
     - name: Upload Grype Vulnerability SARIF report
       if: always()
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@b8d3b6e8af63cde30bdc382c0bc28114f4346c88 # v2.28.1
       with:
         sarif_file: ${{ steps.grype.outputs.sarif }}
 
